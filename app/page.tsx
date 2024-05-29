@@ -1,8 +1,8 @@
-import { getClient } from "@/_lib/apolloClient";
+// import { getClient } from "@/_lib/apolloClient";
 import { gql } from "@apollo/client/core";
 
 export default async function Home() {
-  const client = getClient();
+  // const client = getClient();
 
   const userQuery = gql`
     query MyQuery {
@@ -18,8 +18,8 @@ export default async function Home() {
   `;
 
   // const { data, loading, error } = useQuery({ query: GET_DOGS });
-  const { data } = await client.query({ query: userQuery });
-  console.log(data);
+  // const { data } = await client.query({ query: userQuery });
+  // console.log(data);
 
   return (
     // <ApolloProvider client={createApolloClient()}>
