@@ -1,5 +1,8 @@
 // import { getClient } from "@/_lib/apolloClient";
 import { gql } from "@apollo/client/core";
+import dynamic from "next/dynamic";
+
+const Editor = dynamic(() => import("./_components/editor"), { ssr: false });
 
 export default async function Home() {
   // const client = getClient();
@@ -25,6 +28,7 @@ export default async function Home() {
     // <ApolloProvider client={createApolloClient()}>
     <div>
       <h2>My first Apollo app</h2>
+      <Editor holder="editorjs" />
     </div>
     // </ApolloProvider>
   );
