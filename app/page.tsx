@@ -85,3 +85,26 @@ export async function createRecipe() {
     },
   });
 }
+
+export async function searchIngredients() {
+  const client = getClient();
+  const ingredientName = "chi"; //replace this with user input
+  const searchIngredients = gql`
+    query MyQuery($ingredientName: String!) {
+      searchIngredients(ingredientName: $ingredientName)
+    }
+  `;
+
+  const { data } = await client.query({
+    query: searchIngredients,
+    variables: {
+      ingredientName: ingredientName,
+    },
+  });
+
+  return data.searchIngredients;
+}
+
+searchIngredients().then((result) => {
+  console.log(result);
+});
