@@ -1,31 +1,49 @@
-// import { getClient } from "@/_lib/apolloClient";
+import { getClient, query } from "@/_lib/apolloClient";
 import { gql } from "@apollo/client/core";
 
-export default async function Home() {
-  // const client = getClient();
-
-  const userQuery = gql`
-    query MyQuery {
-      users(where: { email: "zhiwei@email.com" }) {
-        email
+const GET_ACTORS = gql`
+  query GetActors {
+    actors {
+      id
+      name
+      actedInMovies {
         id
-        username
-        favourite_recipes {
-          contents
-        }
+        title
       }
     }
-  `;
+  }
+`;
 
-  // const { data, loading, error } = useQuery({ query: GET_DOGS });
-  // const { data } = await client.query({ query: userQuery });
-  // console.log(data);
+export default async function Home() {
+  // const { data } = await getClient().query({ query: userQuery });
+  // `query` is a shortcut for `getClient().query`
+  const { data } = await query({ query: GET_ACTORS });
 
   return (
-    // <ApolloProvider client={createApolloClient()}>
-    <div>
-      <h2>My first Apollo app</h2>
+    <div className="flex flex-col items-center">
+      <h2>All Actors</h2>
+      <table className="table-auto">
+        <thead>
+          <tr>
+            <th>Actor ID</th>
+            <th>Actor Name</th>
+            <th>Movies Acted In</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data?.actors?.map((actor: Actor) => (
+            <tr key={actor.id}>
+              <td>{actor.id}</td>
+              <td>{actor.name}</td>
+              <td>
+                {actor.actedInMovies
+                  .map((movie: Movie) => movie.title)
+                  .join(", ")}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
-    // </ApolloProvider>
   );
 }
