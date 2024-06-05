@@ -132,7 +132,7 @@ export default function Page() {
               <h3>Acted in movies:</h3>
               <ul>
                 {actorData?.actors[0]?.actedInMovies.map((movie: Movie) => (
-                  <li>{movie.title}</li>
+                  <li key={movie.id}>{movie.title}</li>
                 ))}
               </ul>
             </div>
