@@ -1,18 +1,18 @@
 import React from "react";
+import { useContext } from "react";
 import { Button, Image } from "@nextui-org/react";
 import { HeartIcon } from "./HeartIcon"; // Adjust the path if needed
-import { gql, useQuery } from "@apollo/client";
-import { getClient } from "@/_lib/apolloClient";
+import { gql } from "@apollo/client";
+import { getClient, query } from "@/_lib/apolloClient";
 
-
-
+const client = getClient();
 
 const GET_USER_OWNED_RECIPES = gql`
   query GetUserOwnedRecipes($userId: ID!) {
     users(where: { id: $userId }) {
       id
       username
-      owns {
+      recipes {
         name
         contents
         createdAt
@@ -27,15 +27,19 @@ const GET_USER_OWNED_RECIPES = gql`
 const UserOwnedRecipes = () => {
   
   const userId = "e7360194-e411-4ad3-97dc-5a1f832a80e5";
+
   
-  const { loading, error, data } =useQuery(GET_USER_OWNED_RECIPES, {
-    variables: { userId }
-  }) ;
+  const { data, error } =  query({ query: GET_USER_OWNED_RECIPES , variables : {userId}}) ;
   
+  if (error) {
+    console.error('Error fetching recipes:', error);
+    // Handle the error appropriately, e.g., display an error message to the user
+  } else {
+    console.log(data);
+    // Proceed with rendering the recipes
+  }
 
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
 
   return (
     <div>
