@@ -8,7 +8,7 @@ const GET_USER_OWNED_RECIPES = gql`
     users(where: { id: $userId }) {
       id
       username
-      owns {
+      recipes {
         name
         contents
         createdAt
