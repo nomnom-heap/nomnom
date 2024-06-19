@@ -105,6 +105,27 @@ export async function searchIngredients() {
   return data.searchIngredients;
 }
 
-searchIngredients().then((result) => {
-  console.log(result);
-});
+// searchIngredients().then((result) => {
+//   console.log(result);
+// });
+
+export async function SearchRecipesByName(ingredientName) {
+  const client = getClient();
+  const SEARCH_RECIPES_BY_NAME = gql`
+    query SearchRecipesByName($searchTerm: String!) {
+      recipes(where: { name_CONTAINS: $searchTerm }) {
+        name
+        thumbnail_url
+        time_taken_mins
+      }
+    }
+  `;
+
+  const { data } = await client.query({
+    query: SEARCH_RECIPES_BY_NAME,
+    variables: {
+      searchTerm: ingredientName,
+    },
+  });
+  return data.recipes;
+}

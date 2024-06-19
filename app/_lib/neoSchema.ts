@@ -11,11 +11,13 @@ const typeDefs = /* GraphQL */ `
   }
 
   type Actor {
+    id: ID! @id
     actedInMovies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
     name: String!
   }
 
   type Movie {
+    id: ID! @id
     actorsActedIn: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
     title: String!
   }
@@ -24,12 +26,11 @@ const typeDefs = /* GraphQL */ `
     id: ID! @id
     username: String!
     email: String!
+    recipes: [Recipe!]! @relationship(type: "OWNS", direction: OUT)
     favourite_recipes: [Recipe!]!
-      @relationship(
-        type: "FAVOURITED"
-        properties: "Favourited"
-        direction: OUT
-      )
+      @relationship(type: "FAVOURITED", direction: OUT)
+    following: [User]!
+    followers: [User]!
   }
 
   type Recipe {
