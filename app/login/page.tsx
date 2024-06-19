@@ -10,12 +10,8 @@ import {
   Card,
   CardBody,
 } from "@nextui-org/react";
-import { signUp, signIn } from "aws-amplify/auth";
+import { signUp, signIn, signInWithRedirect } from "aws-amplify/auth";
 import { useRouter } from "next/navigation";
-import { Amplify } from "aws-amplify";
-import outputs from "@/amplify_outputs.json";
-
-Amplify.configure(outputs);
 
 export default function Page() {
   const [selected, setSelected] = useState<Key>("login");
@@ -52,11 +48,11 @@ export default function Page() {
         router.push(`/confirm-sign-up?email=${encodedSignUpEmail}`);
       }
     } catch (error: any) {
-      // console.error(error);
+      console.error(error);
       // error object has name and message fields
       switch (error.name) {
         case "UsernameExistsException":
-          router.push(`/confirm-sign-up?email=${encodedSignUpEmail}`);
+          setErrorMsg(`An account with email ${signUpEmail} already exists.`);
           break;
         case "InvalidPasswordException":
           setErrorMsg(error.message);
@@ -88,8 +84,11 @@ export default function Page() {
         router.push(`/confirm-sign-up?email=${email}`);
       }
     } catch (error: any) {
-      // console.error(error);
+      console.error(error);
       switch (error.name) {
+        case "UserAlreadyAuthenticatedException":
+          router.push("/");
+          break;
         case "EmptySignInUsername":
           setErrorMsg("Email is required");
           break;
@@ -98,6 +97,27 @@ export default function Page() {
           break;
         case "NotAuthorizedException":
           setErrorMsg("Incorrect username or password.");
+          break;
+        default:
+          setErrorMsg(error.message);
+          break;
+      }
+    }
+  };
+
+  const handleLoginWithGoogle = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+    try {
+      await signInWithRedirect({
+        provider: "Google",
+      });
+    } catch (error: any) {
+      console.error(error);
+      switch (error.name) {
+        case "UserAlreadyAuthenticatedException":
+          router.push("/");
           break;
         default:
           setErrorMsg(error.message);
@@ -118,6 +138,15 @@ export default function Page() {
             onSelectionChange={setSelected}
           >
             <Tab key="login" title="Login">
+              <form
+                className="flex flex-col gap-4"
+                onSubmit={handleLoginWithGoogle}
+              >
+                <Button className="mb-4" color="secondary" type="submit">
+                  Login with Google
+                </Button>
+              </form>
+
               <form className="flex flex-col gap-4" onSubmit={handleLogin}>
                 <Input
                   isRequired

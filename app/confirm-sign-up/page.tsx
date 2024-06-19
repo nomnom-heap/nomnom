@@ -24,7 +24,7 @@ export default function Page() {
         router.push("/login");
       }
     } catch (error: any) {
-      console.error(error);
+      // console.error(error);
       switch (error.name) {
         case "CodeMismatchException":
           setErrorMsg("Invalid verification code provided, please try again.");
@@ -56,7 +56,6 @@ export default function Page() {
               value={confirmationCode}
               onChange={(e) => setConfirmationCode(e.target.value)}
             />
-            {/* How to change the button so that i can submit the form with enter */}
             <Button className="w-auto" color="primary" type="submit">
               Let's get this started 🔥
             </Button>
