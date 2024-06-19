@@ -1,4 +1,4 @@
-import { getClient } from "@/_lib/apolloClient";
+import { getClient, query } from "@/_lib/apolloClient";
 import { gql } from "@apollo/client/core";
 import { create } from "domain";
 

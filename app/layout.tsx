@@ -40,6 +40,8 @@ import { useState, useMemo } from "react";
 import { Listbox, ListboxSection, ListboxItem } from "@nextui-org/react";
 import { ListboxWrapper } from "./ListboxWrapper";
 import { DeleteIcon } from "./DeleteIcon";
+import { Providers } from "./providers";
+
 const inter = Inter({ subsets: ["latin"] });
 // import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
