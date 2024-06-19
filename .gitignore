@@ -2,6 +2,7 @@
 .env*
 .amplify/*
 amplify_outputs.json
+bun.lockb
 
 # dependencies
 /node_modules
