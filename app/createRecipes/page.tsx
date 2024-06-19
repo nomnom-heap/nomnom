@@ -1,15 +1,14 @@
 import Editor from "../_components/Editor";
 import { MdFullscreen } from "react-icons/md";
 import { RxCross2 } from "react-icons/rx";
+import { FaPlus } from "react-icons/fa";
 
-import CreateActorForm from "../_components/CreateActorForm";
 import {Card, CardHeader, CardBody, CardFooter, Image, Input, Button, ButtonGroup} from "@nextui-org/react";
 
 export default function createRecipe(){
     return (
-        <div className="container">
-            <div className="d-flex justify-content-center">
-            <Card >
+        <div className="md:container flex items-center justify-center">
+            <Card className="">
                 <div className="ml-auto">
                     <Button isIconOnly aria-label="Full screen">
                         <MdFullscreen/>
@@ -19,31 +18,39 @@ export default function createRecipe(){
                     </Button>
                 </div>
 
-                <Image
-                width={300}
-                    src="../images/eggFriedRice.jpg"
-                    className="d-flex object-cover rounded-xl justify-content-center mx-auto"/>
+                <div className="justify-center items-center">
+                    <p><input type="file" className="my-3"/></p>
+                    <Image
+                        width={350}
+                        src="./images/eggFriedRice.jpg"
+                        className="d-flex object-cover rounded-xl justify-content-center mx-auto"/>
+                </div>
+                
+                    <CardHeader className="pb-0 pt-2 px-4 flex-col items-center justify-center">
+                        <p><Input type="Dish Name" className="my-1" isRequired placeholder="Enter the dish name"/></p>
+                        <p><Input type="Preparation Time" className="my-1" isRequired placeholder="Enter the preparation time"/></p>
+                    </CardHeader>
 
-                <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
-                    <p><Input type="Dish Name" label="Dish Name" /></p>
-                    <p><Input type="Preparation Time" label="Preparation Time" /></p>
 
-                </CardHeader>
+                
+
                 <CardBody>
-                    <p className="text-tiny uppercase font-bold">Daily Mix</p>
-                    <small className="text-default-500">12 Tracks</small>
-                    <p className="text-default-500">12 Tracks</p>
-                    <h4 className="font-bold text-large">Frontend Radio</h4>
-                    <div>Ingredients
-                        <Editor holder="EditorJS"></Editor>
+                    <div className="font-bold text-large">
+                        Ingredients
+                        <div className="flex">
+                        <Input type="Ingredient" placeholder="Enter an ingredient"/>
+                        <Button isIconOnly aria-label="Add Ingredient">
+                            <FaPlus/>
+                        </Button>
+                        </div>
                     </div>
                     
                     <div>
-                        <h2>Steps</h2>
+                        <p>Steps</p>
                         <Editor holder="EditorJS"></Editor>
                     </div>
-                    
                 </CardBody>
+
                 <CardFooter>
                     <div className="ml-auto">
                         <Button color="secondary" size="md" >
@@ -52,7 +59,6 @@ export default function createRecipe(){
                     </div>
                 </CardFooter>
             </Card>
-            </div>
         </div>
     );
 }
