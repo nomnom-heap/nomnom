@@ -1,131 +1,61 @@
-import { getClient, query } from "@/_lib/apolloClient";
-import { gql } from "@apollo/client/core";
-import { create } from "domain";
+"use client";
+import "aws-amplify/auth/enable-oauth-listener";
+import { getCurrentUser, fetchAuthSession, AuthUser } from "aws-amplify/auth";
+import { Hub } from "aws-amplify/utils";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-//TODO
-//create routing
-//implement error handling
+export default function Home() {
+  const router = useRouter();
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [error, setError] = useState<unknown>(null);
+  const [customState, setCustomState] = useState<string | null>(null);
 
-export default async function Home() {
-  const client = getClient();
-  const username = "zhiwei";
+  useEffect(() => {
+    const unsubscribe = Hub.listen("auth", async ({ payload }) => {
+      console.log("payload", payload);
+      switch (payload.event) {
+        case "signInWithRedirect":
+          getUser();
+          console.log("current user", user);
+          const session = await fetchAuthSession();
+          console.log("session", session);
+          console.log("id token", session?.tokens?.idToken);
+          console.log("access token", session?.tokens?.accessToken);
+          break;
+      }
+    });
 
-  const userQuery = gql`
-    query MyQuery($username: String!) {
-      users(where: { username: $username }) {
-        email
-        id
-        username
-        favourite_recipes {
-          contents
-        }
+    getUser();
+
+    return unsubscribe;
+  }, []);
+
+  const getUser = async (): Promise<void> => {
+    try {
+      const currentUser = await getCurrentUser();
+      console.log("GetUser current user", currentUser);
+      setUser(currentUser);
+      const session = await fetchAuthSession();
+      // console.log("session", session);
+      // console.log("id token", session?.tokens?.idToken);
+      console.log("access token", session?.tokens?.accessToken.toString());
+    } catch (error: any) {
+      // console.error(error);
+      switch (error.name) {
+        case "UserUnAuthenticatedException":
+          router.push("/login");
+          break;
+
+        default:
+          break;
       }
     }
-  `;
-}
-export async function createRecipe() {
-  //middleware to get client
-  const client = getClient();
+  };
 
-  //parsing request input
-  //these are placeholders
-  const name = "Spaghetti Aglio e Olio";
-  const ingredients = [
-    "Spaghetti",
-    "Garlic",
-    "Olive Oil",
-    "Red Pepper Flakes",
-    "Fresh Parsley",
-    "Salt",
-    "Black Pepper",
-  ];
-  const thumbnail_url =
-    "https://upload.wikimedia.org/wikipedia/commons/6/6f/Aglio_e_olio.jpg";
-  const time_taken_mins = 20;
-  const contents =
-    "1. Cook the spaghetti in salted boiling water according to package instructions until al dente.\n2. While the spaghetti is cooking, heat olive oil in a large skillet over medium heat.\n3. Add minced garlic and red pepper flakes to the skillet. Cook until the garlic is golden but not browned, about 2 minutes.\n4. Once the spaghetti is cooked, drain it and add it to the skillet with the garlic and oil.\n5. Toss the spaghetti in the garlic oil mixture until well coated. Season with salt and black pepper to taste.\n6. Serve the spaghetti Aglio e Olio hot, garnished with chopped parsley and grated Parmesan cheese if desired.";
-
-  //TODO
-  //implement username in order to know who created the recipe
-
-  //mutation
-  const addRecipeMutation = gql`
-    mutation createRecipes(
-      $name: String!
-      $ingredients: [String!]!
-      $thumbnail_url: String!
-      $time_taken_mins: Float!
-      $contents: String!
-    ) {
-      createRecipes(
-        input: {
-          name: $name
-          ingredients: $ingredients
-          thumbnail_url: $thumbnail_url
-          time_taken_mins: $time_taken_mins
-          contents: $contents
-        }
-      ) {
-        recipes {
-          id
-        }
-      }
-    }
-  `;
-
-  //mutation result
-  const { data } = await client.mutate({
-    mutation: addRecipeMutation,
-    variables: {
-      name: name,
-      ingredients: ingredients,
-      thumbnail_url: thumbnail_url,
-      time_taken_mins: time_taken_mins,
-      contents: contents,
-    },
-  });
-}
-
-export async function searchIngredients() {
-  const client = getClient();
-  const ingredientName = "chi"; //replace this with user input
-  const searchIngredients = gql`
-    query MyQuery($ingredientName: String!) {
-      searchIngredients(ingredientName: $ingredientName)
-    }
-  `;
-
-  const { data } = await client.query({
-    query: searchIngredients,
-    variables: {
-      ingredientName: ingredientName,
-    },
-  });
-
-  return data.searchIngredients;
-}
-
-// searchIngredients().then((result) => {
-//   console.log(result);
-// });
-
-export async function SearchRecipesByName(ingredientName) {
-  const client = getClient();
-  const SEARCH_RECIPES_BY_NAME = gql`
-    query SearchRecipesByName($searchTerm: String!) {
-      recipes(where: { name_CONTAINS: $searchTerm }) {
-        name
-        thumbnail_url
-        time_taken_mins
-      }
-    }
-  `;
-
-  const { data } = await client.query({
-    query: SEARCH_RECIPES_BY_NAME,
-    variables: {
-      searchTerm: ingredientName,
-    },
-  });
-  return data.recipes;
+  return (
+    <div className="flex flex-col items-center">
+      <h2>Hello</h2>
+    </div>
+  );
 }

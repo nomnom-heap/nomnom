@@ -22,9 +22,26 @@ const typeDefs = /* GraphQL */ `
     title: String!
   }
 
-  type User {
+  type User
+    @authentication(
+      operations: [
+        CREATE
+        UPDATE
+        DELETE
+        CREATE_RELATIONSHIP
+        DELETE_RELATIONSHIP
+      ]
+    )
+    @authorization(
+      validate: [
+        {
+          operations: [UPDATE, CREATE_RELATIONSHIP]
+          where: { node: { id: "$jwt.sub" } }
+        }
+      ]
+    ) {
     id: ID! @id
-    username: String!
+    display_name: String!
     email: String!
     recipes: [Recipe!]! @relationship(type: "OWNS", direction: OUT)
     favourite_recipes: [Recipe!]!
@@ -33,38 +50,35 @@ const typeDefs = /* GraphQL */ `
     followers: [User]!
   }
 
-  type Recipe {
+  type Recipe
+    @authentication(
+      operations: [
+        CREATE
+        UPDATE
+        DELETE
+        CREATE_RELATIONSHIP
+        DELETE_RELATIONSHIP
+      ]
+    )
+    @authorization(
+      validate: [
+        {
+          operations: [CREATE, CREATE_RELATIONSHIP]
+          where: { node: { owner: { id: "$jwt.sub" } } }
+        }
+      ]
+    ) {
     id: ID! @id
     name: String!
     ingredients: [String!]!
-    thumbnail_url: String
-    time_taken_mins: Float
-    contents: String
+    ingredients_qty: [String!]!
+    serving: Float!
+    time_taken_mins: Float!
+    owner: User! @relationship(type: "OWNS", direction: IN)
+    thumbnail_url: String!
+    contents: String!
     createdAt: DateTime! @timestamp(operations: [CREATE])
     updatedAt: DateTime! @timestamp
-    favourited_by: [User!]!
-      @relationship(type: "FAVOURITED", properties: "Favourited", direction: IN)
-  }
-
-  type Favourited @relationshipProperties {
-    favourited: Boolean
-  }
-
-  type Ingredient {
-    id: ID!
-    name: String!
-  }
-
-  type Query {
-    searchIngredients(ingredientName: String): [String]
-      @cypher(
-        statement: """
-        MATCH (i:Ingredient)
-        WHERE i.name CONTAINS $ingredientName
-        RETURN i.name AS name
-        """
-        columnName: "name"
-      )
   }
 `;
 
@@ -79,6 +93,13 @@ const driver = neo4j.driver(
 const neoSchema = new Neo4jGraphQL({
   typeDefs,
   driver,
+  features: {
+    authorization: {
+      key: {
+        url: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_JWKS_ENDPOINT_URL!,
+      },
+    },
+  },
 });
 
 export { neoSchema };
