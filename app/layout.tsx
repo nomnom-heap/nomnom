@@ -1,13 +1,13 @@
 "use client";
+
+import { useQuery, useLazyQuery, ApolloProvider } from "@apollo/client";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Providers } from "./providers";
-import { Input } from "@nextui-org/react";
+import { Input, dataFocusVisibleClasses } from "@nextui-org/react";
 import { SearchIcon } from "./SearchIcon";
-// import { searchIngredients } from "./page";
 import { HeartIcon } from "./HeartIcon";
-import { SearchRecipesByName } from "./page";
+import Page from "./demo/page";
 import {
   Navbar,
   NavbarBrand,
@@ -17,7 +17,7 @@ import {
   Button,
 } from "@nextui-org/react";
 
-import { ingredients } from "./data";
+// import { ingredients } from "./data";
 import { Tabs, Tab } from "@nextui-org/react";
 
 // import { Autocomplete, AutocompleteItem } from "@nextui-org/react";
@@ -114,13 +114,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Providers>{children}</Providers>
-        <NavBar />
-
-        <ToggleSearch />
-        <SortBar />
-        {/* <IngredientDisplay /> */}
-        <RecipeContainer />
+        <Providers>
+          <NavBar />
+          <Page />
+          <ToggleSearch />
+          <SortBar />
+          {/* <IngredientDisplay /> */}
+          <RecipeContainer />
+        </Providers>
       </body>
     </html>
   );
@@ -148,7 +149,7 @@ function NavBar() {
           <p className="text-white">Not seeing what you like?</p>
         </NavbarItem>
         <NavbarItem>
-          <Button as={Link} className="white" href="#">
+          <Button as={Link} className="white" href="/demo">
             Create Recipe
           </Button>
         </NavbarItem>
@@ -200,7 +201,37 @@ function SortBar() {
 //   }
 // }
 
+// const GET_INGREDIENTS_QUERY = gql`
+//   query MyQuery($ingredientName: String!) {
+//     searchIngredients(ingredientName: $ingredientName)
+//   }
+// `;
+
+const GET_INGREDIENTS_QUERY = gql`
+  query MyQuery {
+    ingredients {
+      name
+      value
+    }
+  }
+`;
+
+// const { data } = await client.query({
+//   query: searchIngredients,
+//   variables: {
+//     ingredientName: ingredientName,
+//   },
+// });
+
+// return data.searchIngredients;
+
 function IngredientSearchBar() {
+  //create query to database to populate autocomplete items
+
+  // const [ingredientSearchTerm, setIngredientSearchTerm] = useState("");
+
+  const { data, loading, error } = useQuery(GET_INGREDIENTS_QUERY);
+
   const [ingredient, setIngredient] = useState([]);
   const handleSelectionChange = (selectedItem) => {
     if (!ingredient.includes(selectedItem) && selectedItem != null) {
@@ -211,6 +242,12 @@ function IngredientSearchBar() {
     }
   };
 
+  // const handleInputChange = (input) => {
+  //   SEARCH_INGREDIENTS().then((result) => {
+  //     console.log(result);
+  //   });
+  // };
+
   const [selectedKeys, setSelectedKeys] = useState(new Set(["text"]));
 
   const selectedValue = useMemo(
@@ -220,6 +257,10 @@ function IngredientSearchBar() {
 
   // const [ingredientToDelete, setIngredientDelete] = useState("");
 
+  if (loading) {
+    return <p> Loading ingredients... </p>;
+  }
+  const ingredients = data.ingredients;
   return (
     <>
       <Autocomplete
@@ -230,12 +271,16 @@ function IngredientSearchBar() {
         disableSelectorIconRotation
         selectorIcon={<SearchIcon />}
         onSelectionChange={handleSelectionChange}
+        // onInputChange={(input) =>
+        //   getIngredients({ variables: { ingredientName: input } })
+        // }
       >
         {ingredients.map((item) => (
           <AutocompleteItem key={item.value} value={item.value}>
-            {item.label}
+            {item.name}
           </AutocompleteItem>
         ))}
+        {/* {(ingredient) => <AutocompleteItem key={data}>{data}</AutocompleteItem>} */}
       </Autocomplete>
 
       {ingredient.length > 0 && (
@@ -253,7 +298,7 @@ function IngredientSearchBar() {
               {ingredient.map((x) => {
                 let ingredientObj = ingredients.find((el) => el.value === x);
 
-                return <ListboxItem key={x}>{ingredientObj.label}</ListboxItem>;
+                return <ListboxItem key={x}>{ingredientObj.name}</ListboxItem>;
               })}
             </Listbox>
           </ListboxWrapper>
