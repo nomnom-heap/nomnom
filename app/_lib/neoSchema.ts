@@ -80,6 +80,17 @@ const typeDefs = /* GraphQL */ `
     createdAt: DateTime! @timestamp(operations: [CREATE])
     updatedAt: DateTime! @timestamp
   }
+  type Query {
+    searchIngredients(ingredientName: String): [String]
+      @cypher(
+        statement: """
+        MATCH (i:Ingredient)
+        WHERE i.name CONTAINS $ingredientName
+        RETURN i.name AS name
+        """
+        columnName: "name"
+      )
+  }
 `;
 
 // Create a Neo4j driver instance to connect to Neo4j AuraDB
