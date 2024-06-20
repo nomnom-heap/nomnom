@@ -49,6 +49,11 @@ const typeDefs = /* GraphQL */ `
     following: [User]!
     followers: [User]!
   }
+  type Ingredient {
+    id: ID!
+    name: String!
+    value: String!
+  }
 
   type Recipe
     @authentication(
