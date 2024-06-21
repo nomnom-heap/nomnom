@@ -319,12 +319,36 @@ function IngredientSearchBar() {
     </>
   );
 }
+const GET_RECIPES_QUERY = gql`
+  query SearchRecipesByName($searchTerm: String!) {
+    recipes(where: { name_CONTAINS: $searchTerm }) {
+      name
+      contents
+      ingredients
+      thumbnail_url
+      time_taken_mins
+    }
+  }
+`;
 function RecipeSearchBar() {
   const [searchTerm, setSearchTerm] = useState("");
-  function handleSubmit(e) {
+
+  const [getRecipe, { loading, error, data }] = useLazyQuery(GET_RECIPES_QUERY);
+
+  if (loading) return <p>Loading...</p>;
+  if (error)
+    return (
+      <>
+        <p>Error : {JSON.stringify(error, null, 4)}</p>
+      </>
+    );
+  async function handleSubmit(e) {
     e.preventDefault();
-    // SearchRecipesByName(searchTerm);
+    await getRecipe({ variables: { searchTerm: searchTerm } });
+    return data;
   }
+  console.log(data);
+  //learn how to pass data into the recipe container
 
   return (
     <div className="max-w-screen">
@@ -353,6 +377,7 @@ function RecipeSearchBar() {
     </div>
   );
 }
+
 function RecipeContainer() {
   return (
     <div className="flex space-x-4">
