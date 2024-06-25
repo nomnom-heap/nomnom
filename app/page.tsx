@@ -105,11 +105,23 @@ export default function HomePageLayout({
   // console.log("test");
   const [getRecipe, { loading, error, data }] = useLazyQuery(GET_RECIPES_QUERY);
 
+  function titleCase(str) {
+    const splitStr = str.toLowerCase().split(" ");
+    for (let i = 0; i < splitStr.length; i++) {
+      // You do not need to check if i is larger than splitStr length, as your for does that for you
+      // Assign it back to the array
+      splitStr[i] =
+        splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
+    }
+    // Directly return the joined string
+    return splitStr.join(" ");
+  }
+
   async function handleSubmit(e) {
-    // setRecipeResult("");
     //try and catch results in the disappearance of the UI?? Why
+    const sanitizedSearchTerm = titleCase(searchTerm);
     e.preventDefault();
-    await getRecipe({ variables: { searchTerm: searchTerm } });
+    await getRecipe({ variables: { searchTerm: sanitizedSearchTerm } });
   }
 
   useEffect(() => {
@@ -296,7 +308,12 @@ function RecipeCard({ recipeObj }) {
         </a>
       </CardBody>
       <CardFooter className="justify-between">
-        <p>Preparation time: {recipeObj.time_taken_mins} mins</p>
+        <p
+          className="mt-2 self-end text-md text-gray-500"
+          style={{ alignSelf: "flex-end" }}
+        >
+          🕛 {recipeObj.time_taken_mins} mins
+        </p>
         <Button isIconOnly color="danger" aria-label="Like">
           <HeartIcon />
         </Button>
