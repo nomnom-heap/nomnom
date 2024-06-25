@@ -23,7 +23,7 @@ import {
 import { Listbox, ListboxSection, ListboxItem } from "@nextui-org/react";
 import { ListboxWrapper } from "./ListboxWrapper";
 import { DeleteIcon } from "./DeleteIcon";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { SearchIcon } from "./SearchIcon";
 import RootLayout from "./layout";
 const inter = Inter({ subsets: ["latin"] });
@@ -87,27 +87,83 @@ export default function HomePageLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [recipeResult, setRecipeResult] = useState("");
+
+  const GET_RECIPES_QUERY = gql`
+    query SearchRecipesByName($searchTerm: String!) {
+      recipes(where: { name_CONTAINS: $searchTerm }) {
+        name
+        contents
+        ingredients
+        thumbnail_url
+        time_taken_mins
+      }
+    }
+  `;
+
+  const [searchTerm, setSearchTerm] = useState("");
+  // console.log("test");
+  const [getRecipe, { loading, error, data }] = useLazyQuery(GET_RECIPES_QUERY);
+
+  async function handleSubmit(e) {
+    // setRecipeResult("");
+    //try and catch results in the disappearance of the UI?? Why
+    e.preventDefault();
+    await getRecipe({ variables: { searchTerm: searchTerm } });
+  }
+
+  useEffect(() => {
+    if (loading) setRecipeResult("loading");
+    if (typeof data !== "undefined") setRecipeResult(data);
+  }, [loading, data]);
+
   return (
     <>
-      <ToggleSearch />
+      <div className="flex w-full flex-col">
+        <Tabs aria-label="Options">
+          <Tab key="recipe_search" title="Search by Recipes">
+            <div className="max-w-screen">
+              <form onSubmit={handleSubmit}>
+                <Input
+                  label="Search"
+                  isClearable
+                  radius="lg"
+                  classNames={{
+                    label: "text-black/50 dark:text-white/90",
+                    input: [
+                      "bg-transparent",
+                      "text-black/90 dark:text-white/90",
+                      "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+                    ],
+                    innerWrapper: "",
+                    inputWrapper: [],
+                  }}
+                  placeholder="Type to search..."
+                  startContent={
+                    <SearchIcon className="text-black/50 mb-0.5 dark:text-white/90 text-slate-400 pointer-events-none flex-shrink-0" />
+                  }
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </form>
+            </div>
+          </Tab>
+          <Tab key="ingredient_search" title="Search by Ingredients">
+            <IngredientSearchBar />
+          </Tab>
+        </Tabs>
+      </div>
       <SortBar />
-      <RecipeContainer />
-    </>
-  );
-}
+      <div className="flex space-x-4">
+        {recipeResult === "loading" ? "Loading recipes..." : ""}
 
-function ToggleSearch() {
-  return (
-    <div className="flex w-full flex-col">
-      <Tabs aria-label="Options">
-        <Tab key="recipe_search" title="Search by Recipes">
-          <RecipeSearchBar />
-        </Tab>
-        <Tab key="ingredient_search" title="Search by Ingredients">
-          <IngredientSearchBar />
-        </Tab>
-      </Tabs>
-    </div>
+        {recipeResult === data &&
+          (recipeResult.recipes.length === 0
+            ? "No recipes found"
+            : recipeResult.recipes.map((recipe) => (
+                <RecipeCard recipeObj={recipe} key={recipe.name} />
+              )))}
+      </div>
+    </>
   );
 }
 
@@ -120,6 +176,7 @@ function SortBar() {
     </div>
   );
 }
+
 const GET_INGREDIENTS_QUERY = gql`
   query MyQuery {
     ingredients {
@@ -128,7 +185,6 @@ const GET_INGREDIENTS_QUERY = gql`
     }
   }
 `;
-
 function IngredientSearchBar() {
   //create query to database to populate autocomplete items
 
@@ -145,12 +201,6 @@ function IngredientSearchBar() {
       console.log("duplicate");
     }
   };
-
-  // const handleInputChange = (input) => {
-  //   SEARCH_INGREDIENTS().then((result) => {
-  //     console.log(result);
-  //   });
-  // };
 
   const [selectedKeys, setSelectedKeys] = useState(new Set(["text"]));
 
@@ -224,74 +274,7 @@ function IngredientSearchBar() {
   );
 }
 
-const GET_RECIPES_QUERY = gql`
-  query SearchRecipesByName($searchTerm: String!) {
-    recipes(where: { name_CONTAINS: $searchTerm }) {
-      name
-      contents
-      ingredients
-      thumbnail_url
-      time_taken_mins
-    }
-  }
-`;
-function RecipeSearchBar() {
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const [getRecipe, { loading, error, data }] = useLazyQuery(GET_RECIPES_QUERY);
-
-  if (loading) return <p>Loading...</p>;
-  if (error)
-    return (
-      <>
-        <p>Error : {JSON.stringify(error, null, 4)}</p>
-      </>
-    );
-  async function handleSubmit(e) {
-    e.preventDefault();
-    await getRecipe({ variables: { searchTerm: searchTerm } });
-    return data;
-  }
-  console.log(data);
-  //learn how to pass data into the recipe container
-
-  return (
-    <div className="max-w-screen">
-      <form onSubmit={handleSubmit}>
-        <Input
-          label="Search"
-          isClearable
-          radius="lg"
-          classNames={{
-            label: "text-black/50 dark:text-white/90",
-            input: [
-              "bg-transparent",
-              "text-black/90 dark:text-white/90",
-              "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-            ],
-            innerWrapper: "",
-            inputWrapper: [],
-          }}
-          placeholder="Type to search..."
-          startContent={
-            <SearchIcon className="text-black/50 mb-0.5 dark:text-white/90 text-slate-400 pointer-events-none flex-shrink-0" />
-          }
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </form>
-    </div>
-  );
-}
-
-function RecipeContainer() {
-  return (
-    <div className="flex space-x-4">
-      {recipeData.map((recipe) => (
-        <RecipeCard recipeObj={recipe} key={recipe.name} />
-      ))}
-    </div>
-  );
-}
+//learn how to pass data into the recipe container
 
 function RecipeCard({ recipeObj }) {
   return (
