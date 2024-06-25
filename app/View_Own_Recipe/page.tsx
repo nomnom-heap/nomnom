@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button, Image } from "@nextui-org/react";
-import { HeartIcon } from "./HeartIcon"; // Adjust the path if needed
+import { HeartIcon } from "./HeartIcon";
+import { PiPencilLine } from "react-icons/pi";
 import { gql } from "@apollo/client";
 import { getClient } from "@/_lib/apolloClient";
 
@@ -10,7 +11,7 @@ const GET_USER_OWNED_RECIPES = gql`
   query GetUserOwnedRecipes($userId: ID!) {
     users(where: { id: $userId }) {
       id
-      username
+      display_name
       recipes {
         name
         contents
@@ -23,8 +24,11 @@ const GET_USER_OWNED_RECIPES = gql`
   }
 `;
 
+
+
+
 async function UserOwnedRecipes() {
-  const userId = "e7360194-e411-4ad3-97dc-5a1f832a80e5";
+  const userId = "89fa054c-2071-7009-5a38-05265e229ccd";
   const { data, error } = await client.query({ query: GET_USER_OWNED_RECIPES, variables: { userId } });
 
   if (error) {
@@ -39,19 +43,25 @@ async function UserOwnedRecipes() {
 
   return (
     <div>
-      <h1>{data.users[0].username}'s Recipes</h1>
+      <h1>{data.users[0].display_name}'s Recipes</h1>
       <p>Number of recipes: {recipeCount}</p>
-      <ul>
+      <div className="border-2 border-black rounded-full flex items-end mb-4">
+        <p className="ml-auto mr-2">My Favourites😊</p>
+      </div >
+      <div className="flex justify-end">
+      <Button color="" className="mr-2">
+        <span className="relative mr-2">Create Recipe</span>
+        <PiPencilLine className="text-gray-400" />
+      </Button>
+      </div>
+      <ul className="grid grid-cols-2 gap-2">
         {recipes.map((recipe) => (
-          <li key={recipe.name} className="bg-gray-200 rounded-lg p-4 mb-4">
-            <div className="border-2 border-black rounded-full flex items-end mb-4">
-              <p className="ml-auto mr-2">My Favourites😊</p>
-            </div>
-            <div className="rounded-lg border-2 border-black p-4 bg-white" style={{ height: "250px", width: "190px" }}>
-              <img src={recipe.thumbnail_url} alt={recipe.name} className="rounded-lg" style={{ width: "150px" }} />
-              <div className="relative mt-4" style={{ height: "50px" }}>
+          <li key={recipe.name}>
+            <div className="rounded-lg border-2 border-white bg-gray-100 p-2 flex flex-col items-center" style={{ height: "200px", width: "180px", margin: "10px" }}>
+              <img src={recipe.thumbnail_url} alt={recipe.name} className="rounded-lg" style={{ height: "150px", width: "100%", objectFit: "cover" }} />
+              <div className="relative mt-4" style={{ width: "100%" }}>
                 <h2 style={{ 
-                  maxWidth: "100px", 
+                  maxWidth: "100%", 
                   wordWrap: "break-word", 
                   maxHeight: "3em", 
                   lineHeight: "1.5em", 
@@ -71,7 +81,8 @@ async function UserOwnedRecipes() {
                   />
                 </Button>
               </div>
-              <p className="mt-4">⏰ Time taken: {recipe.time_taken_mins} mins</p>
+              <p className="mt-2 self-end text-sm text-gray-500" style={{ alignSelf: 'flex-end' }}>🕛{recipe.time_taken_mins} mins</p>
+
             </div>
           </li>
         ))}
@@ -79,9 +90,6 @@ async function UserOwnedRecipes() {
     </div>
   );
 }
-
-
-
 
 const App = () => {
   return (
