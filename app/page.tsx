@@ -104,6 +104,7 @@ export default function HomePageLayout({
         ingredients
         thumbnail_url
         time_taken_mins
+        serving
       }
     }
   `;
@@ -115,6 +116,7 @@ export default function HomePageLayout({
         ingredients
         thumbnail_url
         time_taken_mins
+        serving
       }
     }
   `;
@@ -210,7 +212,8 @@ function SearchFunction({ onSearchRecipe }) {
 
 function RecipeContainer({ recipeResult }) {
   return (
-    <div className="flex space-x-4">
+    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      {/* {flex space-x-4} */}
       {recipeResult === "loading" ? "Loading recipes..." : ""}
 
       {typeof recipeResult === "object" &&
@@ -329,15 +332,13 @@ function IngredientSearchBar() {
   );
 }
 
-//learn how to pass data into the recipe container
-
 function RecipeCard({ recipeObj }) {
   return (
-    <Card className="p-4 w-80 h-26">
-      <CardHeader className="pb-0 pt-2 px-4 m-2 flex-col items-start">
-        <h4 className="font-bold text-large">{recipeObj.name}</h4>
+    <Card className="relative group">
+      <CardHeader className="pb-0 pt-3 px-3 m-2 flex-col items-start">
+        <h4 className="font-bold text-lg">{recipeObj.name}</h4>
       </CardHeader>
-      <CardBody className="p-2 justify-end position: static object-fit: cover">
+      <CardBody className="p-3 justify-end position: static object-fit: cover">
         <a href="#">
           <Image
             isZoomed
@@ -350,13 +351,22 @@ function RecipeCard({ recipeObj }) {
           />
         </a>
       </CardBody>
-      <CardFooter className="justify-between">
-        <p
-          className="mt-2 self-end text-md text-gray-500"
-          style={{ alignSelf: "flex-end" }}
-        >
-          🕛 {recipeObj.time_taken_mins} mins
-        </p>
+      <CardFooter className="pt-0 px-3 mb-0 justify-between">
+        <div className="grid-flow-row pb-1 space-y-0.5">
+          <p
+            className="mt-2 text-sm text-gray-500"
+            style={{ alignSelf: "flex-end" }}
+          >
+            🕛 {recipeObj.time_taken_mins} mins
+          </p>
+
+          <p
+            className="mt-2 text-sm text-gray-500"
+            style={{ alignSelf: "flex-end" }}
+          >
+            🍽️ {recipeObj.serving} servings
+          </p>
+        </div>
         <Button isIconOnly color="danger" aria-label="Like">
           <HeartIcon />
         </Button>
