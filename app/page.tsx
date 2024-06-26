@@ -1,4 +1,5 @@
 "use client";
+// Import from third-party libraries
 import { Inter } from "next/font/google";
 import {
   Card,
@@ -7,40 +8,32 @@ import {
   Image,
   CardFooter,
   Input,
-  Checkbox,
-  Button,
   Tabs,
   Tab,
+  Checkbox,
+  Button,
+  Listbox,
+  ListboxSection,
+  ListboxItem,
 } from "@nextui-org/react";
-import {
-  useQuery,
-  useLazyQuery,
-  ApolloProvider,
-  gql,
-} from "@apollo/client";
+import { useQuery, useLazyQuery, ApolloProvider } from "@apollo/client";
+import { gql } from "@apollo/client/core";
 import {
   Autocomplete,
   AutocompleteItem,
 } from "@nextui-org/autocomplete";
-import { Listbox, ListboxItem } from "@nextui-org/react";
-import { ListboxWrapper } from "./ListboxWrapper";
-import { DeleteIcon } from "./DeleteIcon";
+
+// Import local components and utilities
 import { HeartIcon } from "./HeartIcon";
 import { SearchIcon } from "./SearchIcon";
+import { DeleteIcon } from "./DeleteIcon";
+import { ListboxWrapper } from "./ListboxWrapper";
 import RootLayout from "./layout";
-import React, { useState, useMemo, useEffect } from "react";
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  useDisclosure,
-} from "@nextui-org/react";
+import { getClient, query } from "@/_lib/apolloClient";
 
+// Import hooks from React
+import { useState, useMemo, useEffect } from "react";
 
-
-const inter = Inter({ subsets: ["latin"] });
 const recipeData = [
   {
     contents: `
@@ -98,7 +91,17 @@ const recipeData = [
 
 export default function HomePageLayout({ children }) {
   const [recipeResult, setRecipeResult] = useState("");
-
+  const GET_ALL_RECIPES_QUERY = gql`
+    query GetAllRecipes {
+      recipes {
+        name
+        contents
+        ingredients
+        thumbnail_url
+        time_taken_mins
+      }
+    }
+  `;
   const GET_RECIPES_QUERY = gql`
     query SearchRecipesByName($searchTerm: String!) {
       recipes(where: { name_CONTAINS: $searchTerm }) {
@@ -110,9 +113,40 @@ export default function HomePageLayout({ children }) {
       }
     }
   `;
+  const {
+    loading: allRecipesLoading,
+    error: allRecipesError,
+    data: allRecipesData,
+  } = useQuery(GET_ALL_RECIPES_QUERY);
 
-  const [searchTerm, setSearchTerm] = useState("");
+  // console.log("test");
+
   const [getRecipe, { loading, error, data }] = useLazyQuery(GET_RECIPES_QUERY);
+
+  async function handleSearchRecipe(sanitizedSearchTerm) {
+    await getRecipe({ variables: { searchTerm: sanitizedSearchTerm } });
+  }
+
+  useEffect(() => {
+    if (loading) setRecipeResult("loading");
+    if (allRecipesLoading) setRecipeResult("loading");
+    if (typeof data !== "undefined") setRecipeResult(data);
+    else if (typeof allRecipesData !== "undefined")
+      setRecipeResult(allRecipesData);
+    console.log(data);
+  }, [loading, data, allRecipesLoading, allRecipesData]);
+
+  return (
+    <>
+      <SearchFunction onSearchRecipe={handleSearchRecipe} />
+      <SortBar />
+      <RecipeContainer recipeResult={recipeResult} />
+    </>
+  );
+}
+
+function SearchFunction({ onSearchRecipe }) {
+  const [searchTerm, setSearchTerm] = useState("");
 
   function titleCase(str) {
     const splitStr = str.toLowerCase().split(" ");
@@ -126,64 +160,59 @@ export default function HomePageLayout({ children }) {
   async function handleSubmit(e) {
     const sanitizedSearchTerm = titleCase(searchTerm);
     e.preventDefault();
-    await getRecipe({ variables: { searchTerm: sanitizedSearchTerm } });
+    onSearchRecipe(sanitizedSearchTerm);
   }
-
-  useEffect(() => {
-    if (loading) setRecipeResult("loading");
-    if (typeof data !== "undefined") setRecipeResult(data);
-  }, [loading, data]);
-
   return (
-    <>
-      <div className="flex w-full flex-col">
-        <Tabs aria-label="Options">
-          <Tab key="recipe_search" title="Search by Recipes">
-            <div className="max-w-screen">
-              <form onSubmit={handleSubmit}>
-                <Input
-                  label="Search"
-                  isClearable
-                  radius="lg"
-                  classNames={{
-                    label: "text-black/50 dark:text-white/90",
-                    input: [
-                      "bg-transparent",
-                      "text-black/90 dark:text-white/90",
-                      "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                    ],
-                    innerWrapper: "",
-                    inputWrapper: [],
-                  }}
-                  placeholder="Type to search..."
-                  startContent={
-                    <SearchIcon className="text-black/50 mb-0.5 dark:text-white/90 text-slate-400 pointer-events-none flex-shrink-0" />
-                  }
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </form>
-            </div>
-          </Tab>
-          <Tab key="ingredient_search" title="Search by Ingredients">
-            <IngredientSearchBar />
-          </Tab>
-        </Tabs>
-      </div>
-      <SortBar />
-      <div className="flex space-x-4">
-        {recipeResult === "loading" ? "Loading recipes..." : ""}
-
-        {recipeResult === data &&
-          (recipeResult.recipes.length === 0
-            ? "No recipes found"
-            : recipeResult.recipes.map((recipe) => (
-                <RecipeCard recipeObj={recipe} key={recipe.name} />
-              )))}
-      </div>
-    </>
+    <div className="flex w-full flex-col">
+      <Tabs aria-label="Options">
+        <Tab key="recipe_search" title="Search by Recipes">
+          <div className="max-w-screen">
+            <form onSubmit={handleSubmit}>
+              <Input
+                label="Search"
+                isClearable
+                radius="lg"
+                classNames={{
+                  label: "text-black/50 dark:text-white/90",
+                  input: [
+                    "bg-transparent",
+                    "text-black/90 dark:text-white/90",
+                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+                  ],
+                  innerWrapper: "",
+                  inputWrapper: [],
+                }}
+                placeholder="Type to search..."
+                startContent={
+                  <SearchIcon className="text-black/50 mb-0.5 dark:text-white/90 text-slate-400 pointer-events-none flex-shrink-0" />
+                }
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </form>
+          </div>
+        </Tab>
+        <Tab key="ingredient_search" title="Search by Ingredients">
+          <IngredientSearchBar />
+        </Tab>
+      </Tabs>
+    </div>
   );
 }
 
+function RecipeContainer({ recipeResult }) {
+  return (
+    <div className="flex space-x-4">
+      {recipeResult === "loading" ? "Loading recipes..." : ""}
+
+      {typeof recipeResult === "object" &&
+        (recipeResult.recipes.length === 0
+          ? "No recipes found"
+          : recipeResult.recipes.map((recipe) => (
+              <RecipeCard recipeObj={recipe} key={recipe.name} />
+            )))}
+    </div>
+  );
+}
 function SortBar() {
   return (
     <div className="flex gap-4">
