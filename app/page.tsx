@@ -35,6 +35,18 @@ import { getClient, query } from "@/_lib/apolloClient";
 // Import hooks from React
 import { useState, useMemo, useEffect } from "react";
 
+const FAVOURITE_RECIPE_MUTATION = gql`
+  mutation MyMutation($userid: ID!, $recipeId: ID!) {
+    updateRecipes(
+      where: { id: $recipeId }
+      connect: { favouritedByUsers: { where: { node: { id: $userid } } } }
+    ) {
+      info {
+        relationshipsCreated
+      }
+    }
+  }
+`;
 const recipeData = [
   {
     contents: `
