@@ -1,4 +1,5 @@
 "use client";
+// Import from third-party libraries
 import { Inter } from "next/font/google";
 import {
   Card,
@@ -6,27 +7,34 @@ import {
   CardBody,
   Image,
   CardFooter,
+  Input,
+  Tabs,
+  Tab,
+  Checkbox,
+  Button,
+  Listbox,
+  ListboxSection,
+  ListboxItem,
 } from "@nextui-org/react";
-import { HeartIcon } from "./HeartIcon";
 import { useQuery, useLazyQuery, ApolloProvider } from "@apollo/client";
-import { Input, dataFocusVisibleClasses } from "@nextui-org/react";
-import { getClient, query } from "@/_lib/apolloClient";
 import { gql } from "@apollo/client/core";
-import { Tabs, Tab } from "@nextui-org/react";
-import { Checkbox, Button } from "@nextui-org/react";
 import {
   Autocomplete,
   AutocompleteSection,
   AutocompleteItem,
 } from "@nextui-org/autocomplete";
 
-import { Listbox, ListboxSection, ListboxItem } from "@nextui-org/react";
-import { ListboxWrapper } from "./ListboxWrapper";
-import { DeleteIcon } from "./DeleteIcon";
-import { useState, useMemo, useEffect } from "react";
+// Import local components and utilities
+import { HeartIcon } from "./HeartIcon";
 import { SearchIcon } from "./SearchIcon";
+import { DeleteIcon } from "./DeleteIcon";
+import { ListboxWrapper } from "./ListboxWrapper";
 import RootLayout from "./layout";
-const inter = Inter({ subsets: ["latin"] });
+import { getClient, query } from "@/_lib/apolloClient";
+
+// Import hooks from React
+import { useState, useMemo, useEffect } from "react";
+
 const recipeData = [
   {
     contents: `
