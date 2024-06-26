@@ -6,26 +6,40 @@ import {
   CardBody,
   Image,
   CardFooter,
+  Input,
+  Checkbox,
+  Button,
+  Tabs,
+  Tab,
 } from "@nextui-org/react";
-import { HeartIcon } from "./HeartIcon";
-import { useQuery, useLazyQuery, ApolloProvider } from "@apollo/client";
-import { Input, dataFocusVisibleClasses } from "@nextui-org/react";
-import { getClient, query } from "@/_lib/apolloClient";
-import { gql } from "@apollo/client/core";
-import { Tabs, Tab } from "@nextui-org/react";
-import { Checkbox, Button } from "@nextui-org/react";
+import {
+  useQuery,
+  useLazyQuery,
+  ApolloProvider,
+  gql,
+} from "@apollo/client";
 import {
   Autocomplete,
-  AutocompleteSection,
   AutocompleteItem,
 } from "@nextui-org/autocomplete";
-
-import { Listbox, ListboxSection, ListboxItem } from "@nextui-org/react";
+import { Listbox, ListboxItem } from "@nextui-org/react";
 import { ListboxWrapper } from "./ListboxWrapper";
 import { DeleteIcon } from "./DeleteIcon";
-import { useState, useMemo, useEffect } from "react";
+import { HeartIcon } from "./HeartIcon";
 import { SearchIcon } from "./SearchIcon";
 import RootLayout from "./layout";
+import React, { useState, useMemo, useEffect } from "react";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from "@nextui-org/react";
+
+
+
 const inter = Inter({ subsets: ["latin"] });
 const recipeData = [
   {
@@ -55,7 +69,6 @@ const recipeData = [
     thumbnail_url:
       "https://zardyplants.com/wp-content/uploads/2022/02/Vegan-Loaded-Baked-Potatoes-02.jpg",
   },
-
   {
     contents: `
       1. Cook the spaghetti according to package instructions until al dente. Reserve 1 cup of pasta water and then drain the pasta.
@@ -82,11 +95,8 @@ const recipeData = [
       "https://upload.wikimedia.org/wikipedia/commons/3/33/Espaguetis_carbonara.jpg",
   },
 ];
-export default function HomePageLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+
+export default function HomePageLayout({ children }) {
   const [recipeResult, setRecipeResult] = useState("");
 
   const GET_RECIPES_QUERY = gql`
@@ -102,23 +112,18 @@ export default function HomePageLayout({
   `;
 
   const [searchTerm, setSearchTerm] = useState("");
-  // console.log("test");
   const [getRecipe, { loading, error, data }] = useLazyQuery(GET_RECIPES_QUERY);
 
   function titleCase(str) {
     const splitStr = str.toLowerCase().split(" ");
     for (let i = 0; i < splitStr.length; i++) {
-      // You do not need to check if i is larger than splitStr length, as your for does that for you
-      // Assign it back to the array
       splitStr[i] =
         splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
     }
-    // Directly return the joined string
     return splitStr.join(" ");
   }
 
   async function handleSubmit(e) {
-    //try and catch results in the disappearance of the UI?? Why
     const sanitizedSearchTerm = titleCase(searchTerm);
     e.preventDefault();
     await getRecipe({ variables: { searchTerm: sanitizedSearchTerm } });
@@ -197,13 +202,9 @@ const GET_INGREDIENTS_QUERY = gql`
     }
   }
 `;
+
 function IngredientSearchBar() {
-  //create query to database to populate autocomplete items
-
-  // const [ingredientSearchTerm, setIngredientSearchTerm] = useState("");
-
   const { data, loading, error } = useQuery(GET_INGREDIENTS_QUERY);
-
   const [ingredient, setIngredient] = useState([]);
   const handleSelectionChange = (selectedItem) => {
     if (!ingredient.includes(selectedItem) && selectedItem != null) {
@@ -215,38 +216,30 @@ function IngredientSearchBar() {
   };
 
   const [selectedKeys, setSelectedKeys] = useState(new Set(["text"]));
-
   const selectedValue = useMemo(
     () => Array.from(selectedKeys).join(", "),
     [selectedKeys]
   );
 
-  // const [ingredientToDelete, setIngredientDelete] = useState("");
-
   if (loading) {
-    return <p> Loading ingredients... </p>;
+    return <p>Loading ingredients...</p>;
   }
   const ingredients = data.ingredients;
   return (
     <>
       <Autocomplete
-        // defaultItems={ingredients}
         label="Ingredients"
         placeholder="Search an ingredient"
         className="max-w-screen"
         disableSelectorIconRotation
         selectorIcon={<SearchIcon />}
         onSelectionChange={handleSelectionChange}
-        // onInputChange={(input) =>
-        //   getIngredients({ variables: { ingredientName: input } })
-        // }
       >
         {ingredients.map((item) => (
           <AutocompleteItem key={item.value} value={item.value}>
             {item.name}
           </AutocompleteItem>
         ))}
-        {/* {(ingredient) => <AutocompleteItem key={data}>{data}</AutocompleteItem>} */}
       </Autocomplete>
 
       {ingredient.length > 0 && (
@@ -263,7 +256,6 @@ function IngredientSearchBar() {
             >
               {ingredient.map((x) => {
                 let ingredientObj = ingredients.find((el) => el.value === x);
-
                 return <ListboxItem key={x}>{ingredientObj.name}</ListboxItem>;
               })}
             </Listbox>
@@ -286,38 +278,75 @@ function IngredientSearchBar() {
   );
 }
 
-//learn how to pass data into the recipe container
-
 function RecipeCard({ recipeObj }) {
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
   return (
-    <Card className="p-4 w-80 h-26">
-      <CardHeader className="pb-0 pt-2 px-4 m-2 flex-col items-start">
-        <h4 className="font-bold text-large">{recipeObj.name}</h4>
-      </CardHeader>
-      <CardBody className="p-2 justify-end position: static object-fit: cover">
-        <a href="#">
-          <Image
-            isZoomed
-            radius="lg"
-            width="100%"
-            alt="Card background"
-            className="object-cover rounded-xl h-[200px] w-full"
-            src={recipeObj.thumbnail_url}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-        </a>
-      </CardBody>
-      <CardFooter className="justify-between">
-        <p
-          className="mt-2 self-end text-md text-gray-500"
-          style={{ alignSelf: "flex-end" }}
-        >
-          🕛 {recipeObj.time_taken_mins} mins
-        </p>
-        <Button isIconOnly color="danger" aria-label="Like">
-          <HeartIcon />
-        </Button>
-      </CardFooter>
-    </Card>
+    <>
+      <div className="cursor-pointer" onClick={onOpen}>
+        <Card className="p-4 w-80 h-26">
+          <CardHeader className="pb-0 pt-2 px-4 m-2 flex-col items-start">
+            <h4 className="font-bold text-large">{recipeObj.name}</h4>
+          </CardHeader>
+          <CardBody className="p-2 justify-end position: static object-fit: cover">
+            <Image
+              isZoomed
+              radius="lg"
+              width="100%"
+              alt="Card background"
+              className="object-cover rounded-xl h-[200px] w-full"
+              src={recipeObj.thumbnail_url}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </CardBody>
+          <CardFooter className="justify-between">
+            <p
+              className="mt-2 self-end text-md text-gray-500"
+              style={{ alignSelf: "flex-end" }}
+            >
+              🕛 {recipeObj.time_taken_mins} mins
+            </p>
+            <Button isIconOnly color="danger" aria-label="Like">
+              <HeartIcon />
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent className="bg-gray-300">
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <p> </p>
+                <p> </p>
+                <p> </p>
+                <p> </p>
+                <p> </p>
+                <p><Image 
+                  src={recipeObj.thumbnail_url} 
+                  alt={recipeObj.name} 
+                  style={{ width: '400px', height: '300px' }} 
+                /></p>
+                {recipeObj.name}
+              </ModalHeader>
+              <ModalBody>
+                <p>Preparation Time:🕛 {recipeObj.time_taken_mins} mins</p>
+                <ul>
+                <p>Ingredients:</p>
+                  {recipeObj.ingredients.map((ingredient, index) => (
+                    <li key={index}>{ingredient}</li>
+                  ))}
+                </ul>
+                <p>Steps:</p>
+                <p>{recipeObj.contents}</p>
+              </ModalBody>
+              <ModalFooter>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </>
   );
 }
