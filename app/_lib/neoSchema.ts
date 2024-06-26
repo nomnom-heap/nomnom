@@ -3,6 +3,13 @@ import { Neo4jGraphQL } from "@neo4j/graphql";
 
 const typeDefs = /* GraphQL */ `
   #graphql
+  type TestUser {
+    id: ID! @id
+    username: String!
+    createdAt: DateTime! @timestamp(operations: [CREATE])
+    updatedAt: DateTime! @timestamp
+  }
+
   type Actor {
     id: ID! @id
     actedInMovies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
@@ -42,6 +49,11 @@ const typeDefs = /* GraphQL */ `
     following: [User]!
     followers: [User]!
   }
+  type Ingredient {
+    id: ID!
+    name: String!
+    value: String!
+  }
 
   type Recipe
     @authentication(
@@ -72,6 +84,17 @@ const typeDefs = /* GraphQL */ `
     contents: String!
     createdAt: DateTime! @timestamp(operations: [CREATE])
     updatedAt: DateTime! @timestamp
+  }
+  type Query {
+    searchIngredients(ingredientName: String): [String]
+      @cypher(
+        statement: """
+        MATCH (i:Ingredient)
+        WHERE i.name CONTAINS $ingredientName
+        RETURN i.name AS name
+        """
+        columnName: "name"
+      )
   }
 `;
 
