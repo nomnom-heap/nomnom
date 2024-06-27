@@ -1,7 +1,9 @@
 "use client";
+import { useEffect } from "react";
 import { RecipeCard } from "./RecipeCard";
+import { fetchAuthSession } from "aws-amplify/auth";
 
-export function RecipeContainer({ recipeResult, onFavouriteRecipe }) {
+export function RecipeContainer({ recipeResult, onFavouriteRecipe, userId }) {
   return (
     <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {/* {flex space-x-4} */}
@@ -15,6 +17,7 @@ export function RecipeContainer({ recipeResult, onFavouriteRecipe }) {
                 recipeObj={recipe}
                 key={recipe.name}
                 onFavouriteRecipe={onFavouriteRecipe}
+                userId={userId}
               />
             )))}
     </div>

@@ -9,7 +9,9 @@ import {
 } from "@nextui-org/react";
 import { HeartIcon } from "../HeartIcon";
 
-export function RecipeCard({ recipeObj, onFavouriteRecipe }) {
+export function RecipeCard({ recipeObj, onFavouriteRecipe, userId }) {
+  console.log(userId);
+  console.log(recipeObj.id);
   return (
     <Card className="relative group">
       <CardHeader className="pb-0 pt-3 px-3 m-2 flex-col items-start">
@@ -44,10 +46,16 @@ export function RecipeCard({ recipeObj, onFavouriteRecipe }) {
             🍽️ {recipeObj.serving} servings
           </p>
         </div>
-        <Button isIconOnly color="danger" aria-label="Like">
+        <Button
+          isIconOnly
+          color="danger"
+          aria-label="Like"
+          onClick={() => onFavouriteRecipe(recipeObj.id)}
+        >
           <HeartIcon
-            onClick={() => onFavouriteRecipe(recipeObj.id)}
-            filled={recipeObj.favouritedByUsers.length > 0}
+            filled={recipeObj.favouritedByUsers.some(
+              (obj) => obj.id === userId
+            )}
           />
         </Button>
       </CardFooter>

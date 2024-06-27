@@ -27,14 +27,11 @@ export default function HomePageLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [recipeResult, setRecipeResult] = useState("");
-  const [favouritedRecipe, setFavouritedRecipe] = useState("");
-
   const FAVOURITE_RECIPE_MUTATION = gql`
-    mutation MyMutation($userid: ID!, $recipeId: ID!) {
+    mutation MyMutation($userId: ID!, $recipeId: ID!) {
       updateRecipes(
         where: { id: $recipeId }
-        connect: { favouritedByUsers: { where: { node: { id: $userid } } } }
+        connect: { favouritedByUsers: { where: { node: { id: $userId } } } }
       ) {
         info {
           relationshipsCreated
@@ -46,6 +43,7 @@ export default function HomePageLayout({
   const GET_ALL_RECIPES_QUERY = gql`
     query GetAllRecipes {
       recipes {
+        id
         name
         contents
         ingredients
@@ -61,6 +59,7 @@ export default function HomePageLayout({
   const GET_RECIPES_QUERY = gql`
     query SearchRecipesByName($searchTerm: String!) {
       recipes(where: { name_CONTAINS: $searchTerm }) {
+        id
         name
         contents
         ingredients
@@ -79,6 +78,8 @@ export default function HomePageLayout({
     data: allRecipesData,
   } = useQuery(GET_ALL_RECIPES_QUERY);
 
+  const [recipeResult, setRecipeResult] = useState("");
+  const [userId, setUserId] = useState("");
   //Declaring the queries/mutation
 
   const [getRecipe, { loading, error, data }] = useLazyQuery(GET_RECIPES_QUERY);
@@ -89,23 +90,33 @@ export default function HomePageLayout({
 
   //handlers
   async function handleSearchRecipe(sanitizedSearchTerm) {
+    const session = await fetchAuthSession();
+    const userId = session?.tokens?.accessToken.payload.sub;
     await getRecipe({ variables: { searchTerm: sanitizedSearchTerm } });
   }
 
   async function handleFavouriteRecipe(recipeId) {
-    const session = await fetchAuthSession();
-    const userId = session?.tokens?.accessToken.payload.sub;
-
     await favouriteRecipe({
       variables: { recipeId: recipeId, userId: userId },
     });
-    console.log(recipeId);
+  }
+
+  async function fetchUserId() {
+    try {
+      const session = await fetchAuthSession();
+      const userId = session?.tokens?.accessToken.payload.sub;
+      console.log(userId);
+      setUserId(userId);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   useEffect(() => {
+    fetchUserId();
     if (error) console.error(error);
     if (allRecipesError) console.error(allRecipesError);
-    if (favouriteError) console.error(favouriteError);
+    if (favouriteError) console.log(favouriteError);
 
     if (loading) setRecipeResult("loading");
     if (allRecipesLoading) setRecipeResult("loading");
@@ -139,6 +150,7 @@ export default function HomePageLayout({
       <RecipeContainer
         recipeResult={recipeResult}
         onFavouriteRecipe={handleFavouriteRecipe}
+        userId={userId}
       />
     </>
   );
