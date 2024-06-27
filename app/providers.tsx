@@ -12,7 +12,7 @@ import {
 import { setContext } from "@apollo/client/link/context";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { Amplify } from "aws-amplify";
-// import config from "../amplify_outputs.json"; // uncomment for sandbox development
+import config from "../amplify_outputs.json"; // uncomment for sandbox development
 
 // have a function to create a client for you
 function makeClient() {
@@ -66,40 +66,46 @@ function makeClient() {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  // Amplify.configure(config); // uncomment for sandbox development
+  Amplify.configure(config); // uncomment for sandbox development
 
-  Amplify.configure({
-    Auth: {
-      Cognito: {
-        loginWith: {
-          email: true,
-          oauth: {
-            providers: ["Google"],
-            domain: process.env.NEXT_PUBLIC_COGNITO_DOMAIN!,
-            responseType: "code",
-            scopes: ["email"],
-            redirectSignIn: ["http://localhost:3000"],
-            redirectSignOut: ["http://localhost:3000"],
-          },
-        },
-        userPoolClientId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID!,
-        userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID!,
-        signUpVerificationMethod: "code",
-        passwordFormat: {
-          minLength: 8,
-          requireLowercase: true,
-          requireUppercase: true,
-          requireNumbers: true,
-          requireSpecialCharacters: true,
-        },
-        userAttributes: {
-          email: {
-            required: true,
-          },
-        },
-      },
-    },
-  });
+  // Amplify.configure({
+  //   Storage: {
+  //     S3: {
+  //       bucket: process.env.NEXT_PUBLIC_S3_BUCKET_NAME!,
+  //       region: process.env.NEXT_PUBLIC_S3_BUCKET_REGION!,
+  //     },
+  //   },
+  //   Auth: {
+  //     Cognito: {
+  //       loginWith: {
+  //         email: true,
+  //         oauth: {
+  //           providers: ["Google"],
+  //           domain: process.env.NEXT_PUBLIC_COGNITO_DOMAIN!,
+  //           responseType: "code",
+  //           scopes: ["email"],
+  //           redirectSignIn: ["http://localhost:3000"],
+  //           redirectSignOut: ["http://localhost:3000"],
+  //         },
+  //       },
+  //       userPoolClientId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID!,
+  //       userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID!,
+  //       signUpVerificationMethod: "code",
+  //       passwordFormat: {
+  //         minLength: 8,
+  //         requireLowercase: true,
+  //         requireUppercase: true,
+  //         requireNumbers: true,
+  //         requireSpecialCharacters: true,
+  //       },
+  //       userAttributes: {
+  //         email: {
+  //           required: true,
+  //         },
+  //       },
+  //     },
+  //   },
+  // });
 
   return (
     <ApolloNextAppProvider makeClient={makeClient}>
