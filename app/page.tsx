@@ -7,6 +7,7 @@ import {
   useLazyQuery,
   ApolloProvider,
   useMutation,
+  RefetchQueriesFunction,
 } from "@apollo/client";
 import { gql } from "@apollo/client/core";
 import { AutocompleteSection } from "@nextui-org/autocomplete";
@@ -96,6 +97,7 @@ export default function HomePageLayout({
     error: allRecipesError,
     data: allRecipesData,
   } = useQuery(GET_ALL_RECIPES_QUERY);
+
   const [getRecipe, { loading, error, data }] = useLazyQuery(GET_RECIPES_QUERY);
 
   const [
@@ -114,9 +116,9 @@ export default function HomePageLayout({
 
   //handlers
   async function handleSearchRecipe(sanitizedSearchTerm) {
-    const session = await fetchAuthSession();
-    const userId = session?.tokens?.accessToken.payload.sub;
-    await getRecipe({ variables: { searchTerm: sanitizedSearchTerm } });
+    await getRecipe({
+      variables: { searchTerm: sanitizedSearchTerm },
+    });
   }
 
   async function handleFavouriteRecipe(recipeId) {
@@ -157,18 +159,16 @@ export default function HomePageLayout({
     if (unfavouriteLoading) console.log("unfavourite loading");
 
     //result data handlers
-    if (typeof data !== "undefined") setRecipeResult(data);
-    else if (typeof allRecipesData !== "undefined")
+    if (data) {
+      setRecipeResult(data);
+    } else if (typeof allRecipesData !== "undefined") {
       setRecipeResult(allRecipesData);
-
+    }
     if (typeof favouriteData !== "undefined")
       console.log(JSON.stringify(favouriteData));
 
     if (typeof unfavouriteData !== "undefined")
       console.log(JSON.stringify(unfavouriteData));
-
-    // console.log(JSON.stringify(data));
-    // console.log(JSON.stringify(allRecipesData));
   }, [
     loading,
     data,
