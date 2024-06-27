@@ -8,6 +8,7 @@ import {
   Button,
 } from "@nextui-org/react";
 import { HeartIcon } from "./HeartIcon";
+import { useEffect, useState } from "react";
 
 export function RecipeCard({
   recipeObj,
@@ -15,8 +16,16 @@ export function RecipeCard({
   userId,
   onUnfavouriteRecipe,
 }) {
-  console.log(userId);
-  console.log(recipeObj.id);
+  // console.log(userId);
+  // console.log(recipeObj.id);
+  const [like, setLike] = useState("");
+  useEffect(() => {
+    const checkUserFav = recipeObj.favouritedByUsers.some(
+      (obj) => obj.id === userId
+    );
+    setLike(checkUserFav);
+  }, []);
+
   return (
     <Card className="relative group">
       <CardHeader className="pb-0 pt-3 px-3 m-2 flex-col items-start">
@@ -55,17 +64,14 @@ export function RecipeCard({
           isIconOnly
           color="danger"
           aria-label="Like"
-          onClick={
-            recipeObj.favouritedByUsers.some((obj) => obj.id === userId)
-              ? () => onUnfavouriteRecipe(recipeObj.id)
-              : () => onFavouriteRecipe(recipeObj.id)
-          }
+          onClick={() => {
+            setLike((value) => !value);
+            like
+              ? onUnfavouriteRecipe(recipeObj.id)
+              : onFavouriteRecipe(recipeObj.id);
+          }}
         >
-          <HeartIcon
-            filled={recipeObj.favouritedByUsers.some(
-              (obj) => obj.id === userId
-            )}
-          />
+          <HeartIcon filled={like} />
         </Button>
       </CardFooter>
     </Card>

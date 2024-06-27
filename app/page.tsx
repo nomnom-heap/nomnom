@@ -147,8 +147,8 @@ export default function HomePageLayout({
     //error handler
     if (error) console.error(error);
     if (allRecipesError) console.error(allRecipesError);
-    if (favouriteError) console.log(favouriteError);
-    if (unfavouriteError) console.log(favouriteError);
+    if (favouriteError) console.error(favouriteError);
+    if (unfavouriteError) console.error(unfavouriteError);
 
     //loading handlers
     if (loading) setRecipeResult("loading");
