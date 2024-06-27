@@ -7,9 +7,14 @@ import {
   CardFooter,
   Button,
 } from "@nextui-org/react";
-import { HeartIcon } from "../HeartIcon";
+import { HeartIcon } from "./HeartIcon";
 
-export function RecipeCard({ recipeObj, onFavouriteRecipe, userId }) {
+export function RecipeCard({
+  recipeObj,
+  onFavouriteRecipe,
+  userId,
+  onUnfavouriteRecipe,
+}) {
   console.log(userId);
   console.log(recipeObj.id);
   return (
@@ -50,7 +55,11 @@ export function RecipeCard({ recipeObj, onFavouriteRecipe, userId }) {
           isIconOnly
           color="danger"
           aria-label="Like"
-          onClick={() => onFavouriteRecipe(recipeObj.id)}
+          onClick={
+            recipeObj.favouritedByUsers.some((obj) => obj.id === userId)
+              ? () => onUnfavouriteRecipe(recipeObj.id)
+              : () => onFavouriteRecipe(recipeObj.id)
+          }
         >
           <HeartIcon
             filled={recipeObj.favouritedByUsers.some(
