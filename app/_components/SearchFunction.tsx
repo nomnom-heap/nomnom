@@ -3,6 +3,7 @@ import { Input, Tabs, Tab } from "@nextui-org/react";
 import { SearchIcon } from "./SearchIcon";
 import { useState } from "react";
 import { IngredientSearchBar } from "./IngredientSearchBar";
+import { FORMERR } from "dns";
 
 export function SearchFunction({ onSearchRecipe }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -19,10 +20,10 @@ export function SearchFunction({ onSearchRecipe }) {
     return splitStr.join(" ");
   }
 
-  async function handleSubmit(e) {
+  async function handleChange(searchTerm) {
     //try and catch results in the disappearance of the UI?? Why
     const sanitizedSearchTerm = titleCase(searchTerm);
-    e.preventDefault();
+    // e.preventDefault();
     onSearchRecipe(sanitizedSearchTerm);
   }
   return (
@@ -30,7 +31,7 @@ export function SearchFunction({ onSearchRecipe }) {
       <Tabs aria-label="Options">
         <Tab key="recipe_search" title="Search by Recipes">
           <div className="max-w-screen">
-            <form onSubmit={handleSubmit}>
+            <form>
               <Input
                 label="Search"
                 isClearable
@@ -49,7 +50,9 @@ export function SearchFunction({ onSearchRecipe }) {
                 startContent={
                   <SearchIcon className="text-black/50 mb-0.5 dark:text-white/90 text-slate-400 pointer-events-none flex-shrink-0" />
                 }
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  handleChange(e.target.value);
+                }}
               />
             </form>
           </div>
