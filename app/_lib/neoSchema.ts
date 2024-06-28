@@ -80,6 +80,7 @@ const typeDefs = /* GraphQL */ `
     serving: Float!
     time_taken_mins: Float!
     owner: User! @relationship(type: "OWNS", direction: IN)
+    favouritedByUsers: [User!]! @relationship(type: "FAVOURITED", direction: IN)
     thumbnail_url: String!
     contents: String!
     createdAt: DateTime! @timestamp(operations: [CREATE])

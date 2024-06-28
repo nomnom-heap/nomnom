@@ -1,30 +1,19 @@
 "use client";
 // Import from third-party libraries
 import { Inter } from "next/font/google";
+import { Checkbox, ListboxSection } from "@nextui-org/react";
 import {
-  Card,
-  CardHeader,
-  CardBody,
-  Image,
-  CardFooter,
-  Input,
-  Tabs,
-  Tab,
-  Checkbox,
-  Button,
-  Listbox,
-  ListboxSection,
-  ListboxItem,
-} from "@nextui-org/react";
-import { useQuery, useLazyQuery, ApolloProvider } from "@apollo/client";
+  useQuery,
+  useLazyQuery,
+  ApolloProvider,
+  useMutation,
+  RefetchQueriesFunction,
+} from "@apollo/client";
 import { gql } from "@apollo/client/core";
 import { Autocomplete, AutocompleteItem } from "@nextui-org/autocomplete";
+import { AutocompleteSection } from "@nextui-org/autocomplete";
 
 // Import local components and utilities
-import { HeartIcon } from "./HeartIcon";
-import { SearchIcon } from "./SearchIcon";
-import { DeleteIcon } from "./DeleteIcon";
-import { ListboxWrapper } from "./ListboxWrapper";
 import RootLayout from "./layout";
 import { getClient, query } from "@/_lib/apolloClient";
 
@@ -39,185 +28,112 @@ import {
   ModalFooter,
 } from "@nextui-org/modal";
 
-const recipeData = [
-  {
-    contents: `
-    1. Preheat the oven to 400°F (200°C).
-    2. Wash and scrub the potatoes thoroughly. Pat them dry with paper towels.
-    3. Pierce each potato several times with a fork to allow steam to escape during baking.
-    4. Rub each potato with olive oil and sprinkle with salt.
-    5. Place the potatoes directly on the oven rack and bake for about 45-60 minutes, or until they are tender when pierced with a fork.
-    6. Once baked, remove the potatoes from the oven and let them cool slightly.
-    7. Slice each potato open lengthwise and fluff the insides with a fork.
-    8. Top each potato with butter, sour cream, shredded cheddar cheese, chopped chives, salt, and black pepper to taste.
-    9. Serve immediately while hot.
-  `,
-    time_taken_mins: 60.0,
-    name: "Baked Potatoes",
-    ingredients: [
-      "Potatoes",
-      "Butter",
-      "Sour cream",
-      "Cheddar cheese",
-      "Chives",
-      "Salt",
-      "Black Pepper",
-    ],
-    id: "dcea7ddf-13d1-43f9-8629-c9a391383122",
-    thumbnail_url:
-      "https://zardyplants.com/wp-content/uploads/2022/02/Vegan-Loaded-Baked-Potatoes-02.jpg",
-  },
-  {
-    contents: `
-      1. Cook the spaghetti according to package instructions until al dente. Reserve 1 cup of pasta water and then drain the pasta.
-      2. In a large skillet, heat olive oil over medium heat. Add diced pancetta and cook until crispy. Add minced garlic and sauté for about 1 minute.
-      3. In a bowl, whisk together the eggs and grated Parmesan cheese until well combined.
-      4. Add the cooked spaghetti to the skillet with the pancetta. Toss to combine.
-      5. Remove the skillet from heat and quickly pour in the egg and cheese mixture, tossing constantly to create a creamy sauce. Add reserved pasta water a little at a time until desired consistency is reached.
-      6. Season with salt and black pepper to taste. Garnish with chopped parsley, if desired. Serve immediately.
-    `,
-    time_taken_mins: 30.0,
-    name: "Spaghetti Carbonara",
-    ingredients: [
-      "Spaghetti",
-      "Bacon",
-      "Eggs",
-      "Parmesan cheese",
-      "Garlic",
-      "Salt",
-      "Black Pepper",
-      "Olive Oil",
-    ],
-    id: "e5bd1e0d-c860-49ab-9020-a0a5818adf3e",
-    thumbnail_url:
-      "https://upload.wikimedia.org/wikipedia/commons/3/33/Espaguetis_carbonara.jpg",
-  },
-];
+import { fetchAuthSession } from "aws-amplify/auth";
+import { SearchFunction } from "./_components/SearchFunction";
+import { RecipeContainer } from "./_components/RecipeContainer";
 
-export default function HomePageLayout({ children }) {
-  const [recipeResult, setRecipeResult] = useState("");
+export default function HomePageLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   const GET_ALL_RECIPES_QUERY = gql`
     query GetAllRecipes {
       recipes {
+        id
         name
         contents
         ingredients
         thumbnail_url
         time_taken_mins
+        serving
+        favouritedByUsers {
+          id
+        }
       }
     }
   `;
   const GET_RECIPES_QUERY = gql`
     query SearchRecipesByName($searchTerm: String!) {
       recipes(where: { name_CONTAINS: $searchTerm }) {
+        id
         name
         contents
         ingredients
         thumbnail_url
         time_taken_mins
+        serving
+        favouritedByUsers {
+          id
+        }
       }
     }
   `;
+
+  //Declaring states
+  const [recipeResult, setRecipeResult] = useState("");
+  const [userId, setUserId] = useState("");
+
+  //Declaring the queries/mutation
   const {
     loading: allRecipesLoading,
     error: allRecipesError,
     data: allRecipesData,
   } = useQuery(GET_ALL_RECIPES_QUERY);
 
-  // console.log("test");
-
   const [getRecipe, { loading, error, data }] = useLazyQuery(GET_RECIPES_QUERY);
 
+  //handlers
   async function handleSearchRecipe(sanitizedSearchTerm) {
-    await getRecipe({ variables: { searchTerm: sanitizedSearchTerm } });
+    await getRecipe({
+      variables: { searchTerm: sanitizedSearchTerm },
+    });
+  }
+
+  async function fetchUserId() {
+    try {
+      const session = await fetchAuthSession();
+      const userId = session?.tokens?.accessToken.payload.sub;
+      setUserId(userId);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   useEffect(() => {
+    fetchUserId();
+    //error handler
+    if (error) console.error(error);
+    if (allRecipesError) console.error(allRecipesError);
+
+    //loading handlers
     if (loading) setRecipeResult("loading");
     if (allRecipesLoading) setRecipeResult("loading");
-    if (typeof data !== "undefined") setRecipeResult(data);
-    else if (typeof allRecipesData !== "undefined")
+
+    //result data handlers
+    if (data) {
+      setRecipeResult(data);
+    } else if (typeof allRecipesData !== "undefined") {
       setRecipeResult(allRecipesData);
-    console.log(data);
-  }, [loading, data, allRecipesLoading, allRecipesData]);
+    }
+  }, [
+    loading,
+    data,
+    allRecipesLoading,
+    allRecipesData,
+    error,
+    allRecipesError,
+  ]);
 
   return (
     <>
       <SearchFunction onSearchRecipe={handleSearchRecipe} />
       <SortBar />
-      <RecipeContainer recipeResult={recipeResult} />
+      <RecipeContainer recipeResult={recipeResult} userId={userId} />
     </>
   );
 }
 
-function SearchFunction({ onSearchRecipe }) {
-  const [searchTerm, setSearchTerm] = useState("");
-
-  function titleCase(str) {
-    const splitStr = str.toLowerCase().split(" ");
-    for (let i = 0; i < splitStr.length; i++) {
-      splitStr[i] =
-        splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
-    }
-    return splitStr.join(" ");
-  }
-
-  async function handleSubmit(e) {
-    const sanitizedSearchTerm = titleCase(searchTerm);
-    e.preventDefault();
-    onSearchRecipe(sanitizedSearchTerm);
-  }
-  return (
-    <div className="flex w-full flex-col">
-      <Tabs aria-label="Options">
-        <Tab key="recipe_search" title="Search by Recipes">
-          <div className="max-w-screen">
-            <form onSubmit={handleSubmit}>
-              <Input
-                label="Search"
-                isClearable
-                radius="lg"
-                classNames={{
-                  label: "text-black/50 dark:text-white/90",
-                  input: [
-                    "bg-transparent",
-                    "text-black/90 dark:text-white/90",
-                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                  ],
-                  innerWrapper: "",
-                  inputWrapper: [],
-                }}
-                placeholder="Type to search..."
-                startContent={
-                  <SearchIcon className="text-black/50 mb-0.5 dark:text-white/90 text-slate-400 pointer-events-none flex-shrink-0" />
-                }
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </form>
-          </div>
-        </Tab>
-        <Tab key="ingredient_search" title="Search by Ingredients">
-          <IngredientSearchBar />
-        </Tab>
-      </Tabs>
-    </div>
-  );
-}
-
-function RecipeContainer({ recipeResult }) {
-  return (
-    <div className="flex space-x-4">
-      {recipeResult === "loading" ? "Loading recipes..." : ""}
-
-      {typeof recipeResult === "object" &&
-        (recipeResult.recipes.length === 0
-          ? "No recipes found"
-          : recipeResult.recipes.map((recipe) => (
-              <RecipeCard recipeObj={recipe} key={recipe.name} />
-            )))}
-    </div>
-  );
-}
 function SortBar() {
   return (
     <div className="flex gap-4">
