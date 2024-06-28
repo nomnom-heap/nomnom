@@ -18,10 +18,7 @@ import {
 } from "@nextui-org/react";
 import { useQuery, useLazyQuery, ApolloProvider } from "@apollo/client";
 import { gql } from "@apollo/client/core";
-import {
-  Autocomplete,
-  AutocompleteItem,
-} from "@nextui-org/autocomplete";
+import { Autocomplete, AutocompleteItem } from "@nextui-org/autocomplete";
 
 // Import local components and utilities
 import { HeartIcon } from "./HeartIcon";
@@ -33,6 +30,14 @@ import { getClient, query } from "@/_lib/apolloClient";
 
 // Import hooks from React
 import { useState, useMemo, useEffect } from "react";
+import { useDisclosure } from "@nextui-org/react";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+} from "@nextui-org/modal";
 
 const recipeData = [
   {
@@ -352,17 +357,19 @@ function RecipeCard({ recipeObj }) {
                 <p> </p>
                 <p> </p>
                 <p> </p>
-                <p><Image 
-                  src={recipeObj.thumbnail_url} 
-                  alt={recipeObj.name} 
-                  style={{ width: '400px', height: '300px' }} 
-                /></p>
+                <p>
+                  <Image
+                    src={recipeObj.thumbnail_url}
+                    alt={recipeObj.name}
+                    style={{ width: "400px", height: "300px" }}
+                  />
+                </p>
                 {recipeObj.name}
               </ModalHeader>
               <ModalBody>
                 <p>Preparation Time:🕛 {recipeObj.time_taken_mins} mins</p>
                 <ul>
-                <p>Ingredients:</p>
+                  <p>Ingredients:</p>
                   {recipeObj.ingredients.map((ingredient, index) => (
                     <li key={index}>{ingredient}</li>
                   ))}
@@ -370,8 +377,7 @@ function RecipeCard({ recipeObj }) {
                 <p>Steps:</p>
                 <p>{recipeObj.contents}</p>
               </ModalBody>
-              <ModalFooter>
-              </ModalFooter>
+              <ModalFooter></ModalFooter>
             </>
           )}
         </ModalContent>
