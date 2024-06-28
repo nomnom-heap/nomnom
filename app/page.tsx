@@ -28,32 +28,6 @@ export default function HomePageLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const FAVOURITE_RECIPE_MUTATION = gql`
-    mutation MyMutation($userId: ID!, $recipeId: ID!) {
-      updateRecipes(
-        where: { id: $recipeId }
-        connect: { favouritedByUsers: { where: { node: { id: $userId } } } }
-      ) {
-        info {
-          relationshipsCreated
-        }
-      }
-    }
-  `;
-
-  const UNFAVOURITE_RECIPE_MUTATION = gql`
-    mutation MyMutation($userId: ID!, $recipeId: ID!) {
-      updateRecipes(
-        disconnect: { favouritedByUsers: { where: { node: { id: $userId } } } }
-        where: { id: $recipeId }
-      ) {
-        info {
-          relationshipsDeleted
-        }
-      }
-    }
-  `;
-
   const GET_ALL_RECIPES_QUERY = gql`
     query GetAllRecipes {
       recipes {
@@ -100,20 +74,6 @@ export default function HomePageLayout({
 
   const [getRecipe, { loading, error, data }] = useLazyQuery(GET_RECIPES_QUERY);
 
-  const [
-    favouriteRecipe,
-    { loading: favouriteLoading, error: favouriteError, data: favouriteData },
-  ] = useMutation(FAVOURITE_RECIPE_MUTATION);
-
-  const [
-    unfavouriteRecipe,
-    {
-      loading: unfavouriteLoading,
-      error: unfavouriteError,
-      data: unfavouriteData,
-    },
-  ] = useMutation(UNFAVOURITE_RECIPE_MUTATION);
-
   //handlers
   async function handleSearchRecipe(sanitizedSearchTerm) {
     await getRecipe({
@@ -121,23 +81,10 @@ export default function HomePageLayout({
     });
   }
 
-  async function handleFavouriteRecipe(recipeId) {
-    await favouriteRecipe({
-      variables: { recipeId: recipeId, userId: userId },
-    });
-  }
-
-  async function handleUnfavouriteRecipe(recipeId) {
-    await unfavouriteRecipe({
-      variables: { recipeId: recipeId, userId: userId },
-    });
-  }
-
   async function fetchUserId() {
     try {
       const session = await fetchAuthSession();
       const userId = session?.tokens?.accessToken.payload.sub;
-      // console.log(userId);
       setUserId(userId);
     } catch (error) {
       console.error(error);
@@ -149,14 +96,10 @@ export default function HomePageLayout({
     //error handler
     if (error) console.error(error);
     if (allRecipesError) console.error(allRecipesError);
-    if (favouriteError) console.error(favouriteError);
-    if (unfavouriteError) console.error(unfavouriteError);
 
     //loading handlers
     if (loading) setRecipeResult("loading");
     if (allRecipesLoading) setRecipeResult("loading");
-    if (favouriteLoading) console.log("favourite loading");
-    if (unfavouriteLoading) console.log("unfavourite loading");
 
     //result data handlers
     if (data) {
@@ -164,11 +107,6 @@ export default function HomePageLayout({
     } else if (typeof allRecipesData !== "undefined") {
       setRecipeResult(allRecipesData);
     }
-    if (typeof favouriteData !== "undefined")
-      console.log(JSON.stringify(favouriteData));
-
-    if (typeof unfavouriteData !== "undefined")
-      console.log(JSON.stringify(unfavouriteData));
   }, [
     loading,
     data,
@@ -176,24 +114,13 @@ export default function HomePageLayout({
     allRecipesData,
     error,
     allRecipesError,
-    favouriteData,
-    favouriteLoading,
-    favouriteError,
-    unfavouriteData,
-    unfavouriteError,
-    unfavouriteLoading,
   ]);
 
   return (
     <>
       <SearchFunction onSearchRecipe={handleSearchRecipe} />
       <SortBar />
-      <RecipeContainer
-        recipeResult={recipeResult}
-        onFavouriteRecipe={handleFavouriteRecipe}
-        onUnfavouriteRecipe={handleUnfavouriteRecipe}
-        userId={userId}
-      />
+      <RecipeContainer recipeResult={recipeResult} userId={userId} />
     </>
   );
 }

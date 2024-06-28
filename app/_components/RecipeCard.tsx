@@ -9,15 +9,90 @@ import {
 } from "@nextui-org/react";
 import { HeartIcon } from "./HeartIcon";
 import { useEffect, useState } from "react";
+import {
+  useQuery,
+  useLazyQuery,
+  ApolloProvider,
+  useMutation,
+  RefetchQueriesFunction,
+} from "@apollo/client";
+import { gql } from "@apollo/client/core";
 
-export function RecipeCard({
-  recipeObj,
-  onFavouriteRecipe,
-  userId,
-  onUnfavouriteRecipe,
-}) {
+export function RecipeCard({ recipeObj, userId }) {
   // console.log(userId);
   // console.log(recipeObj.id);
+  const FAVOURITE_RECIPE_MUTATION = gql`
+    mutation MyMutation($userId: ID!, $recipeId: ID!) {
+      updateRecipes(
+        where: { id: $recipeId }
+        connect: { favouritedByUsers: { where: { node: { id: $userId } } } }
+      ) {
+        info {
+          relationshipsCreated
+        }
+      }
+    }
+  `;
+
+  const UNFAVOURITE_RECIPE_MUTATION = gql`
+    mutation MyMutation($userId: ID!, $recipeId: ID!) {
+      updateRecipes(
+        disconnect: { favouritedByUsers: { where: { node: { id: $userId } } } }
+        where: { id: $recipeId }
+      ) {
+        info {
+          relationshipsDeleted
+        }
+      }
+    }
+  `;
+  const [
+    favouriteRecipe,
+    { loading: favouriteLoading, error: favouriteError, data: favouriteData },
+  ] = useMutation(FAVOURITE_RECIPE_MUTATION);
+
+  const [
+    unfavouriteRecipe,
+    {
+      loading: unfavouriteLoading,
+      error: unfavouriteError,
+      data: unfavouriteData,
+    },
+  ] = useMutation(UNFAVOURITE_RECIPE_MUTATION);
+
+  async function handleFavouriteRecipe(recipeId) {
+    await favouriteRecipe({
+      variables: { recipeId: recipeId, userId: userId },
+    });
+  }
+
+  async function handleUnfavouriteRecipe(recipeId) {
+    await unfavouriteRecipe({
+      variables: { recipeId: recipeId, userId: userId },
+    });
+  }
+
+  useEffect(() => {
+    if (favouriteError) console.error(favouriteError);
+    if (unfavouriteError) console.error(unfavouriteError);
+
+    if (favouriteLoading) console.log("favourite loading");
+    if (unfavouriteLoading) console.log("unfavourite loading");
+
+    if (typeof favouriteData !== "undefined")
+      console.log(JSON.stringify(favouriteData));
+
+    if (typeof unfavouriteData !== "undefined")
+      console.log(JSON.stringify(unfavouriteData));
+  }, [
+    favouriteData,
+    favouriteLoading,
+    favouriteError,
+    unfavouriteData,
+    unfavouriteError,
+    unfavouriteLoading,
+  ]);
+
   const [like, setLike] = useState("");
   useEffect(() => {
     const checkUserFav = recipeObj.favouritedByUsers.some(
@@ -67,8 +142,8 @@ export function RecipeCard({
           onClick={() => {
             setLike((value) => !value);
             like
-              ? onUnfavouriteRecipe(recipeObj.id)
-              : onFavouriteRecipe(recipeObj.id);
+              ? handleUnfavouriteRecipe(recipeObj.id)
+              : handleFavouriteRecipe(recipeObj.id);
           }}
         >
           <HeartIcon filled={like} />

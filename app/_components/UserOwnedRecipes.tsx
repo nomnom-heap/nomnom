@@ -1,5 +1,5 @@
 import React from "react";
-import UserOwnedRecipes from "../View_Own_Recipe/page"; // Adjust the path if needed
+import UserOwnedRecipes from "../ViewOwnRecipe/page"; // Adjust the path if needed
 
 const App = () => {
   const userId = "89fa054c-2071-7009-5a38-05265e229ccd"; // Your specified user ID
