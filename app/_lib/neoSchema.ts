@@ -3,12 +3,6 @@ import { Neo4jGraphQL } from "@neo4j/graphql";
 
 const typeDefs = /* GraphQL */ `
   #graphql
-  type TestUser {
-    id: ID! @id
-    username: String!
-    createdAt: DateTime! @timestamp(operations: [CREATE])
-    updatedAt: DateTime! @timestamp
-  }
 
   type Actor {
     id: ID! @id
@@ -49,10 +43,10 @@ const typeDefs = /* GraphQL */ `
     following: [User]!
     followers: [User]!
   }
+
   type Ingredient {
-    id: ID!
+    id: ID! @id
     name: String!
-    value: String!
   }
 
   type Recipe
@@ -86,15 +80,15 @@ const typeDefs = /* GraphQL */ `
     createdAt: DateTime! @timestamp(operations: [CREATE])
     updatedAt: DateTime! @timestamp
   }
+
   type Query {
-    searchIngredients(ingredientName: String): [String]
+    searchRecipes(searchTerm: String): [Recipe]
       @cypher(
         statement: """
-        MATCH (i:Ingredient)
-        WHERE i.name CONTAINS $ingredientName
-        RETURN i.name AS name
+        CALL db.index.fulltext.queryNodes('searchRecipeIndex', $searchTerm) YIELD node, score
+        RETURN node
         """
-        columnName: "name"
+        columnName: "node"
       )
   }
 `;
