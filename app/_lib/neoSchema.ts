@@ -3,6 +3,7 @@ import { Neo4jGraphQL } from "@neo4j/graphql";
 
 const typeDefs = /* GraphQL */ `
   #graphql
+
   type Actor {
     id: ID! @id
     actedInMovies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
@@ -43,6 +44,11 @@ const typeDefs = /* GraphQL */ `
     followers: [User]!
   }
 
+  type Ingredient {
+    id: ID! @id
+    name: String!
+  }
+
   type Recipe
     @authentication(
       operations: [
@@ -68,10 +74,22 @@ const typeDefs = /* GraphQL */ `
     serving: Float!
     time_taken_mins: Float!
     owner: User! @relationship(type: "OWNS", direction: IN)
+    favouritedByUsers: [User!]! @relationship(type: "FAVOURITED", direction: IN)
     thumbnail_url: String!
     contents: String!
     createdAt: DateTime! @timestamp(operations: [CREATE])
     updatedAt: DateTime! @timestamp
+  }
+
+  type Query {
+    searchRecipes(searchTerm: String): [Recipe]
+      @cypher(
+        statement: """
+        CALL db.index.fulltext.queryNodes('searchRecipeIndex', $searchTerm) YIELD node, score
+        RETURN node
+        """
+        columnName: "node"
+      )
   }
 `;
 
