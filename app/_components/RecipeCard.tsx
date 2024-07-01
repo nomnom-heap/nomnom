@@ -20,6 +20,8 @@ import {
   ModalFooter,
 } from "@nextui-org/modal";
 import { fetchAuthSession } from "aws-amplify/auth";
+import Editor from "./BlockNoteEditor";
+import RecipeModal from "@/_components/RecipeModal";
 
 type RecipeCardProps = {
   recipe: Recipe;
@@ -112,17 +114,15 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
             <h4 className="font-bold text-lg">{recipe.name}</h4>
           </CardHeader>
           <CardBody className="p-3 justify-end position: static object-fit: cover">
-            <a href="#">
-              <Image
-                isZoomed
-                radius="lg"
-                width="100%"
-                alt="Card background"
-                className="object-cover rounded-xl h-[200px] w-full"
-                src={recipe.thumbnail_url}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
-            </a>
+            <Image
+              isZoomed
+              radius="lg"
+              width="100%"
+              alt="Card background"
+              className="object-cover rounded-xl h-[200px] w-full"
+              src={recipe.thumbnail_url}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
           </CardBody>
           <CardFooter className="pt-0 px-3 mb-0 justify-between">
             <div className="grid-flow-row pb-1 space-y-0.5">
@@ -157,7 +157,12 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
           </CardFooter>
         </Card>
       </div>
-      <Modal isOpen={isOpen} placement="center" onOpenChange={onOpenChange}>
+      {/* <RecipeModal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        recipe={recipe}
+      /> */}
+      {/* <Modal isOpen={isOpen} placement="center" onOpenChange={onOpenChange}>
         <ModalContent className="bg-gray-300">
           {(onClose) => (
             <>
@@ -181,13 +186,14 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
                   ))}
                 </ul>
                 <p>Steps:</p>
+                <Editor />
                 <p>{recipe.contents}</p>
               </ModalBody>
               <ModalFooter></ModalFooter>
             </>
           )}
         </ModalContent>
-      </Modal>
+      </Modal> */}
     </>
   );
 }

@@ -35,7 +35,7 @@ type Recipe = {
   owner: User;
   favouritedByUsers: User[];
   thumbnail_url: string;
-  contents: string;
+  contents: string; // store the Block[] json as a string
   createdAt: string;
   updatedAt: string;
 };

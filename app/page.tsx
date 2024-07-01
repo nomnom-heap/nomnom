@@ -114,6 +114,7 @@ export default function Page() {
   useEffect(() => {
     const searchTerm = recipeName + ingredientsSelected.join(", ");
     if (searchTerm) {
+      console.log("searching for", searchTerm);
       searchRecipes({
         variables: { searchTerm: searchTerm },
       });
@@ -122,8 +123,15 @@ export default function Page() {
     }
   }, [recipeName, ingredientsSelected]);
 
+  if (allRecipesError) {
+    return <div>Error loading recipes</div>;
+  }
+  if (searchRecipesError) {
+    return <div>Error loading searched recipes</div>;
+  }
   return (
     <>
+      {recipes.length} recipes found
       <div className="max-w-screen flex flex-col gap-4">
         {/* Search recipe name input */}
         <Input
@@ -204,14 +212,12 @@ export default function Page() {
           </div>
         )}
       </div>
-
       {/* Sortbar */}
       <div className="flex gap-4">
         <span>Sort by</span>
         <Checkbox size="md">Time Taken</Checkbox>
         <Checkbox size="md">Preparation Time</Checkbox>
       </div>
-
       {searchRecipesLoading || allRecipesLoading ? (
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {[...Array(3)].map((_, i) => (

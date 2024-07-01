@@ -4,21 +4,8 @@ import "@blocknote/core/fonts/inter.css";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
 import { useEffect, useMemo, useState } from "react";
-import { uploadData, getUrl } from "aws-amplify/storage";
 import { Spinner } from "@nextui-org/spinner";
-
-async function uploadFileToPublicFolder(file: File): Promise<string> {
-  const res = await uploadData({
-    path: `public/${file.name}_${Date.now()}`,
-    data: file,
-  }).result;
-
-  const { url } = await getUrl({
-    path: res.path,
-  });
-
-  return `${url.origin}${url.pathname}`;
-}
+import { uploadFileToPublicFolder } from "@/_lib/utils";
 
 type EditorProps = {
   initialContent?: PartialBlock[];

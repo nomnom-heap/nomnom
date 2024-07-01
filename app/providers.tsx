@@ -13,6 +13,7 @@ import { setContext } from "@apollo/client/link/context";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { Amplify } from "aws-amplify";
 import config from "../amplify_outputs.json"; // uncomment for sandbox development
+// import { AuthProvider, useAuth } from "./AuthProvider";
 
 // have a function to create a client for you
 function makeClient() {
@@ -33,7 +34,8 @@ function makeClient() {
     try {
       const session = await fetchAuthSession();
       const accessToken = session?.tokens?.accessToken.toString();
-      // console.log("access token in provider", accessToken);
+      // const { accessToken } = useAuth();
+      console.log("access token in provider", accessToken);
       return {
         headers: {
           ...headers,
@@ -108,8 +110,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
   // });
 
   return (
+    // <AuthProvider>
     <ApolloNextAppProvider makeClient={makeClient}>
       <NextUIProvider navigate={router.push}>{children}</NextUIProvider>
     </ApolloNextAppProvider>
+    // </AuthProvider>
   );
 }
