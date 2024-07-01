@@ -1,4 +1,3 @@
-"use client";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -7,11 +6,11 @@ import Navbar from "@/_components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// export const metadata: Metadata = {
-//   title: "Nomnom",
-//   description:
-//     "Nomnom is a recipe search engine that helps you find the perfect recipe for your next meal.",
-// };
+export const metadata: Metadata = {
+  title: "Nomnom",
+  description:
+    "Nomnom is a recipe search engine that helps you find the perfect recipe for your next meal.",
+};
 
 export default function RootLayout({
   children,
