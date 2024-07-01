@@ -20,13 +20,15 @@ import {
   ModalFooter,
 } from "@nextui-org/modal";
 import { fetchAuthSession } from "aws-amplify/auth";
+import RecipeModal from "./RecipeModal";
+import { useAuth } from "../AuthProvider";
 
 type RecipeCardProps = {
   recipe: Recipe;
 };
 
 const FAVOURITE_RECIPE_MUTATION = gql`
-  mutation MyMutation($userId: ID!, $recipeId: ID!) {
+  mutation FavouriteRecipe($userId: ID!, $recipeId: ID!) {
     updateRecipes(
       where: { id: $recipeId }
       connect: { favouritedByUsers: { where: { node: { id: $userId } } } }
@@ -39,7 +41,7 @@ const FAVOURITE_RECIPE_MUTATION = gql`
 `;
 
 const UNFAVOURITE_RECIPE_MUTATION = gql`
-  mutation MyMutation($userId: ID!, $recipeId: ID!) {
+  mutation UnfavouriteRecipe($userId: ID!, $recipeId: ID!) {
     updateRecipes(
       disconnect: { favouritedByUsers: { where: { node: { id: $userId } } } }
       where: { id: $recipeId }
@@ -52,7 +54,7 @@ const UNFAVOURITE_RECIPE_MUTATION = gql`
 `;
 
 export function RecipeCard({ recipe }: RecipeCardProps) {
-  const [userId, setUserId] = useState("");
+  const { userId } = useAuth();
 
   const [
     favouriteRecipe,
@@ -84,23 +86,25 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
     });
   }
 
-  const [favourited, setFavourited] = useState(false);
+  const [favourited, setFavourited] = useState<boolean>(
+    userId ? recipe.favouritedByUsers.some((obj) => obj.id === userId) : false
+  );
 
-  useEffect(() => {
-    const fetchUserId = async () => {
-      const session = await fetchAuthSession();
-      const userId = session?.tokens?.accessToken.payload.sub;
-      if (userId) {
-        setUserId(userId);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchUserId = async () => {
+  //     const session = await fetchAuthSession();
+  //     const userId = session?.tokens?.accessToken.payload.sub;
+  //     if (userId) {
+  //       setUserId(userId);
+  //     }
+  //   };
 
-    fetchUserId();
-    const checkUserFav = recipe.favouritedByUsers.some(
-      (obj) => obj.id === userId
-    );
-    setFavourited(checkUserFav);
-  }, []);
+  //   fetchUserId();
+  //   const checkUserFav = recipe.favouritedByUsers.some(
+  //     (obj) => obj.id === userId
+  //   );
+  //   setFavourited(checkUserFav);
+  // }, []);
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
@@ -112,17 +116,15 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
             <h4 className="font-bold text-lg">{recipe.name}</h4>
           </CardHeader>
           <CardBody className="p-3 justify-end position: static object-fit: cover">
-            <a href="#">
-              <Image
-                isZoomed
-                radius="lg"
-                width="100%"
-                alt="Card background"
-                className="object-cover rounded-xl h-[200px] w-full"
-                src={recipe.thumbnail_url}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
-            </a>
+            <Image
+              isZoomed
+              radius="lg"
+              width="100%"
+              alt="Card background"
+              className="object-cover rounded-xl h-[200px] w-full"
+              src={recipe.thumbnail_url}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
           </CardBody>
           <CardFooter className="pt-0 px-3 mb-0 justify-between">
             <div className="grid-flow-row pb-1 space-y-0.5">
@@ -157,7 +159,12 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
           </CardFooter>
         </Card>
       </div>
-      <Modal isOpen={isOpen} placement="center" onOpenChange={onOpenChange}>
+      <RecipeModal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        recipe={recipe}
+      />
+      {/* <Modal isOpen={isOpen} placement="center" onOpenChange={onOpenChange}>
         <ModalContent className="bg-gray-300">
           {(onClose) => (
             <>
@@ -181,13 +188,14 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
                   ))}
                 </ul>
                 <p>Steps:</p>
+                <Editor />
                 <p>{recipe.contents}</p>
               </ModalBody>
               <ModalFooter></ModalFooter>
             </>
           )}
         </ModalContent>
-      </Modal>
+      </Modal> */}
     </>
   );
 }

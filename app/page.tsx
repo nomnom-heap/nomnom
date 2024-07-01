@@ -90,7 +90,11 @@ export default function Page() {
     loading: allRecipesLoading,
     error: allRecipesError,
     data: allRecipesData,
-  } = useQuery<GetAllRecipesData>(GET_ALL_RECIPES_QUERY);
+  } = useQuery<GetAllRecipesData>(GET_ALL_RECIPES_QUERY, {
+    // fetchPolicy: "network-only", // Used for first execution
+    // nextFetchPolicy: "network-only", // Used for subsequent executions
+    // notifyOnNetworkStatusChange: true,
+  });
 
   const [
     searchRecipes,
@@ -98,6 +102,7 @@ export default function Page() {
       loading: searchRecipesLoading,
       error: searchRecipesError,
       data: searchRecipesData,
+      refetch: searchRecipesRefetch,
     },
   ] = useLazyQuery<SearchRecipesData>(SEARCH_RECIPES_QUERY);
 
@@ -228,12 +233,7 @@ export default function Page() {
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              <span>
-                No recipes found 😅 Consider creating one!
-                <Button as={Link} className="white" href="/demo">
-                  Create Recipe
-                </Button>
-              </span>
+              <span>No recipes found 😅 Consider creating one!</span>
             </div>
           )}
         </div>
