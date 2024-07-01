@@ -20,15 +20,15 @@ import {
   ModalFooter,
 } from "@nextui-org/modal";
 import { fetchAuthSession } from "aws-amplify/auth";
-import Editor from "./BlockNoteEditor";
-import RecipeModal from "@/_components/RecipeModal";
+import RecipeModal from "./RecipeModal";
+import { useAuth } from "../AuthProvider";
 
 type RecipeCardProps = {
   recipe: Recipe;
 };
 
 const FAVOURITE_RECIPE_MUTATION = gql`
-  mutation MyMutation($userId: ID!, $recipeId: ID!) {
+  mutation FavouriteRecipe($userId: ID!, $recipeId: ID!) {
     updateRecipes(
       where: { id: $recipeId }
       connect: { favouritedByUsers: { where: { node: { id: $userId } } } }
@@ -41,7 +41,7 @@ const FAVOURITE_RECIPE_MUTATION = gql`
 `;
 
 const UNFAVOURITE_RECIPE_MUTATION = gql`
-  mutation MyMutation($userId: ID!, $recipeId: ID!) {
+  mutation UnfavouriteRecipe($userId: ID!, $recipeId: ID!) {
     updateRecipes(
       disconnect: { favouritedByUsers: { where: { node: { id: $userId } } } }
       where: { id: $recipeId }
@@ -54,7 +54,7 @@ const UNFAVOURITE_RECIPE_MUTATION = gql`
 `;
 
 export function RecipeCard({ recipe }: RecipeCardProps) {
-  const [userId, setUserId] = useState("");
+  const { userId } = useAuth();
 
   const [
     favouriteRecipe,
@@ -86,23 +86,25 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
     });
   }
 
-  const [favourited, setFavourited] = useState(false);
+  const [favourited, setFavourited] = useState<boolean>(
+    userId ? recipe.favouritedByUsers.some((obj) => obj.id === userId) : false
+  );
 
-  useEffect(() => {
-    const fetchUserId = async () => {
-      const session = await fetchAuthSession();
-      const userId = session?.tokens?.accessToken.payload.sub;
-      if (userId) {
-        setUserId(userId);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchUserId = async () => {
+  //     const session = await fetchAuthSession();
+  //     const userId = session?.tokens?.accessToken.payload.sub;
+  //     if (userId) {
+  //       setUserId(userId);
+  //     }
+  //   };
 
-    fetchUserId();
-    const checkUserFav = recipe.favouritedByUsers.some(
-      (obj) => obj.id === userId
-    );
-    setFavourited(checkUserFav);
-  }, []);
+  //   fetchUserId();
+  //   const checkUserFav = recipe.favouritedByUsers.some(
+  //     (obj) => obj.id === userId
+  //   );
+  //   setFavourited(checkUserFav);
+  // }, []);
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
@@ -157,11 +159,11 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
           </CardFooter>
         </Card>
       </div>
-      {/* <RecipeModal
+      <RecipeModal
         isOpen={isOpen}
         onOpenChange={onOpenChange}
         recipe={recipe}
-      /> */}
+      />
       {/* <Modal isOpen={isOpen} placement="center" onOpenChange={onOpenChange}>
         <ModalContent className="bg-gray-300">
           {(onClose) => (

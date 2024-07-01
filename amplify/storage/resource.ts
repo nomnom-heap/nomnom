@@ -1,8 +1,11 @@
 import { defineStorage } from "@aws-amplify/backend";
 
 export const storage = defineStorage({
-  name: "recipe-images-drive",
+  name: "nomnom-images-drive",
   access: (allow) => ({
-    "public/*": [allow.guest.to(["get"]), allow.authenticated.to(["write"])],
+    "public/*": [
+      allow.guest.to(["get", "write"]),
+      allow.authenticated.to(["write"]),
+    ],
   }),
 });

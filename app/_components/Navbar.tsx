@@ -5,15 +5,23 @@ import {
   NavbarContent,
   NavbarItem,
   Button,
+  Link,
+  useDisclosure,
 } from "@nextui-org/react";
-import { signOut } from "aws-amplify/auth";
-import Link from "next/link";
 import { useAuth } from "../AuthProvider";
+import { signOut } from "aws-amplify/auth";
 import { useRouter } from "next/navigation";
+import RecipeInputModal from "./RecipeInputModal";
 
 export default function NavBar() {
-  // const { accessToken } = useAuth();
-  const router = useRouter();
+  const { userId, setUserId } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    setUserId(null);
+    window.location.reload();
+  };
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   return (
     <Navbar
@@ -36,27 +44,22 @@ export default function NavBar() {
           <p className="text-white">Not seeing what you like?</p>
         </NavbarItem>
         <NavbarItem>
-          <Button as={Link} className="white" href="/demo">
+          <Button className="white" onPress={onOpen}>
             Create Recipe
           </Button>
+          <RecipeInputModal isOpen={isOpen} onOpenChange={onOpenChange} />
         </NavbarItem>
-        {/* <NavbarItem>
-          {accessToken ? (
-            <Button
-              color="primary"
-              onPress={async (e) => {
-                await signOut();
-                // window.location.reload();
-              }}
-            >
+        <NavbarItem>
+          {userId ? (
+            <Button color="primary" onPress={handleLogout}>
               Logout
             </Button>
           ) : (
-            <Button color="primary" onPress={() => router.push("/login")}>
+            <Button as={Link} color="primary" href="/login">
               Login
             </Button>
           )}
-        </NavbarItem> */}
+        </NavbarItem>
       </NavbarContent>
     </Navbar>
   );

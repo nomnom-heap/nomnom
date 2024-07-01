@@ -13,7 +13,7 @@ import { setContext } from "@apollo/client/link/context";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { Amplify } from "aws-amplify";
 import config from "../amplify_outputs.json"; // uncomment for sandbox development
-// import { AuthProvider, useAuth } from "./AuthProvider";
+import { AuthProvider, useAuth } from "./AuthProvider";
 
 // have a function to create a client for you
 function makeClient() {
@@ -34,8 +34,8 @@ function makeClient() {
     try {
       const session = await fetchAuthSession();
       const accessToken = session?.tokens?.accessToken.toString();
-      // const { accessToken } = useAuth();
-      console.log("access token in provider", accessToken);
+
+      // console.log("access token in provider", accessToken);
       return {
         headers: {
           ...headers,
@@ -92,6 +92,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   //       },
   //       userPoolClientId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID!,
   //       userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID!,
+  //       identityPoolId: process.env.NEXT_PUBLIC_COGNITO_IDENTITY_POOL_ID!,
+  //       allowGuestAccess: true,
   //       signUpVerificationMethod: "code",
   //       passwordFormat: {
   //         minLength: 8,
@@ -110,10 +112,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
   // });
 
   return (
-    // <AuthProvider>
-    <ApolloNextAppProvider makeClient={makeClient}>
-      <NextUIProvider navigate={router.push}>{children}</NextUIProvider>
-    </ApolloNextAppProvider>
-    // </AuthProvider>
+    <AuthProvider>
+      <ApolloNextAppProvider makeClient={makeClient}>
+        <NextUIProvider navigate={router.push}>{children}</NextUIProvider>
+      </ApolloNextAppProvider>
+    </AuthProvider>
   );
 }
