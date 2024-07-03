@@ -22,7 +22,7 @@ export default function Page() {
 
   const createIngredients = async () => {
     for (const ingredient of ingredients) {
-      await createIngredient({ variables: { name: ingredient.label } });
+      await createIngredient({ variables: { name: ingredient.name } });
       setIngredientCount(ingredientCount + 1);
     }
   };

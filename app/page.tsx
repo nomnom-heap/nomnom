@@ -67,24 +67,40 @@ const SEARCH_RECIPES_QUERY = gql`
 `;
 
 const GET_INGREDIENTS_QUERY = gql`
-  query FindAllIngredients {
-    ingredients {
-      id
+  query MyQuery($ingredientName1: String!, $ingredientName2: String!) {
+    ingredients(
+      where: {
+        OR: [
+          { name_CONTAINS: $ingredientName1 }
+          { name_CONTAINS: $ingredientName2 }
+        ]
+      }
+    ) {
       name
     }
   }
 `;
+function toTitleCase(str: string): string {
+  return str
+    .toLowerCase()
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
 
 export default function Page() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [recipeName, setRecipeName] = useState<string>("");
   const [ingredientsSelected, setIngredientsSelected] = useState<string[]>([]);
 
-  const {
-    data: ingredientsData,
-    loading: ingredientsLoading,
-    error: ingredientsError,
-  } = useQuery<GetIngredientsData>(GET_INGREDIENTS_QUERY);
+  const [
+    searchIngredients,
+    {
+      data: ingredientsData,
+      loading: ingredientsLoading,
+      error: ingredientsError,
+    },
+  ] = useLazyQuery<GetIngredientsData>(GET_INGREDIENTS_QUERY);
 
   const {
     loading: allRecipesLoading,
@@ -127,6 +143,12 @@ export default function Page() {
     }
   }, [recipeName, ingredientsSelected]);
 
+  function SearchRecipe() {
+    const [searchIngredient, { loading, error, data }] = useLazyQuery(
+      GET_INGREDIENTS_QUERY
+    );
+  }
+
   return (
     <>
       <div className="max-w-screen flex flex-col gap-4">
@@ -153,18 +175,37 @@ export default function Page() {
         />
 
         {/* Search recipe by ingredients autocomplete */}
+
         <Autocomplete
           label="Ingredients"
           placeholder="Search an ingredient"
           className="max-w-screen"
           startContent={<SearchIcon />}
+          onInputChange={(userInput) =>
+            userInput === ""
+              ? //nonsense variables are to return nothing when userInput registers as ""
+                // else all the data loaded to autocomplete resulting in lag
+                searchIngredients({
+                  variables: {
+                    ingredientName1: "biboo",
+                    ingredientName2: "biboo",
+                  },
+                })
+              : searchIngredients({
+                  variables: {
+                    ingredientName1: toTitleCase(userInput),
+                    ingredientName2: userInput.toLowerCase(),
+                  },
+                })
+          }
           onSelectionChange={(key) => {
             if (!key) return;
             const keyString = key.toString();
             if (ingredientsSelected.includes(keyString)) {
-              setIngredientsSelected((prev) =>
-                prev.filter((item) => item !== keyString)
-              );
+              // setIngredientsSelected((prev) =>
+              //   prev.filter((item) => item == keyString)
+              // );
+              return;
             } else {
               setIngredientsSelected((prev) => [...prev, keyString]);
             }
@@ -176,7 +217,7 @@ export default function Page() {
               textValue="Loading ingredients..."
               className="flex justify-center items-center"
             >
-              <p>Loading ingredients...</p>
+              Loading ingredients...
             </AutocompleteItem>
           ) : ingredientsData?.ingredients ? (
             ingredientsData.ingredients.map((item) => (
@@ -189,7 +230,13 @@ export default function Page() {
               </AutocompleteItem>
             ))
           ) : (
-            <p>No ingredients found</p>
+            <AutocompleteItem
+              key="nothing"
+              textValue="No ingredients..."
+              className="flex justify-center items-center"
+            >
+              No ingredients found
+            </AutocompleteItem>
           )}
         </Autocomplete>
         {ingredientsSelected.length > 0 && (
