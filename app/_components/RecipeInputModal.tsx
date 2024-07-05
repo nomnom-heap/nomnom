@@ -84,7 +84,7 @@ export default function RecipeInputModal({
     setIngredients(newIngredients);
   };
 
-  const handleIngredientQtyChange = (index: number, value: string) => {
+  const handleAddIngredients = (index: number, value: string) => {
     const newIngredientsQty = [...ingredientsQty];
     newIngredientsQty[index] = value;
     setIngredientsQty(newIngredientsQty);
@@ -95,6 +95,15 @@ export default function RecipeInputModal({
       setIngredients([...ingredients, ""]);
       setIngredientsQty([...ingredientsQty, ""]);
     }
+  };
+
+  const handleRemoveIngredient = (index: number) => {
+    if (ingredients.length === 1) {
+      return;
+    }
+    const newIngredients = [...ingredients];
+    newIngredients.splice(index, 1);
+    setIngredients(newIngredients);
   };
 
   const {
@@ -247,13 +256,13 @@ export default function RecipeInputModal({
 
               <p className="text-sm">Ingredients:</p>
               {ingredients.map((ingredient, index) => (
-                <div key={index} className="flex flex-row gap-2">
+                <div key={index} className="flex flex-row gap-2 items-center">
                   <Input
                     type="text"
                     placeholder="1 tbsp / 500g"
                     value={ingredientsQty[index]}
                     onChange={(e) =>
-                      handleIngredientQtyChange(index, e.target.value)
+                      handleAddIngredients(index, e.target.value)
                     }
                     onFocus={() => handleLastIngredientFocus(index)}
                   />
@@ -300,6 +309,14 @@ export default function RecipeInputModal({
                       <p>No ingredients found</p>
                     )}
                   </Autocomplete>
+                  <Button
+                    isIconOnly
+                    color="danger"
+                    aria-label="Remove ingredient"
+                    onPress={() => handleRemoveIngredient(index)}
+                  >
+                    <span>-</span>
+                  </Button>
                 </div>
               ))}
 

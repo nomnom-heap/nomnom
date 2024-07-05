@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Providers } from "./providers";
+// import { Providers } from "./providers";
 import Navbar from "@/_components/Navbar";
+import { AuthProvider } from "./AuthProvider";
+import { ApolloClientProvider } from "./ApolloClientProvider";
+import { NextUiWrapperProvider } from "./NextUiWrapperProvider";
+import { AmplifyProvider } from "./AmplifyProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,10 +24,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Providers>
-          <Navbar />
-          {children}
-        </Providers>
+        <AuthProvider>
+          <ApolloClientProvider>
+            <AmplifyProvider>
+              <Navbar />
+              <NextUiWrapperProvider>{children}</NextUiWrapperProvider>
+            </AmplifyProvider>
+          </ApolloClientProvider>
+        </AuthProvider>
       </body>
     </html>
   );
