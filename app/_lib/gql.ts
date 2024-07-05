@@ -5,9 +5,15 @@ export interface GetIngredientsData {
 }
 
 export const GET_INGREDIENTS_QUERY = gql`
-  query FindAllIngredients {
-    ingredients {
-      id
+  query MyQuery($ingredientName1: String!, $ingredientName2: String!) {
+    ingredients(
+      where: {
+        OR: [
+          { name_CONTAINS: $ingredientName1 }
+          { name_CONTAINS: $ingredientName2 }
+        ]
+      }
+    ) {
       name
     }
   }

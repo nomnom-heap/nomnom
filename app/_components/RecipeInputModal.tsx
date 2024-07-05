@@ -24,7 +24,7 @@ import { Block } from "@blocknote/core";
 import { uploadFileToPublicFolder } from "../_lib/utils";
 import { useAuth } from "../AuthProvider";
 import { SearchIcon } from "./SearchIcon";
-import { useMutation, useQuery } from "@apollo/client";
+import { useMutation, useQuery, useLazyQuery } from "@apollo/client";
 import { fetchAuthSession } from "aws-amplify/auth";
 import {
   CREATE_RECIPE_MUTATION,
@@ -44,7 +44,7 @@ export default function RecipeInputModal({
   onOpenChange,
 }: RecipeInputModalProps) {
   const { userId, setUserId } = useAuth();
-
+  const [storedIngredient, setstoredIngredient] = useState("");
   const [recipeName, setRecipeName] = useState(recipe?.name || "");
   const [ingredientsQty, setIngredientsQty] = useState<string[]>(
     recipe?.ingredients_qty || [""]
@@ -82,6 +82,7 @@ export default function RecipeInputModal({
     const newIngredients = [...ingredients];
     newIngredients[index] = value;
     setIngredients(newIngredients);
+    setstoredIngredient(value);
   };
 
   const handleIngredientQtyChange = (index: number, value: string) => {
@@ -97,12 +98,6 @@ export default function RecipeInputModal({
     }
   };
 
-  const {
-    data: ingredientsData,
-    loading: ingredientsLoading,
-    error: ingredientsError,
-  } = useQuery<GetIngredientsData>(GET_INGREDIENTS_QUERY);
-
   const [
     createRecipe,
     {
@@ -111,6 +106,23 @@ export default function RecipeInputModal({
       error: createRecipeError,
     },
   ] = useMutation(CREATE_RECIPE_MUTATION);
+
+  const [
+    searchIngredients,
+    {
+      data: ingredientsData,
+      loading: ingredientsLoading,
+      error: ingredientsError,
+    },
+  ] = useLazyQuery<GetIngredientsData>(GET_INGREDIENTS_QUERY);
+
+  function toTitleCase(str: string): string {
+    return str
+      .toLowerCase()
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
 
   const handleSaveRecipe = async () => {
     // Ensure all required fields are provided
@@ -272,11 +284,30 @@ export default function RecipeInputModal({
                     className="max-w-screen"
                     startContent={<SearchIcon />}
                     onFocus={() => handleLastIngredientFocus(index)}
+                    onInputChange={(userInput) =>
+                      userInput === ""
+                        ? //nonsense variables are to return nothing when userInput registers as ""
+                          // else all the data loaded to autocomplete resulting in lag
+                          searchIngredients({
+                            variables: {
+                              ingredientName1: "biboo",
+                              ingredientName2: "biboo",
+                            },
+                          })
+                        : searchIngredients({
+                            variables: {
+                              ingredientName1: toTitleCase(userInput),
+                              ingredientName2: userInput.toLowerCase(),
+                            },
+                          })
+                    }
                     onSelectionChange={(key) => {
                       if (!key) return;
                       const keyString = key.toString();
                       handleIngredientChange(index, keyString);
                     }}
+                    allowsCustomValue={true}
+                    value={ingredients.length > 0 ? ingredients[index] : ""}
                   >
                     {ingredientsLoading ? (
                       <AutocompleteItem
@@ -284,7 +315,7 @@ export default function RecipeInputModal({
                         textValue="Loading ingredients..."
                         className="flex justify-center items-center"
                       >
-                        <p>Loading ingredients...</p>
+                        Loading ingredients...
                       </AutocompleteItem>
                     ) : ingredientsData?.ingredients ? (
                       ingredientsData.ingredients.map((item) => (
@@ -297,7 +328,13 @@ export default function RecipeInputModal({
                         </AutocompleteItem>
                       ))
                     ) : (
-                      <p>No ingredients found</p>
+                      <AutocompleteItem
+                        key="nothing"
+                        textValue="No ingredients..."
+                        className="flex justify-center items-center"
+                      >
+                        No ingredients found
+                      </AutocompleteItem>
                     )}
                   </Autocomplete>
                 </div>
