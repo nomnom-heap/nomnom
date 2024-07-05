@@ -31,6 +31,8 @@ import {
   GET_INGREDIENTS_QUERY,
   type GetIngredientsData,
 } from "@/_lib/gql";
+import { PiFalloutShelterDuotone } from "react-icons/pi";
+import { Integer } from "neo4j-driver";
 
 type RecipeInputModalProps = {
   isOpen: boolean;
@@ -44,7 +46,9 @@ export default function RecipeInputModal({
   onOpenChange,
 }: RecipeInputModalProps) {
   const { userId, setUserId } = useAuth();
-  const [storedIngredient, setstoredIngredient] = useState("");
+  const [storedIngredientResults, setStoredIngredientResults] = useState<
+    Array<Ingredient[]>
+  >([]);
   const [recipeName, setRecipeName] = useState(recipe?.name || "");
   const [ingredientsQty, setIngredientsQty] = useState<string[]>(
     recipe?.ingredients_qty || [""]
@@ -82,7 +86,10 @@ export default function RecipeInputModal({
     const newIngredients = [...ingredients];
     newIngredients[index] = value;
     setIngredients(newIngredients);
-    setstoredIngredient(value);
+
+    // const ingredientArray = [...storedIngredientResults];
+    // ingredientArray[index] = ingredientsArray;
+    // setStoredIngredientResults(ingredientArray);
   };
 
   const handleIngredientQtyChange = (index: number, value: string) => {
@@ -185,6 +192,36 @@ export default function RecipeInputModal({
     );
   }
 
+  function handleUserInput(input: string, index: number): void {
+    if (input === "") {
+      searchIngredients({
+        variables: {
+          ingredientName1: "biboo",
+          ingredientName2: "biboo",
+        },
+      });
+    } else {
+      searchIngredients({
+        variables: {
+          ingredientName1: toTitleCase(input),
+          ingredientName2: input.toLowerCase(),
+        },
+      });
+    }
+
+    if (typeof ingredientsData === "object") {
+      setStoredIngredientResults((prevIngredientResults) => [
+        ...prevIngredientResults.slice(0, index),
+        ingredientsData.ingredients,
+        ...prevIngredientResults.slice(index + 1),
+      ]);
+
+      // setStoredIngredientResults([...ingredientsData.ingredients]);
+
+      console.log(storedIngredientResults);
+    }
+  }
+
   return (
     <Modal
       className="h-auto"
@@ -280,26 +317,13 @@ export default function RecipeInputModal({
                   /> */}
                   {/* Search recipe by ingredients autocomplete */}
                   <Autocomplete
+                    key={index}
                     label="Ingredients"
                     className="max-w-screen"
                     startContent={<SearchIcon />}
                     onFocus={() => handleLastIngredientFocus(index)}
                     onInputChange={(userInput) =>
-                      userInput === ""
-                        ? //nonsense variables are to return nothing when userInput registers as ""
-                          // else all the data loaded to autocomplete resulting in lag
-                          searchIngredients({
-                            variables: {
-                              ingredientName1: "biboo",
-                              ingredientName2: "biboo",
-                            },
-                          })
-                        : searchIngredients({
-                            variables: {
-                              ingredientName1: toTitleCase(userInput),
-                              ingredientName2: userInput.toLowerCase(),
-                            },
-                          })
+                      handleUserInput(userInput, index)
                     }
                     onSelectionChange={(key) => {
                       if (!key) return;
@@ -307,7 +331,9 @@ export default function RecipeInputModal({
                       handleIngredientChange(index, keyString);
                     }}
                     allowsCustomValue={true}
-                    value={ingredients.length > 0 ? ingredients[index] : ""}
+                    defaultSelectedKey={
+                      ingredients.length > 0 ? ingredients[index] : ""
+                    }
                   >
                     {ingredientsLoading ? (
                       <AutocompleteItem
@@ -317,8 +343,8 @@ export default function RecipeInputModal({
                       >
                         Loading ingredients...
                       </AutocompleteItem>
-                    ) : ingredientsData?.ingredients ? (
-                      ingredientsData.ingredients.map((item) => (
+                    ) : storedIngredientResults.length - 1 == index ? (
+                      storedIngredientResults[index].map((item) => (
                         <AutocompleteItem
                           key={item.name}
                           value={item.name}
