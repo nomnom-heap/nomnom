@@ -1,8 +1,6 @@
 "use client";
-// import { getClient } from "@/_lib/apolloClient";
 import { useEffect, useState } from "react";
-import { Button, Image } from "@nextui-org/react";
-import { HeartIcon } from "../_components/HeartIcon";
+import { Button } from "@nextui-org/react";
 import { PiPencilLine } from "react-icons/pi";
 import { gql, useQuery } from "@apollo/client";
 
@@ -32,19 +30,11 @@ const GET_USER_OWNED_RECIPES = gql`
 `;
 
 function UserOwnedRecipes({ userId }) {
-  // const userId = "89fa054c-2071-7009-5a38-05265e229ccd";
-  const [userRecipes, setUserRecipes] = useState("");
+  const [userRecipes, setUserRecipes] = useState(null);
 
   const { data, loading, error } = useQuery(GET_USER_OWNED_RECIPES, {
     variables: { userId },
   });
-
-  // if (error) {
-  //   return <p>Error: {error.message}</p>;
-  // }
-  // if (!data) {
-  //   return <p>Loading...</p>;
-  // }
 
   useEffect(() => {
     if (loading) setUserRecipes("loading recipes");
@@ -54,32 +44,27 @@ function UserOwnedRecipes({ userId }) {
     if (error) console.error(error);
   }, [loading, data, error]);
 
-  // const recipeCount = userRecipes.length;
+  if (loading || userRecipes === "loading recipes") return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
+  if (!userRecipes) return <p>No recipes found.</p>;
 
-  if (userRecipes === "loading recipes" || userRecipes === "")
-    return <p>Loading...</p>;
-  else {
-    return (
-      <div>
-        <h1>{data.users[0].display_name}'s Recipes</h1>
-        <p>Number of recipes: {userRecipes.length}</p>
-        <div className="border-2 border-black rounded-full flex items-end mb-4">
-          <p className="ml-auto mr-2">My Favourites😊</p>
-        </div>
-        <div className="flex justify-end">
-          <Button color="" className="mr-2">
-            <span className="relative mr-2">Create Recipe</span>
-            <PiPencilLine className="text-gray-400" />
-          </Button>
-        </div>
-        <RecipeContainer recipeResult={userRecipes} userId={userId} />
+  return (
+    <div>
+      <h1>{userRecipes.display_name}'s Recipes</h1>
+      <p>Number of recipes: {userRecipes.recipes.length}</p>
+      <div className="border-2 border-black rounded-full flex items-end mb-4">
+        <p className="ml-auto mr-2">My Recipes😊</p>
       </div>
-    );
-  }
+      <div className="flex justify-end">
+      </div>
+      <RecipeContainer recipes={userRecipes.recipes} userId={userId} />
+    </div>
+  );
 }
 
 const App = () => {
   const [userId, setUserId] = useState("");
+
   async function fetchUserId() {
     try {
       const session = await fetchAuthSession();
@@ -89,6 +74,7 @@ const App = () => {
       console.error(error);
     }
   }
+
   useEffect(() => {
     fetchUserId();
   }, []);

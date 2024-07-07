@@ -29,13 +29,14 @@ import { fetchAuthSession } from "aws-amplify/auth";
 import {
   CREATE_RECIPE_MUTATION,
   GET_INGREDIENTS_QUERY,
+  
   type GetIngredientsData,
 } from "@/_lib/gql";
 
 type RecipeInputModalProps = {
   isOpen: boolean;
   onOpenChange: () => void;
-  recipe?: Recipe; // recipe should be provided if editing, else it should be undefined (for creating recipe)
+  recipe?: Recipe; 
 };
 
 export default function RecipeInputModal({
@@ -113,7 +114,6 @@ export default function RecipeInputModal({
   ] = useMutation(CREATE_RECIPE_MUTATION);
 
   const handleSaveRecipe = async () => {
-    // Ensure all required fields are provided
     if (
       !recipeName ||
       !userId ||

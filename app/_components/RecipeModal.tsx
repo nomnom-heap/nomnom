@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Modal,
   ModalBody,
@@ -10,6 +8,7 @@ import {
   Button,
 } from "@nextui-org/react";
 import dynamic from "next/dynamic";
+import { useState } from "react";
 
 const Editor = dynamic(() => import("@/app/_components/BlockNoteEditor"), {
   ssr: false,
@@ -19,13 +18,32 @@ type RecipeModalProps = {
   isOpen: boolean;
   onOpenChange: () => void;
   recipe: Recipe;
+  onDelete: () => void;
 };
 
 export default function RecipeModal({
   recipe,
   isOpen,
   onOpenChange,
+  onDelete,
 }: RecipeModalProps) {
+  const [editable, setEditable] = useState(false);
+  const [isEdited, setIsEdited] = useState(false);
+
+  const toggleEditable = () => {
+    setEditable(!editable);
+    setIsEdited(false); 
+  };
+
+  const handleSave = () => {
+    setIsEdited(false);
+    setEditable(false); 
+  };
+
+  const handleDeleteClick = () => {
+    onDelete(); 
+  };
+
   return (
     <Modal
       className="h-auto"
@@ -47,7 +65,6 @@ export default function RecipeModal({
                 alt="Recipe thumbnail image"
                 style={{ width: "400px", height: "300px" }}
               />
-
               <p>{recipe.name}</p>
             </ModalHeader>
             <ModalBody>
@@ -66,21 +83,34 @@ export default function RecipeModal({
               <ul>
                 {recipe.ingredients.map((ingredient, index) => (
                   <li key={index} className="text-sm">
-                    {recipe.ingredients_qty[index]} {ingredient}
+                    {recipe.ingredients_qty && recipe.ingredients_qty[index]
+                      ? recipe.ingredients_qty[index]
+                      : ""}{" "}
+                    {ingredient}
                   </li>
                 ))}
               </ul>
 
               <Editor
                 initialContent={JSON.parse(recipe.contents)}
-                editable={false}
+                editable={editable}
+                onChange={() => setIsEdited(true)} 
               />
             </ModalBody>
             <ModalFooter>
-              {/* If user is recipe owner, show edit and delete button */}
-              {/* {recipe?.ow === user.id && ( */}
-              <Button onPress={onClose}>Save</Button>
-              {/* )} */}
+              {editable ? (
+                <>
+                  <Button onPress={handleSave}>Save</Button>
+                  <Button onPress={() => setEditable(false)}>Cancel</Button>
+                </>
+              ) : (
+                <>
+                  <Button onPress={toggleEditable}>Edit</Button>
+                  <Button color="error" onPress={handleDeleteClick}>
+                    Delete
+                  </Button>
+                </>
+              )}
             </ModalFooter>
           </>
         )}
