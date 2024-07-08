@@ -8,13 +8,39 @@ const CREATE_RECIPE_MUTATION = gql`
     createRecipes(
       input: {
         name: $name
-        ingredients: ["ingredient1", "ingredient2"]
-        ingredients_qty: ["1 tbsp", "500g"]
-        serving: 5
-        time_taken_mins: 30
-        thumbnail_url: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=3600"
-        contents: "some content"
+        contents: """
+        1. Preheat the oven to 400°F (200°C).
+        2. Wash and scrub the potatoes thoroughly. Pat them dry with paper towels.
+        3. Pierce each potato several times with a fork to allow steam to escape during baking.
+        4. Rub each potato with olive oil and sprinkle with salt.
+        5. Place the potatoes directly on the oven rack and bake for about 45-60 minutes, or until they are tender when pierced with a fork.
+        6. Once baked, remove the potatoes from the oven and let them cool slightly.
+        7. Slice each potato open lengthwise and fluff the insides with a fork.
+        8. Top each potato with butter, sour cream, shredded cheddar cheese, chopped chives, salt, and black pepper to taste.
+        9. Serve immediately while hot.
+        """
+        time_taken_mins: 60.0
+        ingredients: [
+          "Potatoes"
+          "Butter"
+          "Sour cream"
+          "Cheddar cheese"
+          "Chives"
+          "Salt"
+          "Black Pepper"
+        ]
+        ingredients_qty: [
+          "4 large"
+          "4 tbsp"
+          "1/2 cup"
+          "1 cup, shredded"
+          "2 tbsp, chopped"
+          "to taste"
+          "to taste"
+        ]
+        thumbnail_url: "https://zardyplants.com/wp-content/uploads/2022/02/Vegan-Loaded-Baked-Potatoes-02.jpg"
         owner: { connect: { where: { node: { id: $userId } } } }
+        serving: 4.0
       }
     ) {
       info {

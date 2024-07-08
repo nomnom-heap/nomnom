@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import Editor from "../_components/Editor";
 import { MdFullscreen,MdFullscreenExit } from "react-icons/md";
 import { RxCross2 } from "react-icons/rx";
 import { AddIngredient } from "../_components/AddIngredient";
@@ -11,16 +10,19 @@ export default function CreateRecipe(){
     const [recipeSize,setRecipeSize]=useState("")
     const [windowIcon,setWindowIcon]=useState(<MdFullscreen/>)
     const [imageSize, setImageSize]=useState("size-8/12 d-flex object-cover rounded-xl justify-content-center mx-auto")
+    const [titleIndent,setTitleIndent]=useState("font-bold text-large ms-12")
 
     const setRecipeSizeHandler= () =>{
         if(recipeSize==""){
             setRecipeSize("size-full")
             setWindowIcon(<MdFullscreenExit/>)
             setImageSize("size-full d-flex object-cover rounded-xl justify-content-center mx-auto")
+            setTitleIndent("font-bold text-large ms-96")
         }else{
             setRecipeSize("")
             setWindowIcon(<MdFullscreen/>)
             setImageSize("size-8/12 d-flex object-cover rounded-xl justify-content-center mx-auto")
+            setTitleIndent("font-bold text-large ms-12")
         }
     }
     return (
@@ -50,15 +52,16 @@ export default function CreateRecipe(){
                 
 
                 <CardBody>
-                    <div className="font-bold text-large">
-                        Ingredients
-                        <AddIngredient/>
-                        </div>
-
-                    <div>
-                        <p className="font-bold text-large">Steps</p>
-                        <Editor holder="EditorJS"></Editor>
+                    <div className={titleIndent}>
+                        <div>Ingredients</div>
                     </div>
+                        <AddIngredient/>
+                    
+
+                    {/* <div>
+                    <div className={titleIndent}>Steps</div>
+                        <Editor holder="EditorJS"></Editor>
+                    </div> */}
                 </CardBody>
 
                 <CardFooter>
