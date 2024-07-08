@@ -38,20 +38,29 @@ export default async function VectorRetriever() {
     ["system", SYSTEM_TEMPLATE],
     ["human", "{question}"],
   ]);
-  const query = "Recomend me recipes if I have flour";
+  const query = "Recommend me recipes if I want to have seafood";
   const retriever = vectorStore.asRetriever();
 
-  const relevantDocs = await retriever.invoke(query);
+  // const relevantDocs = await retriever.invoke(query);
 
-  // const chain = RunnableSequence.from([
-  //   {
-  //     context: retriever.pipe(relevantDocs)
-  //     question: new RunnablePassthrough(),
-  //   },
-  //   prompt,
-  //   llm,
-  //   new StringOutputParser(),
-  // ]);
+  function removeContentsField(documents: Document[]) {
+    documents.forEach((document) => {
+      if (document.metadata && document.metadata.contents) {
+        delete document.metadata.contents;
+      }
+    });
+    return documents.map((doc) => JSON.stringify(doc)).join(", ");
+  }
+
+  const chain = RunnableSequence.from([
+    {
+      context: retriever.pipe(removeContentsField),
+      question: new RunnablePassthrough(),
+    },
+    prompt,
+    llm,
+    new StringOutputParser(),
+  ]);
 
   // const mapReduceChain = loadQAMapReduceChain(llm);
 
@@ -60,7 +69,8 @@ export default async function VectorRetriever() {
   //   input_documents: relevantDocs,
   // });
 
-  // const results = await chain.invoke("");
+  const results = await chain.invoke(query);
 
-  console.log(relevantDocs);
+  // console.log(relevantDocs);
+  console.log(results);
 }
