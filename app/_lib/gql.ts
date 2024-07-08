@@ -1,18 +1,5 @@
 import { gql } from "@apollo/client";
 
-export interface GetIngredientsData {
-  ingredients: Ingredient[];
-}
-
-export const GET_INGREDIENTS_QUERY = gql`
-  query FindAllIngredients {
-    ingredients {
-      id
-      name
-    }
-  }
-`;
-
 export const CREATE_RECIPE_MUTATION = gql`
   mutation createRecipe(
     $name: String!
@@ -48,6 +35,16 @@ export const CREATE_RECIPE_MUTATION = gql`
           display_name
         }
       }
+    }
+  }
+`;
+
+export const FIND_INGREDIENTS_BY_NAME_QUERY = gql`
+  query findIngredientsByNameQuery($name: String!) {
+    findIngredientsByName(name: $name) {
+      id
+      name
+      group
     }
   }
 `;

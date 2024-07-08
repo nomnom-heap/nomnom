@@ -1,12 +1,12 @@
 "use client";
 import { gql, useMutation } from "@apollo/client";
-import { ingredients } from "../data";
+import { data } from "@/_data/supercook_ingredients";
 import { Button } from "@nextui-org/react";
 import { useState } from "react";
 
 const CREATE_INGREDIENT_MUTATION = gql`
-  mutation createIngredient($name: String!) {
-    createIngredients(input: { name: $name }) {
+  mutation createIngredient($name: String!, $group: String) {
+    createIngredients(input: { name: $name, group: $group }) {
       info {
         nodesCreated
       }
@@ -15,22 +15,25 @@ const CREATE_INGREDIENT_MUTATION = gql`
 `;
 
 export default function Page() {
-  const [createIngredient, { data, loading, error }] = useMutation(
-    CREATE_INGREDIENT_MUTATION
-  );
-  const [ingredientCount, setIngredientCount] = useState(0);
+  const [createIngredient] = useMutation(CREATE_INGREDIENT_MUTATION);
 
   const createIngredients = async () => {
-    for (const ingredient of ingredients) {
-      await createIngredient({ variables: { name: ingredient.label } });
-      setIngredientCount(ingredientCount + 1);
+    for (const group of data) {
+      for (const ingredient of group.ingredients) {
+        const { data: createIngredientData } = await createIngredient({
+          variables: {
+            name: ingredient.toLowerCase(),
+            group: group.group_name,
+          }, // ingredient name to be lower case for neo4j text index to match
+        });
+        console.log(createIngredientData);
+      }
     }
   };
 
   return (
     <>
       <Button onPress={createIngredients}>Create ingredient</Button>
-      {ingredientCount} ingredients created
     </>
   );
 }
