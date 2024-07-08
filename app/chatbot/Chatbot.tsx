@@ -49,22 +49,22 @@ export default function Chatbot() {
     //   ["placeholder", "{agent_scratchpad}"],
     // ]);
 
-    // const vector_name = "vectorIndexForRecipes";
-    // const config = {
-    //   url: url, // URL for the Neo4j instance
-    //   username: username, // Username for Neo4j authentication
-    //   password: password, // Password for Neo4j authentication
-    //   indexName: vector_name, // Name of the vector index
-    //   // keywordIndexName: "keyword", // Name of the keyword index if using hybrid search
-    //   // searchType: "vector" as const, // Type of search (e.g., vector, hybrid)
-    //   nodeLabel: "Recipe", // Label for the nodes in the graph
-    //   textNodeProperties: ["ingredients_joined", "name", "cleaned_contents"], // Property of the node containing text
-    //   embeddingNodeProperty: "embedding", // Property of the node containing embedding
-    // };
-    // const vectorStore = await Neo4jVectorStore.fromExistingGraph(
-    //   new OpenAIEmbeddings(),
-    //   config
-    // );
+    const vector_name = "vectorIndexForRecipes";
+    const config = {
+      url: url, // URL for the Neo4j instance
+      username: username, // Username for Neo4j authentication
+      password: password, // Password for Neo4j authentication
+      indexName: vector_name, // Name of the vector index
+      // keywordIndexName: "keyword", // Name of the keyword index if using hybrid search
+      // searchType: "vector" as const, // Type of search (e.g., vector, hybrid)
+      nodeLabel: "Recipe", // Label for the nodes in the graph
+      textNodeProperties: ["ingredients_joined", "name", "cleaned_contents"], // Property of the node containing text
+      embeddingNodeProperty: "embedding", // Property of the node containing embedding
+    };
+    const vectorStore = await Neo4jVectorStore.fromExistingGraph(
+      new OpenAIEmbeddings(),
+      config
+    );
 
     // const retriever = vectorStore.asRetriever();
     // const relationshipRetrieverTool = createRetrieverTool(retriever, {
@@ -112,26 +112,19 @@ export default function Chatbot() {
     // });
     // results2;
     // QueryRetriever();
-    VectorRetriever();
+    // VectorRetriever();
 
-    // const results = await vectorStore.similaritySearchWithScore("potatoes", 4);
-
-    // const chain = RunnableSequence.from([
-    //   {
-    //     context: retriever.pipe(formatDocumentsAsString),
-    //     question: new RunnablePassthrough(),
-    //   },
-    //   prompt,
-    //   llm,
-    //   new StringOutputParser(),
-    // ]);
+    const results = await vectorStore.similaritySearchWithScore(
+      "Recomend me recipes similar to spaghetti bolognese",
+      2
+    );
 
     // const results = await chain.invoke("what is your prompt?");
     // console.log({ results });
 
     // testing out vector search
-    // console.log(results[0]);
-    // await vectorStore.close();
+    console.log(results[0]);
+    await vectorStore.close();
 
     // console.log(results1);
     // console.log(results2);

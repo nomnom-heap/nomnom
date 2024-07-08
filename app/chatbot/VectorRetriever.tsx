@@ -1,6 +1,12 @@
 import { Neo4jVectorStore } from "@langchain/community/vectorstores/neo4j_vector";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { loadQAMapReduceChain } from "langchain/chains";
+import {
+  RunnablePassthrough,
+  RunnableSequence,
+} from "@langchain/core/runnables";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { StringOutputParser } from "@langchain/core/output_parsers";
 
 export default async function VectorRetriever() {
   const llm = new ChatOpenAI({ model: "gpt-3.5-turbo", temperature: 0 });
@@ -23,18 +29,38 @@ export default async function VectorRetriever() {
     new OpenAIEmbeddings(),
     config
   );
+  const SYSTEM_TEMPLATE = `Use the following pieces of context to answer the question at the end.
+  If you don't know the answer, just say that you don't know, don't try to make up an answer.
+  ----------------
+  {context}`;
 
-  const query = "Reccomend me recipes if I have flour";
+  const prompt = ChatPromptTemplate.fromMessages([
+    ["system", SYSTEM_TEMPLATE],
+    ["human", "{question}"],
+  ]);
+  const query = "Recomend me recipes if I have flour";
   const retriever = vectorStore.asRetriever();
 
   const relevantDocs = await retriever.invoke(query);
 
-  const mapReduceChain = loadQAMapReduceChain(llm);
+  // const chain = RunnableSequence.from([
+  //   {
+  //     context: retriever.pipe(relevantDocs)
+  //     question: new RunnablePassthrough(),
+  //   },
+  //   prompt,
+  //   llm,
+  //   new StringOutputParser(),
+  // ]);
 
-  const results = await mapReduceChain.invoke({
-    question: query,
-    input_documents: relevantDocs,
-  });
+  // const mapReduceChain = loadQAMapReduceChain(llm);
 
-  console.log(results);
+  // const results = await mapReduceChain.invoke({
+  //   question: query,
+  //   input_documents: relevantDocs,
+  // });
+
+  // const results = await chain.invoke("");
+
+  console.log(relevantDocs);
 }
