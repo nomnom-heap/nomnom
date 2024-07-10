@@ -13,6 +13,7 @@ type Movie = {
 type Ingredient = {
   id: string;
   name: string;
+  group?: string;
 };
 
 type User = {

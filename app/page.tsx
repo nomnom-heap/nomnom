@@ -1,14 +1,5 @@
 "use client";
-import {
-  Autocomplete,
-  AutocompleteItem,
-  Button,
-  Checkbox,
-  Chip,
-  Input,
-  Link,
-  Spinner,
-} from "@nextui-org/react";
+import { Checkbox, Input } from "@nextui-org/react";
 import { useQuery, useLazyQuery } from "@apollo/client";
 import { gql } from "@apollo/client/core";
 
@@ -17,6 +8,9 @@ import { useState, useEffect } from "react";
 import { RecipeCard } from "./_components/RecipeCard";
 import LoadingSkeleton from "./_components/LoadingSkeleton";
 import { SearchIcon } from "./_components/SearchIcon";
+import IngredientDropdown, {
+  IngredientOption,
+} from "./_components/IngredientDropdown";
 
 interface GetAllRecipesData {
   recipes: Recipe[];
@@ -24,10 +18,6 @@ interface GetAllRecipesData {
 
 interface SearchRecipesData {
   searchRecipes: Recipe[];
-}
-
-interface GetIngredientsData {
-  ingredients: Ingredient[];
 }
 
 const GET_ALL_RECIPES_QUERY = gql`
@@ -66,25 +56,10 @@ const SEARCH_RECIPES_QUERY = gql`
   }
 `;
 
-const GET_INGREDIENTS_QUERY = gql`
-  query FindAllIngredients {
-    ingredients {
-      id
-      name
-    }
-  }
-`;
-
 export default function Page() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [recipeName, setRecipeName] = useState<string>("");
   const [ingredientsSelected, setIngredientsSelected] = useState<string[]>([]);
-
-  const {
-    data: ingredientsData,
-    loading: ingredientsLoading,
-    error: ingredientsError,
-  } = useQuery<GetIngredientsData>(GET_INGREDIENTS_QUERY);
 
   const {
     loading: allRecipesLoading,
@@ -152,62 +127,18 @@ export default function Page() {
           onChange={(e) => setRecipeName(e.target.value)}
         />
 
-        {/* Search recipe by ingredients autocomplete */}
-        <Autocomplete
-          label="Ingredients"
-          placeholder="Search an ingredient"
-          className="max-w-screen"
-          startContent={<SearchIcon />}
-          onSelectionChange={(key) => {
-            if (!key) return;
-            const keyString = key.toString();
-            if (ingredientsSelected.includes(keyString)) {
-              setIngredientsSelected((prev) =>
-                prev.filter((item) => item !== keyString)
-              );
-            } else {
-              setIngredientsSelected((prev) => [...prev, keyString]);
-            }
+        {/* Search recipe by ingredients */}
+        <IngredientDropdown
+          isMulti
+          isClearable
+          placeholder="Search for ingredient(s)"
+          onChange={(newValue, actionMeta) => {
+            console.log("newValue", newValue);
+            if (newValue === null) setIngredientsSelected([]);
+            newValue = newValue as IngredientOption[];
+            setIngredientsSelected(newValue.map((item) => item.value));
           }}
-        >
-          {ingredientsLoading ? (
-            <AutocompleteItem
-              key="loading"
-              textValue="Loading ingredients..."
-              className="flex justify-center items-center"
-            >
-              <p>Loading ingredients...</p>
-            </AutocompleteItem>
-          ) : ingredientsData?.ingredients ? (
-            ingredientsData.ingredients.map((item) => (
-              <AutocompleteItem
-                key={item.name}
-                value={item.name}
-                textValue={item.name}
-              >
-                {item.name}
-              </AutocompleteItem>
-            ))
-          ) : (
-            <p>No ingredients found</p>
-          )}
-        </Autocomplete>
-        {ingredientsSelected.length > 0 && (
-          <div className="flex gap-2">
-            {ingredientsSelected.map((item) => (
-              <Chip
-                key={item}
-                onClose={() =>
-                  setIngredientsSelected(
-                    ingredientsSelected.filter((i) => i !== item)
-                  )
-                }
-              >
-                {item}
-              </Chip>
-            ))}
-          </div>
-        )}
+        />
       </div>
 
       {/* Sortbar */}
