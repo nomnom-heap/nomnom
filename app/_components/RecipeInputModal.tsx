@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Modal,
   ModalBody,
@@ -19,7 +17,7 @@ const Editor = dynamic(() => import("@/app/_components/BlockNoteEditor"), {
 });
 
 import { ImageIcon } from "./ImageIcon";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Block } from "@blocknote/core";
 import { uploadFileToPublicFolder } from "../_lib/utils";
 import { useAuth } from "../AuthProvider";
@@ -28,15 +26,15 @@ import { useMutation, useQuery } from "@apollo/client";
 import { fetchAuthSession } from "aws-amplify/auth";
 import {
   CREATE_RECIPE_MUTATION,
+  UPDATE_RECIPE_MUTATION,
   GET_INGREDIENTS_QUERY,
-  
   type GetIngredientsData,
 } from "@/_lib/gql";
 
 type RecipeInputModalProps = {
   isOpen: boolean;
   onOpenChange: () => void;
-  recipe?: Recipe; 
+  recipe?: Recipe;
 };
 
 export default function RecipeInputModal({
@@ -44,7 +42,7 @@ export default function RecipeInputModal({
   isOpen,
   onOpenChange,
 }: RecipeInputModalProps) {
-  const { userId, setUserId } = useAuth();
+  const { userId } = useAuth();
 
   const [recipeName, setRecipeName] = useState(recipe?.name || "");
   const [ingredientsQty, setIngredientsQty] = useState<string[]>(
@@ -104,14 +102,8 @@ export default function RecipeInputModal({
     error: ingredientsError,
   } = useQuery<GetIngredientsData>(GET_INGREDIENTS_QUERY);
 
-  const [
-    createRecipe,
-    {
-      data: createRecipeData,
-      loading: createRecipeLoading,
-      error: createRecipeError,
-    },
-  ] = useMutation(CREATE_RECIPE_MUTATION);
+  const [createRecipe] = useMutation(CREATE_RECIPE_MUTATION);
+  const [updateRecipe] = useMutation(UPDATE_RECIPE_MUTATION); // Add the update mutation
 
   const handleSaveRecipe = async () => {
     if (
@@ -127,21 +119,39 @@ export default function RecipeInputModal({
     try {
       const session = await fetchAuthSession();
       const userId = session?.tokens?.accessToken.payload.sub;
-      await createRecipe({
-        variables: {
-          name: recipeName,
-          userId: userId,
-          contents: JSON.stringify(contents),
-          time_taken_mins: preparationTime,
-          ingredients: ingredients,
-          ingredients_qty: ingredientsQty,
-          thumbnail_url: thumbnailUrl,
-          serving: serving,
-        },
-      });
+
+      if (recipe) {
+        // Update existing recipe
+        await updateRecipe({
+          variables: {
+            id: recipe.id,
+            name: recipeName,
+            contents: JSON.stringify(contents),
+            time_taken_mins: preparationTime,
+            ingredients: ingredients,
+            ingredients_qty: ingredientsQty,
+            thumbnail_url: thumbnailUrl,
+            serving: serving,
+          },
+        });
+      } else {
+        // Create new recipe
+        await createRecipe({
+          variables: {
+            name: recipeName,
+            userId: userId,
+            contents: JSON.stringify(contents),
+            time_taken_mins: preparationTime,
+            ingredients: ingredients,
+            ingredients_qty: ingredientsQty,
+            thumbnail_url: thumbnailUrl,
+            serving: serving,
+          },
+        });
+      }
     } catch (error: any) {
       console.error(error.message);
-      console.error("error creating recipe", error);
+      console.error("error creating/updating recipe", error);
     }
   };
 
@@ -257,16 +267,6 @@ export default function RecipeInputModal({
                     }
                     onFocus={() => handleLastIngredientFocus(index)}
                   />
-                  {/* <Input
-                    type="text"
-                    placeholder="Ingredient"
-                    value={ingredient}
-                    onChange={(e) =>
-                      handleIngredientChange(index, e.target.value)
-                    }
-                    onFocus={() => handleLastIngredientFocus(index)}
-                  /> */}
-                  {/* Search recipe by ingredients autocomplete */}
                   <Autocomplete
                     label="Ingredients"
                     className="max-w-screen"
@@ -307,8 +307,6 @@ export default function RecipeInputModal({
             </ModalBody>
             <ModalFooter>
               <Button onPress={handleSaveRecipe}>Save</Button>
-              {createRecipeData && <p>Recipe created successfully</p>}
-              {createRecipeError && <p>Error creating recipe</p>}
             </ModalFooter>
           </>
         )}
