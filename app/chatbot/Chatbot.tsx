@@ -1,37 +1,119 @@
+import { gql, useMutation } from "@apollo/client";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import "neo4j-driver";
-import { Neo4jGraph } from "@langchain/community/graphs/neo4j_graph";
-import { Neo4jVectorStore } from "@langchain/community/vectorstores/neo4j_vector";
-import { processEnv } from "@next/env";
-import { ingredients } from "../data";
-import {
-  ChatPromptTemplate,
-  HumanMessagePromptTemplate,
-  SystemMessagePromptTemplate,
-} from "@langchain/core/prompts";
-import {
-  RunnablePassthrough,
-  RunnableSequence,
-} from "@langchain/core/runnables";
-import { StringOutputParser } from "@langchain/core/output_parsers";
-import { formatDocumentsAsString } from "langchain/util/document";
-import { AgentExecutor, type AgentStep } from "langchain/agents";
-import { formatToOpenAIFunctionMessages } from "langchain/agents/format_scratchpad";
-import { OpenAIFunctionsAgentOutputParser } from "langchain/agents/openai/output_parser";
-import { convertToOpenAIFunction } from "@langchain/core/utils/function_calling";
-import { loadQAMapReduceChain } from "langchain/chains";
-import { createOpenAIFunctionsAgent } from "langchain/agents";
+
 import VectorRetriever from "./VectorRetriever";
-import QueryRetriever from "./QueryRetriever";
-import { createRetrieverTool } from "langchain/tools/retriever";
+
+import { InMemoryChatMessageHistory } from "@langchain/core/chat_history";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { RunnableWithMessageHistory } from "@langchain/core/runnables";
+
+// const SAVE_HISTORY_MUTATION = gql`
+//   mutation saveHistory(
+//     sessionId: String!,
+//     source: String!,
+//     input: String!,
+//     rephrasedQuestion: String!,
+//     output: String!,
+//     ids: [String!]!,
+//     cypher: String
+//   ): String!
+//     @cypher(
+//       statement: """
+//       MERGE (session:Session { id: $sessionId })
+
+//       CREATE (response:Response {
+//         id: randomUuid(),
+//         createdAt: datetime(),
+//         source: $source,
+//         input: $input,
+//         output: $output,
+//         rephrasedQuestion: $rephrasedQuestion,
+//         cypher: $cypher,
+//         ids: $ids
+//       })
+//       CREATE (session)-[:HAS_RESPONSE]->(response)
+
+//       CALL {
+//         WITH session, response
+
+//         MATCH (session)-[lrel:LAST_RESPONSE]->(last)
+//         DELETE lrel
+
+//         CREATE (last)-[:NEXT]->(response)
+//       }
+
+//       CREATE (session)-[:LAST_RESPONSE]->(response)
+
+//       WITH response
+//       CALL {
+//         WITH response
+//         UNWIND $ids AS id
+//         MATCH (context)
+//         WHERE elementId(context) = id
+//         CREATE (response)-[:CONTEXT]->(context)
+
+//         RETURN count(*) AS count
+//       }
+
+//       RETURN DISTINCT response.id AS id
+//       """
+//     )
+//     {
+//       sessionId,
+//       source,
+//       input,
+//       output,
+//       rephrasedQuestion,
+//       cypher: cypher,
+//       ids,
+//     }
+
+// `;
 
 export default function Chatbot() {
   async function neo4jInitialise() {
     const url = process.env.NEO4J_URI;
     const username = process.env.NEO4J_USER;
     const password = process.env.NEO4J_PASSWORD;
-    const graph = await Neo4jGraph.initialize({ url, username, password });
-    const llm = new ChatOpenAI({ model: "gpt-3.5-turbo", temperature: 0 });
+    // const graph = await Neo4jGraph.initialize({ url, username, password });
+
+    const messageHistories: Record<string, InMemoryChatMessageHistory> = {};
+
+    const SYSTEM_TEMPLATE = `Use the following pieces of context to answer the question at the end.
+    If you don't know the answer, just say that you don't know, don't try to make up an answer.
+    ----------------
+    {context}`;
+
+    const prompt = ChatPromptTemplate.fromMessages([
+      ["system", SYSTEM_TEMPLATE],
+      ["human", "{question}"],
+    ]);
+    // const chain = prompt.pipe(model);
+    // const withMessageHistory = new RunnableWithMessageHistory({
+    //   runnable: chain,
+    //   getMessageHistory: async (sessionId) => {
+    //     if (messageHistories[sessionId] === undefined) {
+    //       messageHistories[sessionId] = new InMemoryChatMessageHistory();
+    //     }
+    //     return messageHistories[sessionId];
+    //   },
+    //   inputMessagesKey: "input",
+    //   historyMessagesKey: "chat_history",
+    // });
+
+    // const config = {
+    //   configurable: {
+    //     sessionId: "abc2",
+    //   },
+    // };
+
+    // const response = await withMessageHistory.invoke(
+    //   {
+    //     input: "Hi! I'm Bob",
+    //   },
+    //   config
+    // );
 
     // const SYSTEM_TEMPLATE = `Only use the following pieces of context to answer the question at the end.
     // If you don't know the answer, just say that you don't know, don't try to make up an answer. Say Bazinga at the end of your answer.
@@ -128,7 +210,7 @@ export default function Chatbot() {
 
     // console.log(results1);
     // console.log(results2);
-    VectorRetriever();
+    VectorRetriever(prompt);
   }
 
   neo4jInitialise();

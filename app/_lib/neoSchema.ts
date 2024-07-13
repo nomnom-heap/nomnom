@@ -40,6 +40,7 @@ const typeDefs = /* GraphQL */ `
     recipes: [Recipe!]! @relationship(type: "OWNS", direction: OUT)
     favourite_recipes: [Recipe!]!
       @relationship(type: "FAVOURITED", direction: OUT)
+    chat_session: [ChatSession!]! @relationship(type: "HAS", direction: OUT)
     following: [User]!
     followers: [User]!
   }
@@ -91,6 +92,87 @@ const typeDefs = /* GraphQL */ `
         columnName: "node"
       )
   }
+
+  type ChatSession
+    @authentication(
+      operations: [
+        CREATE
+        UPDATE
+        DELETE
+        CREATE_RELATIONSHIP
+        DELETE_RELATIONSHIP
+      ]
+    )
+    @authorization(
+      validate: [
+        {
+          operations: [CREATE, CREATE_RELATIONSHIP]
+          where: { node: { owner: { id: "$jwt.sub" } } }
+        }
+      ]
+    ) {
+    id: ID! @id
+    owner: User! @relationship(type: "HAS", direction: IN)
+    createdAt: DateTime! @timestamp(operations: [CREATE])
+    messages: [ChatMessage!]! @relationship(type: "HAS_MESSAGE", direction: OUT)
+  }
+
+  type ChatMessage {
+    id: ID! @id
+    content: String!
+    createdAt: DateTime! @timestamp(operations: [CREATE])
+    session: ChatSession! @relationship(type: "HAS_MESSAGE", direction: IN)
+  }
+
+  type Mutation {
+    createChatMessage(content: String!, sessionId: ID!): ChatMessage
+      @cypher(
+        statement: """
+        MATCH (session:ChatSession {id: $sessionId})
+        CREATE (msg:ChatMessage {id: apoc.create.uuid(), content: $content, createdAt: datetime()})
+        CREATE (msg)-[:HAS_MESSAGE]->(session)
+        RETURN msg
+        """
+        columnName: "msg"
+      )
+  }
+
+  type Query {
+    messagesBySession(sessionId: ID!): [ChatMessage]
+      @cypher(
+        statement: """
+        MATCH (:ChatSession {id: $sessionId})<-[HAS_MESSAGE]-(message:ChatMessage)
+        RETURN message
+        """
+        columnName: "message"
+      )
+  }
+
+  type Query {
+    getChatHistory(sessionId: ID!): [ChatMessage]
+      @cypher(
+        statement: """
+        MATCH (:ChatSession {id: $sessionId})<-[HAS_MESSAGE]-(message:ChatMessage)
+        WITH message
+        ORDER BY message.createdAt DESC
+        RETURN message
+        LIMIT 10
+        """
+        columnName: "message"
+      )
+  }
+
+  # extend type ChatMessage @mutation {
+  #   createMessage(id: ID!, content: String!, sessionId: ID!): ChatMessage
+  #     @cypher(
+  #       statement: """
+  #       MATCH (s:ChatSession {id: $sessionId})
+  #       CREATE (m:ChatMessage {id: $id, content: $content, createdAt: datetime()})
+  #       CREATE (s)-[:HAS_MESSAGE]->(m)
+  #       RETURN m
+  #       """
+  #     )
+  # }
 `;
 
 // Create a Neo4j driver instance to connect to Neo4j AuraDB
