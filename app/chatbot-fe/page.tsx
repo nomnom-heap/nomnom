@@ -9,6 +9,7 @@ import MessageComponent from "./MessageComponent";
 import { RephraseQuestionInput } from "./RephraseQuestion";
 import initRephraseChain from "./RephraseQuestion";
 import VectorRetriever from "./VectorRetriever";
+import { Image } from "@nextui-org/react";
 // console.log(process.env.OPENAI_API_KEY);
 const llm = new ChatOpenAI({
   model: "gpt-3.5-turbo",
@@ -41,11 +42,20 @@ const CREATE_CHAT_SESSION_MUTATION = gql`
 // `;
 
 const CREATE_CHAT_MESSAGE_MUTATION = gql`
-  mutation CreateChatMessage($content: String!, $sessionId: ID!) {
-    createChatMessage(content: $content, sessionId: $sessionId) {
+  mutation CreateChatMessage(
+    $content: String!
+    $sessionId: ID!
+    $isOwnerHuman: Boolean!
+  ) {
+    createChatMessage(
+      content: $content
+      sessionId: $sessionId
+      isOwnerHuman: $isOwnerHuman
+    ) {
       id
       content
       createdAt
+      isOwnerHuman
     }
   }
 `;
@@ -56,6 +66,7 @@ const GET_MESSAGES_BY_SESSION = gql`
       id
       content
       createdAt
+      isOwnerHuman
     }
   }
 `;
@@ -74,6 +85,8 @@ export default function Page() {
   const [chatMessage, setChatMessage] = useState("test");
   const [sessionId, setSessionId] = useState("unset");
   const [messageData, setMessageData] = useState("");
+  const [chatbotProcessing, setChatbotProcessing] = useState(false);
+  const [chatbotResponse, setChatbotResponse] = useState("");
   // const [chatHistory, setChatHistory] = useState("");
 
   const [
@@ -112,11 +125,25 @@ export default function Page() {
 
   async function handleSubmitMessage(chatMessage) {
     // console.log(chatMessage);
+    if (chatbotResponse) {
+      await createMessage({
+        variables: {
+          sessionId: sessionId,
+          content: chatbotResponse,
+          isOwnerHuman: false,
+        },
+      });
+    }
+
     console.log(sessionId);
+    setChatbotProcessing(true);
+    setChatbotResponse("");
+
     await createMessage({
       variables: {
         content: chatMessage,
         sessionId: sessionId,
+        isOwnerHuman: true,
       },
     });
 
@@ -154,19 +181,23 @@ export default function Page() {
         .then((output) => {
           console.log(output);
           console.log("Passing rephrased question to vector retriever");
-          console.log(
-            "API Key for VectorRetriever:",
-            process.env.NEXT_PUBLIC_OPENAI_API_KEY
-          );
+          // console.log(
+          //   "API Key for VectorRetriever:",
+          //   process.env.NEXT_PUBLIC_OPENAI_API_KEY
+          // );
+
           VectorRetriever(output, process.env.NEXT_PUBLIC_OPENAI_API_KEY)
-            .then((finalAnswer) => {
-              createMessage({
-                variables: {
-                  sessionId: sessionId,
-                  content: finalAnswer,
-                },
-              });
-              console.log(finalAnswer);
+            .then((finalAnswerStream) => {
+              async function handleStream() {
+                for await (const chunk of finalAnswerStream) {
+                  setChatbotResponse(
+                    (previousResponse) => previousResponse + chunk
+                  );
+                }
+                setChatbotProcessing(false);
+              }
+              handleStream();
+              // console.log(chatbotResponse);
             })
             .catch((error) => {
               console.error("error in vector retriever", error);
@@ -178,6 +209,10 @@ export default function Page() {
         });
     }
   }, [chatHistoryData]);
+
+  useEffect(() => {
+    console.log(chatbotResponse);
+  }, [chatbotResponse]);
 
   useEffect(() => {
     const createSession = async () => {
@@ -214,23 +249,44 @@ export default function Page() {
 
   return (
     <div className="overflow-hidden">
-      <div className="bg-white h-96 space-y-10 overflow-x-hidden overflow-auto md:py-20">
+      <div className="bg-white h-96 overflow-x-hidden overflow-auto md:py-0 items-center">
+        {/* <div className="md:px-40 justify-items-center">
+          <Image
+            src="https://static-00.iconduck.com/assets.00/face-savouring-delicious-food-emoji-512x512-q6dd9m3y.png"
+            alt="nomnom"
+            className="size-20"
+          />
+          <span>NOMNOMGPT</span>
+        </div> */}
         {messageData
           ? messageData.map((message) => (
-              <MessageComponent key={message.id} content={message.content} />
+              <MessageComponent
+                key={message.id}
+                content={message.content}
+                identity={message.isOwnerHuman}
+              />
             ))
           : ""}
+
+        {chatbotResponse ? (
+          <MessageComponent
+            key={"ChatbotResponse"}
+            content={chatbotResponse}
+            identity={false}
+          />
+        ) : (
+          ""
+        )}
       </div>
 
-      <div className="md:px-40 md:py-20 h-20">
+      <div className="md:px-40 md:py-20 h-20 bottom-0">
         <InputComponent
           setChatMessage={setChatMessage}
           handleSubmit={handleSubmitMessage}
           chatMessage={chatMessage}
+          chatbotProcessing={chatbotProcessing}
         />
       </div>
     </div>
   );
 }
-
-export function ChatHistory() {}

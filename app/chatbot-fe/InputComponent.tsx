@@ -1,9 +1,10 @@
-import { Textarea, Button } from "@nextui-org/react";
+import { Textarea, Button, Spinner } from "@nextui-org/react";
 
 export default function InputComponent({
   setChatMessage,
   handleSubmit,
   chatMessage,
+  chatbotProcessing,
 }) {
   return (
     <div className="flex items-end bg-white">
@@ -19,14 +20,19 @@ export default function InputComponent({
           setChatMessage(message);
         }}
       />
-      <Button
-        color="secondary"
-        onPress={() => {
-          handleSubmit(chatMessage);
-        }}
-      >
-        Submit
-      </Button>
+
+      {chatbotProcessing ? (
+        <Spinner size="md" />
+      ) : (
+        <Button
+          color="secondary"
+          onPress={() => {
+            handleSubmit(chatMessage);
+          }}
+        >
+          Submit
+        </Button>
+      )}
     </div>
   );
 }

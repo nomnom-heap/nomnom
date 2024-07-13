@@ -122,14 +122,19 @@ const typeDefs = /* GraphQL */ `
     content: String!
     createdAt: DateTime! @timestamp(operations: [CREATE])
     session: ChatSession! @relationship(type: "HAS_MESSAGE", direction: IN)
+    isOwnerHuman: Boolean!
   }
 
   type Mutation {
-    createChatMessage(content: String!, sessionId: ID!): ChatMessage
+    createChatMessage(
+      content: String!
+      sessionId: ID!
+      isOwnerHuman: Boolean!
+    ): ChatMessage
       @cypher(
         statement: """
         MATCH (session:ChatSession {id: $sessionId})
-        CREATE (msg:ChatMessage {id: apoc.create.uuid(), content: $content, createdAt: datetime()})
+        CREATE (msg:ChatMessage {id: apoc.create.uuid(), content: $content, createdAt: datetime(), isOwnerHuman: $isOwnerHuman})
         CREATE (msg)-[:HAS_MESSAGE]->(session)
         RETURN msg
         """

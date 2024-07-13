@@ -43,7 +43,8 @@ export default async function VectorRetriever(query: String, apiKey) {
 
   Use the following pieces of context to answer the question at the end.
   If you don't know the answer, just say that you don't know, don't try to make up an answer.
-  Format your responses in HTML
+  Format your responses clearly. Separate lists with bullet points. Use line breaks to increase the clarity of your answer. 
+  Represent line breaks with <br>.
   ----------------
   {context}`;
 
@@ -88,7 +89,12 @@ export default async function VectorRetriever(query: String, apiKey) {
   //   input_documents: relevantDocs,
   // });
 
-  return await chain.invoke(query);
+  return await chain.stream(query);
+
+  // for await (const chunk of stream) {
+  // }
+
+  // await chain.invoke(query);
 
   // console.log(relevantDocs);
   // console.log(results);
