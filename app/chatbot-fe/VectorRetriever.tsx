@@ -9,11 +9,15 @@ import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { PromptTemplate } from "@langchain/core/prompts";
 
-export default async function VectorRetriever(prompt) {
-  const llm = new ChatOpenAI({ model: "gpt-3.5-turbo", temperature: 0 });
-  const url = process.env.NEO4J_URI;
-  const username = process.env.NEO4J_USER;
-  const password = process.env.NEO4J_PASSWORD;
+export default async function VectorRetriever(query: String, apiKey) {
+  const llm = new ChatOpenAI({
+    model: "gpt-3.5-turbo",
+    temperature: 0,
+    openAIApiKey: apiKey,
+  });
+  const url = process.env.NEXT_PUBLIC_NEO4J_URI;
+  const username = process.env.NEXT_PUBLIC_NEO4J_USER;
+  const password = process.env.NEXT_PUBLIC_NEO4J_PASSWORD;
   const vector_name = "vectorIndexForRecipes";
   const config = {
     url: url, // URL for the Neo4j instance
@@ -23,23 +27,31 @@ export default async function VectorRetriever(prompt) {
     // keywordIndexName: "keyword", // Name of the keyword index if using hybrid search
     // searchType: "vector" as const, // Type of search (e.g., vector, hybrid)
     nodeLabel: "Recipe", // Label for the nodes in the graph
-    textNodeProperties: ["ingredients_joined", "name", "cleaned_contents"], // Property of the node containing text
+    textNodeProperties: ["joined_ingredients", "name", "cleaned_contents"], // Property of the node containing text
     embeddingNodeProperty: "embedding", // Property of the node containing embedding
   };
   const vectorStore = await Neo4jVectorStore.fromExistingGraph(
-    new OpenAIEmbeddings(),
+    new OpenAIEmbeddings({
+      openAIApiKey: apiKey,
+    }),
     config
   );
-  // const SYSTEM_TEMPLATE = `Use the following pieces of context to answer the question at the end.
-  // If you don't know the answer, just say that you don't know, don't try to make up an answer.
-  // ----------------
-  // {context}`;
+  const SYSTEM_TEMPLATE = `
+  You are NOMNOM, a friendly and knowledgeable recipe recommender. Your job is to help users find delicious recipes 
+  based on their preferences, dietary restrictions, and available ingredients. You provide detailed instructions, 
+  ingredient lists, and useful tips for cooking. Your responses are engaging, helpful, and tailored to the user's needs.
 
-  // const prompt = ChatPromptTemplate.fromMessages([
-  //   ["system", SYSTEM_TEMPLATE],
-  //   ["human", "{question}"],
-  // ]);
-  const query = "What are all the spaghetti recipes?";
+  Use the following pieces of context to answer the question at the end.
+  If you don't know the answer, just say that you don't know, don't try to make up an answer.
+  Format your responses in HTML
+  ----------------
+  {context}`;
+
+  const prompt = ChatPromptTemplate.fromMessages([
+    ["system", SYSTEM_TEMPLATE],
+    ["human", "{question}"],
+  ]);
+  // const query = "What are all the spaghetti recipes?";
   const retriever = vectorStore.asRetriever();
 
   // const relevantDocs = await retriever.invoke(query);
@@ -76,9 +88,8 @@ export default async function VectorRetriever(prompt) {
   //   input_documents: relevantDocs,
   // });
 
-  const results = await chain.invoke(query);
+  return await chain.invoke(query);
 
-  console.log("test");
   // console.log(relevantDocs);
-  console.log(results);
+  // console.log(results);
 }

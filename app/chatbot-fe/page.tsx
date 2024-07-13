@@ -8,6 +8,7 @@ import InputComponent from "./InputComponent";
 import MessageComponent from "./MessageComponent";
 import { RephraseQuestionInput } from "./RephraseQuestion";
 import initRephraseChain from "./RephraseQuestion";
+import VectorRetriever from "./VectorRetriever";
 // console.log(process.env.OPENAI_API_KEY);
 const llm = new ChatOpenAI({
   model: "gpt-3.5-turbo",
@@ -152,6 +153,24 @@ export default function Page() {
       rephraseAnswer()
         .then((output) => {
           console.log(output);
+          console.log("Passing rephrased question to vector retriever");
+          console.log(
+            "API Key for VectorRetriever:",
+            process.env.NEXT_PUBLIC_OPENAI_API_KEY
+          );
+          VectorRetriever(output, process.env.NEXT_PUBLIC_OPENAI_API_KEY)
+            .then((finalAnswer) => {
+              createMessage({
+                variables: {
+                  sessionId: sessionId,
+                  content: finalAnswer,
+                },
+              });
+              console.log(finalAnswer);
+            })
+            .catch((error) => {
+              console.error("error in vector retriever", error);
+            });
           // setRephrasedAnswer(output); // Update state with the rephrased answer
         })
         .catch((error) => {

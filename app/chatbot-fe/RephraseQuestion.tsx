@@ -62,6 +62,7 @@ export default function initRephraseChain(llm: BaseChatModel) {
     // <4> Coerce the output into a string
     new StringOutputParser(),
   ]);
+
   // end::sequence[]
 }
 // end::function[]
