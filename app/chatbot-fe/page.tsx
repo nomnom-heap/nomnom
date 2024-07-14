@@ -1,5 +1,6 @@
 "use client";
 
+import { Poppins } from "next/font/google";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { gql, useLazyQuery, useMutation } from "@apollo/client";
 import { useEffect, useState } from "react";
@@ -9,8 +10,17 @@ import MessageComponent from "./MessageComponent";
 import { RephraseQuestionInput } from "./RephraseQuestion";
 import initRephraseChain from "./RephraseQuestion";
 import VectorRetriever from "./VectorRetriever";
-import { Image } from "@nextui-org/react";
+import {
+  Image,
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter,
+  Button,
+  Divider,
+} from "@nextui-org/react";
 // console.log(process.env.OPENAI_API_KEY);
+const poppins = Poppins({ weight: ["600"], subsets: ["latin"] });
 const llm = new ChatOpenAI({
   model: "gpt-3.5-turbo",
   temperature: 0,
@@ -82,7 +92,7 @@ const GET_CHAT_HISTORY_BY_SESSION = gql`
 `;
 
 export default function Page() {
-  const [chatMessage, setChatMessage] = useState("test");
+  const [chatMessage, setChatMessage] = useState("");
   const [sessionId, setSessionId] = useState("unset");
   const [messageData, setMessageData] = useState("");
   const [chatbotProcessing, setChatbotProcessing] = useState(false);
@@ -159,6 +169,10 @@ export default function Page() {
       },
     });
     // console.log(chatMessage);
+  }
+
+  function handleChatSuggestions() {
+    setChatMessage();
   }
 
   useEffect(() => {
@@ -250,14 +264,52 @@ export default function Page() {
   return (
     <div className="overflow-hidden">
       <div className="bg-white h-96 overflow-x-hidden overflow-auto md:py-0 items-center">
-        {/* <div className="md:px-40 justify-items-center">
-          <Image
-            src="https://static-00.iconduck.com/assets.00/face-savouring-delicious-food-emoji-512x512-q6dd9m3y.png"
-            alt="nomnom"
-            className="size-20"
-          />
-          <span>NOMNOMGPT</span>
-        </div> */}
+        <Card className="items-center md:mx-80 md:my-10" shadow="none">
+          <CardHeader className="justify-center">
+            <div className="flex flex-col">
+              <h4
+                className={`${poppins.className} text-4xl font-bold pt-10 px-10 pb-5`}
+              >
+                Chat with nomnom 😋
+              </h4>
+              <p>
+                nomnom is a friendly chatbot that can help you find the perfect
+                recipe!
+              </p>
+            </div>
+          </CardHeader>
+
+          <CardBody>
+            <div className="flex flex-nowrap space-x-2 justify-center">
+              <Button
+                className="bg-slate-500 text-white"
+                size="sm"
+                onPress={() =>
+                  setChatMessage("Any healthy recipes to recommend?")
+                }
+              >
+                Any healthy recipes to recommend?
+              </Button>
+              <Button
+                className="bg-slate-500 text-white"
+                size="sm"
+                onPress={() =>
+                  setChatMessage("Any food I can cook for a family?")
+                }
+              >
+                Any food I can cook for a family?
+              </Button>
+              <Button
+                className="bg-slate-500 text-white"
+                size="sm"
+                onPress={() => setChatMessage("Any protein-rich recipes?")}
+              >
+                Any protein-rich recipes?
+              </Button>
+            </div>
+          </CardBody>
+        </Card>
+
         {messageData
           ? messageData.map((message) => (
               <MessageComponent

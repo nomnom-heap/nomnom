@@ -7,8 +7,9 @@ export default function InputComponent({
   chatbotProcessing,
 }) {
   return (
-    <div className="flex items-end bg-white">
+    <div className="flex items-end bg-white space-x-3">
       <Textarea
+        value={chatMessage}
         minRows={1}
         maxRows={3}
         // size="lg"
