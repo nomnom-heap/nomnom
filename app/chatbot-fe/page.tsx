@@ -87,6 +87,7 @@ const GET_CHAT_HISTORY_BY_SESSION = gql`
       id
       content
       createdAt
+      isOwnerHuman
     }
   }
 `;
@@ -183,7 +184,7 @@ export default function Page() {
         const rephraseAnswerChain = initRephraseChain(llm);
 
         const output = await rephraseAnswerChain.invoke({
-          input: chatMessage,
+          input: chatMessagePassed,
           history: chatHistoryData.getChatHistory,
         });
 
@@ -264,16 +265,16 @@ export default function Page() {
 
   return (
     <div className="overflow-hidden">
-      <div className="bg-white h-96 overflow-x-hidden overflow-auto md:py-0 items-center">
+      <div className="bg-white max-sm:static overflow-x-hidden overflow-auto border-0 pt-0 pb-[1rem] px-0 items-center m-0 md:h-96 lg:h-[30rem]">
         <Card className="items-center md:mx-80 md:my-10" shadow="none">
           <CardHeader className="justify-center">
             <div className="flex flex-col">
               <h4
-                className={`${poppins.className} text-4xl font-bold pt-10 px-10 pb-5`}
+                className={`${poppins.className} text-4xl font-bold pt-10 px-10 pb-5 text-center`}
               >
                 Chat with Nombot 😋
               </h4>
-              <p>
+              <p className="text-center">
                 Nombot is a friendly chatbot that can help you find the perfect
                 recipe!
               </p>
@@ -281,7 +282,8 @@ export default function Page() {
           </CardHeader>
 
           <CardBody>
-            <div className="flex flex-nowrap space-x-2 justify-center">
+            <div className="flex space-x-2 max-sm:space-y-2 max-sm:flex-col max-sm:items-center md:flex-nowrap md:justify-center">
+              {/* <div className="flex flex-nowrap space-x-2 justify-center"> */}
               <Button
                 className="bg-slate-500 text-white"
                 size="sm"
@@ -332,7 +334,7 @@ export default function Page() {
         )}
       </div>
 
-      <div className="md:px-40 md:py-20 h-20 bottom-0">
+      <div className="inset-x-0 px-2 pt-2 md:px-40 md:pb-16 md:pt-5 md:absolute md:bottom-6 h-20 ">
         <InputComponent
           setChatMessage={setChatMessage}
           handleSubmit={handleSubmitMessage}

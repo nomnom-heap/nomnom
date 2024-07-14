@@ -11,7 +11,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 
 export default async function VectorRetriever(query: String, apiKey) {
   const llm = new ChatOpenAI({
-    model: "gpt-4o",
+    model: "gpt-3.5-turbo",
     temperature: 0,
     openAIApiKey: apiKey,
   });

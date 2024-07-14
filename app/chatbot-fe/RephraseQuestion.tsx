@@ -55,7 +55,17 @@ export default function initRephraseChain(llm: BaseChatModel) {
         if (history.length === 0) {
           return "No history";
         }
-        return history.map((message) => message.content).join("\n");
+        return history
+          .map((message) => {
+            if (message.isOwnerHuman) {
+              return `Human: ${message.content}`;
+            } else {
+              return `AI: ${message.content}`;
+            }
+          })
+          .join("/n");
+
+        // message.content).join("\n");
       },
     }),
     // end::assign[]
