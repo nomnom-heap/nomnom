@@ -14,7 +14,7 @@ export default function InputComponent({
         maxRows={3}
         // size="lg"
         isRequired
-        label="Ask NOMNOM!"
+        label="Ask Nombot!"
         variant="underlined"
         placeholder="Enter your question"
         onValueChange={(message) => {

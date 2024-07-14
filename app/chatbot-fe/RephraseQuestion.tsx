@@ -28,9 +28,13 @@ export default function initRephraseChain(llm: BaseChatModel) {
       Given the following conversation and a question,
       rephrase the follow-up question to be a standalone question about the
       subject of the conversation history.
+
+      If the provided input is a statement and not a question, rephrase the statement
+      to include the subject of the conversation history.
   
       If you do not have the required information required to construct
-      a standalone question, ask for clarification.
+      a standalone question, for example, if there is no history, 
+      just leave the question as it is.
   
       Always include the subject of the history in the question.
   

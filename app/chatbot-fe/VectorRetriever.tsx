@@ -11,7 +11,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 
 export default async function VectorRetriever(query: String, apiKey) {
   const llm = new ChatOpenAI({
-    model: "gpt-3.5-turbo",
+    model: "gpt-4o",
     temperature: 0,
     openAIApiKey: apiKey,
   });
@@ -43,8 +43,33 @@ export default async function VectorRetriever(query: String, apiKey) {
 
   Use the following pieces of context to answer the question at the end.
   If you don't know the answer, just say that you don't know, don't try to make up an answer.
-  Format your responses clearly. Separate lists with bullet points. Use line breaks to increase the clarity of your answer. 
-  Represent line breaks with <br>.
+  Format your responses in HTML. DO NOT use **. Use <strong> to indicate bolded words instead.
+
+  Example of 1 recipe response:
+  <ol class="list-decimal">
+    <li> 
+    <h1> Pancakes </h1>
+    <strong> Ingredients </strong>
+    <ul class="list-disc">
+      <li>1 cup all-purpose flour</li>
+      <li>2 tablespoons sugar</li>
+      <li>1 tablespoon baking powder</li>
+      <li>1/2 teaspoon salt</li>
+    </ul>
+
+    <strong> Steps </strong>
+    <ol class="list-decimal">
+    <li>In a large bowl, mix together the flour, sugar, baking powder, and salt.</li>
+    <li>In another bowl, whisk together the milk, egg, melted butter, and vanilla extract.</li>
+    <li>Pour the wet ingredients into the dry ingredients and stir until just combined.</li>
+    </ol>
+
+    </li>
+
+    ...other ingredients
+
+  </ol>
+
   ----------------
   {context}`;
 
@@ -66,9 +91,10 @@ export default async function VectorRetriever(query: String, apiKey) {
         delete document.metadata.ingredients_qty;
         delete document.metadata.ingredients;
         delete document.id;
+        delete document.metadata.thumbnail_url;
       }
     });
-    console.log(documents);
+    console.log(JSON.stringify(documents));
     return documents.map((doc) => JSON.stringify(doc)).join(", ");
   }
 

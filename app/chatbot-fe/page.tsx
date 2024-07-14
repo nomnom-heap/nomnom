@@ -3,7 +3,7 @@
 import { Poppins } from "next/font/google";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { gql, useLazyQuery, useMutation } from "@apollo/client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { fetchAuthSession } from "aws-amplify/auth";
 import InputComponent from "./InputComponent";
 import MessageComponent from "./MessageComponent";
@@ -97,6 +97,7 @@ export default function Page() {
   const [messageData, setMessageData] = useState("");
   const [chatbotProcessing, setChatbotProcessing] = useState(false);
   const [chatbotResponse, setChatbotResponse] = useState("");
+  const chatMessageRef = useRef("");
   // const [chatHistory, setChatHistory] = useState("");
 
   const [
@@ -135,6 +136,8 @@ export default function Page() {
 
   async function handleSubmitMessage(chatMessage) {
     // console.log(chatMessage);
+    chatMessageRef.current = chatMessage;
+    setChatMessage("");
     if (chatbotResponse) {
       await createMessage({
         variables: {
@@ -171,14 +174,12 @@ export default function Page() {
     // console.log(chatMessage);
   }
 
-  function handleChatSuggestions() {
-    setChatMessage();
-  }
-
   useEffect(() => {
     if (chatHistoryData) {
       // setChatHistory(chatHistoryData.getChatHistory);
       async function rephraseAnswer() {
+        const chatMessagePassed = chatMessageRef.current;
+        console.log(chatMessagePassed);
         const rephraseAnswerChain = initRephraseChain(llm);
 
         const output = await rephraseAnswerChain.invoke({
@@ -224,9 +225,9 @@ export default function Page() {
     }
   }, [chatHistoryData]);
 
-  useEffect(() => {
-    console.log(chatbotResponse);
-  }, [chatbotResponse]);
+  // useEffect(() => {
+  //   console.log(chatbotResponse);
+  // }, [chatbotResponse]);
 
   useEffect(() => {
     const createSession = async () => {
@@ -270,10 +271,10 @@ export default function Page() {
               <h4
                 className={`${poppins.className} text-4xl font-bold pt-10 px-10 pb-5`}
               >
-                Chat with nomnom 😋
+                Chat with Nombot 😋
               </h4>
               <p>
-                nomnom is a friendly chatbot that can help you find the perfect
+                Nombot is a friendly chatbot that can help you find the perfect
                 recipe!
               </p>
             </div>
