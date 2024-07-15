@@ -1,7 +1,5 @@
 "use client";
 import { Checkbox, Input } from "@nextui-org/react";
-import { useQuery, useLazyQuery } from "@apollo/client";
-import { gql } from "@apollo/client/core";
 
 import { useState, useEffect } from "react";
 
@@ -11,96 +9,67 @@ import { SearchIcon } from "./_components/SearchIcon";
 import IngredientDropdown, {
   IngredientOption,
 } from "./_components/IngredientDropdown";
+import useRecipes from "./_hooks/useRecipes";
+import InfiniteScroll from "react-infinite-scroll-component";
+import useSearchRecipes from "./_hooks/useSearchRecipes";
 
-interface GetAllRecipesData {
-  recipes: Recipe[];
-}
-
-interface SearchRecipesData {
-  searchRecipes: Recipe[];
-}
-
-const GET_ALL_RECIPES_QUERY = gql`
-  query GetAllRecipes {
-    recipes {
-      id
-      name
-      contents
-      ingredients
-      ingredients_qty
-      thumbnail_url
-      time_taken_mins
-      serving
-      favouritedByUsers {
-        id
-      }
-    }
-  }
-`;
-
-const SEARCH_RECIPES_QUERY = gql`
-  query searchRecipes($searchTerm: String) {
-    searchRecipes(searchTerm: $searchTerm) {
-      id
-      name
-      contents
-      ingredients
-      ingredients_qty
-      thumbnail_url
-      time_taken_mins
-      serving
-      favouritedByUsers {
-        id
-      }
-    }
-  }
-`;
+const LIMIT = 9;
 
 export default function Page() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [recipeName, setRecipeName] = useState<string>("");
-  const [ingredientsSelected, setIngredientsSelected] = useState<string[]>([]);
-
-  const {
-    loading: allRecipesLoading,
-    error: allRecipesError,
-    data: allRecipesData,
-  } = useQuery<GetAllRecipesData>(GET_ALL_RECIPES_QUERY, {
-    // fetchPolicy: "network-only", // Used for first execution
-    // nextFetchPolicy: "network-only", // Used for subsequent executions
-    // notifyOnNetworkStatusChange: true,
+  const [searchTerm, setSearchTerm] = useState<SearchTerm>({
+    recipeName: "",
+    ingredients: [],
   });
 
-  const [
-    searchRecipes,
-    {
-      loading: searchRecipesLoading,
-      error: searchRecipesError,
-      data: searchRecipesData,
-      refetch: searchRecipesRefetch,
-    },
-  ] = useLazyQuery<SearchRecipesData>(SEARCH_RECIPES_QUERY);
+  const {
+    recipes: allRecipes,
+    totalPages: allRecipesTotalPages,
+    currentPage: allRecipesCurrentPage,
+    setCurrentPage: setAllRecipesCurrentPage,
+  } = useRecipes(LIMIT);
+
+  const {
+    recipes: searchRecipes,
+    currentPage: searchRecipesCurrentPage,
+    totalPages: searchRecipesTotalPages,
+    setCurrentPage: setSearchRecipesCurrentPage,
+    setSearchTerm: setSearchRecipesSearchTerm,
+  } = useSearchRecipes(LIMIT);
 
   useEffect(() => {
-    if (allRecipesData && allRecipesData.recipes) {
-      setRecipes(allRecipesData.recipes);
+    if (
+      searchTerm.recipeName.trim() == "" &&
+      searchTerm.ingredients.length == 0
+    ) {
+      // console.log("set all recipes");
+      setRecipes(allRecipes);
     }
-    if (searchRecipesData && searchRecipesData.searchRecipes) {
-      setRecipes(searchRecipesData.searchRecipes);
-    }
-  }, [allRecipesData, searchRecipesData]);
+  }, [allRecipes]);
 
-  // search recipes when recipe name or ingredients change
   useEffect(() => {
-    const searchTerm = recipeName + ingredientsSelected.join(", ");
-    if (searchTerm) {
-      searchRecipes({
-        variables: { searchTerm: searchTerm },
-      });
-    } else {
-      setRecipes(allRecipesData?.recipes || []);
+    // console.log("searchRecipes useEffect");
+    if (
+      searchTerm.recipeName.trim() != "" ||
+      searchTerm.ingredients.length > 0
+    ) {
+      // console.log("set search recipes");
+      setRecipes(searchRecipes);
     }
-  }, [recipeName, ingredientsSelected]);
+  }, [searchRecipes]);
+
+  useEffect(() => {
+    // console.log("searcTerm useEffect");
+    if (
+      searchTerm.recipeName.trim() == "" &&
+      searchTerm.ingredients.length == 0
+    ) {
+      setRecipes(allRecipes);
+      setSearchRecipesCurrentPage(1);
+      return;
+    }
+    setSearchRecipesSearchTerm(searchTerm);
+  }, [searchTerm]);
 
   return (
     <>
@@ -124,7 +93,10 @@ export default function Page() {
           startContent={
             <SearchIcon className="text-black/50 mb-0.5 dark:text-white/90 text-slate-400 pointer-events-none flex-shrink-0" />
           }
-          onChange={(e) => setRecipeName(e.target.value)}
+          onChange={(e) => {
+            // if (e.target.value.trim() === "") return; // use search all recipes instead of search recipes by name
+            setSearchTerm({ ...searchTerm, recipeName: e.target.value });
+          }}
         />
 
         {/* Search recipe by ingredients */}
@@ -133,10 +105,11 @@ export default function Page() {
           isClearable
           placeholder="Search for ingredient(s)"
           onChange={(newValue, actionMeta) => {
-            console.log("newValue", newValue);
-            if (newValue === null) setIngredientsSelected([]);
             newValue = newValue as IngredientOption[];
-            setIngredientsSelected(newValue.map((item) => item.value));
+            setSearchTerm({
+              ...searchTerm,
+              ingredients: newValue.map((item) => item.value),
+            });
           }}
         />
       </div>
@@ -148,26 +121,38 @@ export default function Page() {
         <Checkbox size="md">Preparation Time</Checkbox>
       </div>
 
-      {searchRecipesLoading || allRecipesLoading ? (
-        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {[...Array(3)].map((_, i) => (
-            <LoadingSkeleton key={i} />
-          ))}
+      {recipes.length == 0 ? (
+        <div className="grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 p-4">
+          {...Array(LIMIT).map(() => <LoadingSkeleton />)}
         </div>
       ) : (
-        <div>
-          {recipes.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {recipes.map((recipe) => (
-                <RecipeCard recipe={recipe} key={recipe.id} />
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col gap-4">
-              <span>No recipes found 😅 Consider creating one!</span>
-            </div>
-          )}
-        </div>
+        <InfiniteScroll
+          dataLength={recipes.length}
+          next={() => {
+            if (
+              searchTerm.recipeName.trim() != "" ||
+              searchTerm.ingredients.length > 0
+            ) {
+              // console.log("searching more recipes based on search term");
+              setSearchRecipesCurrentPage(searchRecipesCurrentPage + 1);
+            } else {
+              // console.log("searching more recipes");
+              setAllRecipesCurrentPage(allRecipesCurrentPage + 1);
+            }
+          }}
+          hasMore={
+            searchTerm.recipeName.trim() != "" ||
+            searchTerm.ingredients.length > 0
+              ? searchRecipesCurrentPage <= searchRecipesTotalPages
+              : allRecipesCurrentPage < allRecipesTotalPages
+          }
+          loader={<LoadingSkeleton />}
+          className="grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 p-4"
+        >
+          {recipes.map((recipe, index) => (
+            <RecipeCard recipe={recipe} key={`${recipe.id}-${index}`} />
+          ))}
+        </InfiniteScroll>
       )}
     </>
   );
