@@ -30,6 +30,7 @@ export default function InputComponent({
           onPress={() => {
             handleSubmit(chatMessage);
           }}
+          type="button"
         >
           Submit
         </Button>

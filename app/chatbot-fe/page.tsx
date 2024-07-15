@@ -19,6 +19,8 @@ import {
   Divider,
 } from "@nextui-org/react";
 // console.log(process.env.OPENAI_API_KEY);
+import { useClassicEffect } from "./useClassicEffect";
+
 const poppins = Poppins({ weight: ["600"], subsets: ["latin"] });
 const llm = new ChatOpenAI({
   model: "gpt-4o",
@@ -85,8 +87,11 @@ export default function Page() {
   const [messageData, setMessageData] = useState("");
   const [chatbotProcessing, setChatbotProcessing] = useState(false);
   const [chatbotResponse, setChatbotResponse] = useState("");
+  // const hasEffectRan = useRef(false);
   const chatMessageRef = useRef("");
   // const [chatHistory, setChatHistory] = useState("");
+
+  //custom hook to avoid react strict mode for Effect
 
   const [
     createChatSession,
@@ -222,7 +227,29 @@ export default function Page() {
   //   console.log(chatbotResponse);
   // }, [chatbotResponse]);
 
-  useEffect(() => {
+  // useEffect(() => {
+  //   const createSession = async () => {
+  //     try {
+  //       if (!hasEffectRan.current) {
+  //         const session = await fetchAuthSession();
+  //         const userId = session?.tokens?.accessToken.payload.sub;
+  //         console.log("test");
+  //         await createChatSession({
+  //           variables: {
+  //             userId: userId,
+  //           },
+  //         });
+  //       }
+  //     } catch (error) {
+  //       console.error(error.message);
+  //       console.error("Error creating chat session:", error);
+  //     }
+  //   };
+
+  //   createSession();
+  //   return () => (hasEffectRan.current = true);
+  // }, []); // Empty dependency array ensures useEffect runs only once on mount
+  useClassicEffect(() => {
     const createSession = async () => {
       try {
         const session = await fetchAuthSession();
@@ -239,8 +266,10 @@ export default function Page() {
       }
     };
 
-    createSession();
-  }, []); // Empty dependency array ensures useEffect runs only once on mount
+    return () => {
+      createSession();
+    };
+  }, []); // Usage of this custom hook due to how React calls effects with empty dependencies twice in strict mode
 
   useEffect(() => {
     if (ChatSessionData) {
