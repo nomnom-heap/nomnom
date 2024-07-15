@@ -12,7 +12,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 export default async function VectorRetriever(
   query: String,
   chatHistory: [],
-  apiKey
+  apiKey = process.env.OPENAI_API_KEY
 ) {
   const llm = new ChatOpenAI({
     model: "gpt-4o",
@@ -57,18 +57,36 @@ export default async function VectorRetriever(
 
   ONLY use the following pieces of context to answer the question at the end.
   Utilise the chat history provided to understand what the user is trying to ask.
-  It is INCREDIBLY important that if you don't know the answer, just say that you don't know, don't try to make up an answer.
+  Do not provide the same recipes that you have given already, unless the user specifically ask for the same recipe or a similar recipe.
+  For example:
+  Human: ...
+  Ai: Recipe 1
+  Human: ...  
+  You should answer with a new Recipe.
+
+  If the chat history contains multiple questions involving conflicting requirements for the recipes, prioritise the newest requirements, which is the requirement closest to the bottom of the information.
+  For example:
+  Human: ... spanish recipe ...
+  AI: ...
+  Human: ... Italian recipe ...
+  AI: ...
+  If the next question ask to provide more recipes, provide more Italian recipes.
+
+  It is INCREDIBLY important that if you don't know the answer, reply with "I do not have the relevant information",
+  Only answer questions related to cooking or recipes, if the question do no fit into the criteria reply with "I do not have the relevant information".
   You need to be engaging in your responses.
 
   Format your responses in HTML. 
-  To indicated bolded words, use <strong></strong>, for example, <strong>Spaghetti Bolognese</strong>
-  Example of 1 recipe response:
+  Follow the format and do not miss out the </br>
+  If there is only 1 recipe you do not need to 
+  Example of a recipe response:
 
   I have something I can recommend 
   
   <ol class="list-decimal">
     <li> 
-    <h1> Pancakes </h1>
+    <strong> Pancakes </strong>
+    </br>
     <strong> Ingredients </strong>
     <ul class="list-disc">
       <li>1 cup all-purpose flour</li>
@@ -77,16 +95,18 @@ export default async function VectorRetriever(
       <li>1/2 teaspoon salt</li>
     </ul>
 
-    <strong> Steps </strong>
+    </br>
+    <strong> Steps <strong>
     <ol class="list-decimal">
     <li>In a large bowl, mix together the flour, sugar, baking powder, and salt.</li>
     <li>In another bowl, whisk together the milk, egg, melted butter, and vanilla extract.</li>
     <li>Pour the wet ingredients into the dry ingredients and stir until just combined.</li>
     </ol>
-
     </li>
-
-    ...other ingredients
+    </br><strong> Comments: <strong>
+    This dish is healthy ...
+    </br>
+    Repeat the same thing for other recipes.
 
   </ol>
 
