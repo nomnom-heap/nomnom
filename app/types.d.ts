@@ -40,3 +40,8 @@ type Recipe = {
   createdAt: string;
   updatedAt: string;
 };
+
+interface SearchTerm {
+  recipeName: string;
+  ingredients: string[];
+}
