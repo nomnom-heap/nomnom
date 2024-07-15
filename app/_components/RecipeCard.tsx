@@ -110,7 +110,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
 
   return (
     <>
-      <div className="cursor-pointer" onClick={onOpen}>
+      <div className="cursor-pointer" onClick={onOpen} key={recipe.id}>
         <Card className="relative group">
           <CardHeader className="pb-0 pt-3 px-3 m-2 flex-col items-start">
             <h4 className="font-bold text-lg">{recipe.name}</h4>
