@@ -61,29 +61,5 @@ export default function MessageComponent({ content, identity }) {
         </div>
       )}
     </>
-    // <div className="bg-slate-500">
-    //   <Card className="shadow-none border-none bg-slate-500 p-5 rounded-none md:px-40">
-    //     <CardHeader className="flex gap-3">
-    //       {identity ? (
-    //         <h4>User</h4>
-    //       ) : (
-    //         <>
-    //           <Avatar
-    //             isBordered
-    //             color="default"
-    //             src="https://static-00.iconduck.com/assets.00/face-savouring-delicious-food-emoji-512x512-q6dd9m3y.png"
-    //           />
-    //           <h4>NOMNOM</h4>
-    //         </>
-    //       )}
-    //     </CardHeader>
-    //     <CardBody className="justify-between">
-    //       <div className="flex gap-5">
-    //         {/* <div dangerouslySetInnerHTML={{ __html: content }} /> */}
-    //         <div className="text-white">{content}</div>
-    //       </div>
-    //     </CardBody>
-    //   </Card>
-    // </div>
   );
 }
