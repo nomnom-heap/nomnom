@@ -9,9 +9,13 @@ import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { PromptTemplate } from "@langchain/core/prompts";
 
-export default async function VectorRetriever(query: String, apiKey) {
+export default async function VectorRetriever(
+  query: String,
+  chatHistory: [],
+  apiKey
+) {
   const llm = new ChatOpenAI({
-    model: "gpt-3.5-turbo",
+    model: "gpt-4o",
     temperature: 0,
     openAIApiKey: apiKey,
   });
@@ -36,16 +40,32 @@ export default async function VectorRetriever(query: String, apiKey) {
     }),
     config
   );
+
+  const formattedChatHistory = chatHistory
+    .map((message) => {
+      if (message.isOwnerHuman) {
+        return `Human: ${message.content}`;
+      } else {
+        return `AI: ${message.content}`;
+      }
+    })
+    .join("\n");
   const SYSTEM_TEMPLATE = `
   You are NOMNOM, a friendly and knowledgeable recipe recommender. Your job is to help users find delicious recipes 
   based on their preferences, dietary restrictions, and available ingredients. You provide detailed instructions, 
   ingredient lists, and useful tips for cooking. Your responses are engaging, helpful, and tailored to the user's needs.
 
-  Use the following pieces of context to answer the question at the end.
-  If you don't know the answer, just say that you don't know, don't try to make up an answer.
-  Format your responses in HTML. DO NOT use **. Use <strong> to indicate bolded words instead.
+  ONLY use the following pieces of context to answer the question at the end.
+  Utilise the chat history provided to understand what the user is trying to ask.
+  It is INCREDIBLY important that if you don't know the answer, just say that you don't know, don't try to make up an answer.
+  You need to be engaging in your responses.
 
+  Format your responses in HTML. 
+  To indicated bolded words, use <strong></strong>, for example, <strong>Spaghetti Bolognese</strong>
   Example of 1 recipe response:
+
+  I have something I can recommend 
+  
   <ol class="list-decimal">
     <li> 
     <h1> Pancakes </h1>
@@ -70,8 +90,12 @@ export default async function VectorRetriever(query: String, apiKey) {
 
   </ol>
 
+  Pancakes are a great recipe for the family! Let me know if you have other queries!
+
   ----------------
-  {context}`;
+  {context}
+  
+  `;
 
   const prompt = ChatPromptTemplate.fromMessages([
     ["system", SYSTEM_TEMPLATE],
@@ -105,6 +129,7 @@ export default async function VectorRetriever(query: String, apiKey) {
     },
     prompt,
     llm,
+    // chatHistory,
     new StringOutputParser(),
   ]);
 

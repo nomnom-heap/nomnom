@@ -21,22 +21,43 @@ export type RephraseQuestionInput = {
 export default function initRephraseChain(llm: BaseChatModel) {
   // tag::prompt[]
   // Prompt template
+
   const rephraseQuestionChainPrompt = PromptTemplate.fromTemplate<
     RephraseQuestionInput,
     string
   >(`
       Given the following conversation and a question,
       rephrase the follow-up question to be a standalone question about the
-      subject of the conversation history.
+      subject of the conversation history. If the provided input is a not a question, 
+      rephrase the statement to include the subject of the conversation history. But do it in this manner.
 
-      If the provided input is a statement and not a question, rephrase the statement
-      to include the subject of the conversation history.
-  
+      For example
+      -----------
+      Past history data - Human: I like fried food
+      Statement: I am Henry.
+
+      Rephrased output:
+      History: Henry said previously that he likes fried food.      
+      Statement: I am Henry.
+
+      Otherwise, if the input is a question
+      Past history data - Human: I love spaghetti.
+      Question: Any recommendations for what I like?
+
+      Rephrased output:
+      Question: Any recommendations for spaghetti?
+
+
+      Do not turn the statement into a question.
       If you do not have the required information required to construct
       a standalone question, for example, if there is no history, 
       just leave the question as it is.
-  
-      Always include the subject of the history in the question.
+
+      For example
+      --------------
+      Question: What makes the sky blue?
+      Past history data - nothing found
+      Question: What makes the sky blue?
   
       History:
       {history}

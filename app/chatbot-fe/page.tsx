@@ -22,7 +22,7 @@ import {
 // console.log(process.env.OPENAI_API_KEY);
 const poppins = Poppins({ weight: ["600"], subsets: ["latin"] });
 const llm = new ChatOpenAI({
-  model: "gpt-3.5-turbo",
+  model: "gpt-4o",
   temperature: 0,
   openAIApiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
 });
@@ -191,18 +191,24 @@ export default function Page() {
         return output;
       }
 
-      console.log(JSON.stringify(chatHistoryData));
+      // console.log(JSON.stringify(chatHistoryData));
+      const history = chatHistoryData.getChatHistory;
 
       rephraseAnswer()
         .then((output) => {
           console.log(output);
           console.log("Passing rephrased question to vector retriever");
+
           // console.log(
           //   "API Key for VectorRetriever:",
           //   process.env.NEXT_PUBLIC_OPENAI_API_KEY
           // );
 
-          VectorRetriever(output, process.env.NEXT_PUBLIC_OPENAI_API_KEY)
+          VectorRetriever(
+            output,
+            history,
+            process.env.NEXT_PUBLIC_OPENAI_API_KEY
+          )
             .then((finalAnswerStream) => {
               async function handleStream() {
                 for await (const chunk of finalAnswerStream) {
@@ -218,7 +224,6 @@ export default function Page() {
             .catch((error) => {
               console.error("error in vector retriever", error);
             });
-          // setRephrasedAnswer(output); // Update state with the rephrased answer
         })
         .catch((error) => {
           console.error("Error in rephraseAnswer:", error);
