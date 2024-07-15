@@ -7,7 +7,6 @@ import { useEffect, useState, useRef } from "react";
 import { fetchAuthSession } from "aws-amplify/auth";
 import InputComponent from "./InputComponent";
 import MessageComponent from "./MessageComponent";
-import { RephraseQuestionInput } from "./RephraseQuestion";
 import initRephraseChain from "./RephraseQuestion";
 import VectorRetriever from "./VectorRetriever";
 import {
@@ -38,18 +37,6 @@ const CREATE_CHAT_SESSION_MUTATION = gql`
     }
   }
 `;
-
-// const CREATE_MESSAGE_MUTATION = gql`
-//   mutation createMessage($content: String!, $sessionId: ID!) {
-//     createChatMessages(
-//       input: { session: { connect: { where: { node: { id: $sessionId } } } } }
-//     ) {
-//       chatMessages {
-//         content
-//       }
-//     }
-//   }
-// `;
 
 const CREATE_CHAT_MESSAGE_MUTATION = gql`
   mutation CreateChatMessage(
