@@ -12,6 +12,11 @@ import {
   Link,
 } from "@nextui-org/react";
 import dynamic from "next/dynamic";
+import { FaPlus } from "react-icons/fa";
+import { IoRemoveOutline } from "react-icons/io5";
+import { MdFullscreen,MdFullscreenExit } from "react-icons/md";
+
+
 const Editor = dynamic(() => import("@/app/_components/BlockNoteEditor"), {
   ssr: false,
 });
@@ -29,7 +34,7 @@ import IngredientDropdown, { IngredientOption } from "./IngredientDropdown";
 type RecipeInputModalProps = {
   isOpen: boolean;
   onOpenChange: () => void;
-  recipe?: Recipe; // recipe should be provided if editing, else it should be undefined (for creating recipe)
+  recipe?: any; // recipe should be provided if editing, else it should be undefined (for creating recipe)
 };
 
 export default function RecipeInputModal({
@@ -91,6 +96,32 @@ export default function RecipeInputModal({
       setIngredientsQty([...ingredientsQty, ""]);
     }
   };
+
+  const AddIngredientHandler = (index: number) => {
+      setIngredients([...ingredients, ""]);
+      setIngredientsQty([...ingredientsQty, ""]);
+  };
+
+  const RemoveIngredientHandler = (index: number) => {
+    if(ingredients.length!=1){
+      setIngredients(ingredients=>ingredients.filter((_,key)=>key!==index));
+      setIngredientsQty(ingredientsQty=>ingredientsQty.filter((_,key)=>key!==index));
+    }
+
+};
+
+    const [recipeSize,setRecipeSize]=useState<"xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "full" | undefined>("sm");
+    const [recipeSizeAction,setRecipeSizeAction]=useState(<MdFullscreen/>)
+    
+    const setRecipeSizeHandler=()=>{
+      if(recipeSize==="sm"){
+        setRecipeSize("5xl")
+        setRecipeSizeAction(<MdFullscreenExit/>)
+      }else{
+        setRecipeSize("sm")
+        setRecipeSizeAction(<MdFullscreen/>)
+      }
+    };
 
   const handleRemoveIngredient = (index: number) => {
     console.log(index);
@@ -155,6 +186,8 @@ export default function RecipeInputModal({
   if (!userId) {
     return (
       <Modal
+        size={recipeSize}
+        scrollBehavior="inside"
         className="h-auto"
         isOpen={isOpen}
         placement="center"
@@ -182,6 +215,7 @@ export default function RecipeInputModal({
 
   return (
     <Modal
+      scrollBehavior="inside"
       className="h-auto"
       isOpen={isOpen}
       placement="center"
@@ -200,6 +234,9 @@ export default function RecipeInputModal({
                 />
               ) : (
                 <>
+                {/* <Button isIconOnly className='ml-auto' aria-label="Full screen" onClick={setRecipeSizeHandler}>
+                        {windowIcon}
+                </Button> */}
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -263,7 +300,7 @@ export default function RecipeInputModal({
                     onChange={(e) =>
                       handleAddIngredientsQty(index, e.target.value)
                     }
-                    onFocus={() => handleLastIngredientFocus(index)}
+                    // onFocus={() => handleLastIngredientFocus(index)}
                   />
                   <IngredientDropdown
                     isClearable
@@ -288,11 +325,18 @@ export default function RecipeInputModal({
                   >
                     <span>-</span>
                   </Button>
+                  {/* <Button isIconOnly aria-label="Add Ingredient" onClick={()=>AddIngredientHandler(index)}>
+                  <FaPlus/>
+                </Button>
+                <Button isIconOnly aria-label="Remove Ingredient"  onClick={()=>RemoveIngredientHandler(index)}>
+                  <IoRemoveOutline/>
+                </Button> */}
                 </div>
               ))}
               <Editor onChange={setContents} />
             </ModalBody>
             <ModalFooter>
+            <Button onPress={setRecipeSizeHandler}>{recipeSizeAction}</Button>
               <Button onPress={handleSaveRecipe}>Save</Button>
               {createRecipeData && <p>Recipe created successfully</p>}
               {createRecipeError && <p>Error creating recipe</p>}
