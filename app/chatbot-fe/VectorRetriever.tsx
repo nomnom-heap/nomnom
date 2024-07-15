@@ -77,7 +77,7 @@ export default async function VectorRetriever(
     <li> 
     <strong> Pancakes </strong>
     </br>
-    <strong> Ingredients </strong>
+    <strong> Ingredients: </strong>
     <ul class="list-disc">
       <li>1 cup all-purpose flour</li>
       <li>2 tablespoons sugar</li>
@@ -86,7 +86,7 @@ export default async function VectorRetriever(
     </ul>
 
     </br>
-    <strong> Steps <strong>
+    <strong> Steps: <strong>
     <ol class="list-decimal">
     <li>In a large bowl, mix together the flour, sugar, baking powder, and salt.</li>
     <li>In another bowl, whisk together the milk, egg, melted butter, and vanilla extract.</li>
