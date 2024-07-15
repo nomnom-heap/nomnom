@@ -69,7 +69,8 @@ export default async function VectorRetriever(
   Only answer questions related to cooking or recipes, if the question do no fit into the criteria reply with "I do not have the relevant information".
   You need to be engaging in your responses.
   Format your responses in HTML. 
-  Follow the format and do not miss out the </br>
+  Only use <strong> for the headers which are the name of the dish, Ingredients: , Steps: , Comments: .
+  Have a </br> after each section and after each recipe
 
   Example of a recipe response: ###
   I have something I can recommend</br> 
