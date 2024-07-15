@@ -70,11 +70,9 @@ export default async function VectorRetriever(
 
   Format your responses in HTML. 
   Follow the format and do not miss out the </br>
-  If there is only 1 recipe you do not need to 
-  Example of a recipe response:
 
-  I have something I can recommend 
-  
+  Example of a recipe response:
+  I have something I can recommend</br> 
   <ol class="list-decimal">
     <li> 
     <strong> Pancakes </strong>
