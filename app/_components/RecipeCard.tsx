@@ -25,6 +25,7 @@ import { useAuth } from "../AuthProvider";
 
 type RecipeCardProps = {
   recipe: Recipe;
+  onPress?:()=>void;
 };
 
 const FAVOURITE_RECIPE_MUTATION = gql`
@@ -53,7 +54,7 @@ const UNFAVOURITE_RECIPE_MUTATION = gql`
   }
 `;
 
-export function RecipeCard({ recipe }: RecipeCardProps) {
+export function RecipeCard({ recipe,onPress }: RecipeCardProps) {
   const { userId } = useAuth();
 
   const [

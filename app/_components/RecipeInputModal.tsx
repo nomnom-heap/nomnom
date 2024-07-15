@@ -34,7 +34,7 @@ import IngredientDropdown, { IngredientOption } from "./IngredientDropdown";
 type RecipeInputModalProps = {
   isOpen: boolean;
   onOpenChange: () => void;
-  recipe? // recipe should be provided if editing, else it should be undefined (for creating recipe)
+  recipe?: any; // recipe should be provided if editing, else it should be undefined (for creating recipe)
 };
 
 export default function RecipeInputModal({
@@ -100,8 +100,6 @@ export default function RecipeInputModal({
   const AddIngredientHandler = (index: number) => {
       setIngredients([...ingredients, ""]);
       setIngredientsQty([...ingredientsQty, ""]);
-      // setIngredients([...ingredients, {id: ingredients.length+1}]);
-      // setIngredientsQty([...ingredientsQty, {id: ingredients.length+1}]);
   };
 
   const RemoveIngredientHandler = (index: number) => {
@@ -109,10 +107,7 @@ export default function RecipeInputModal({
       setIngredients(ingredients=>ingredients.filter((_,key)=>key!==index));
       setIngredientsQty(ingredientsQty=>ingredientsQty.filter((_,key)=>key!==index));
     }
-      //   const RemoveIngredientHandler = (idx:number) =>{
-  //setIngredients(ingredients=>ingredients.filter((_,key)=>key!==idx));
-    // setIngredients([...ingredients, {id: ingredients.length+1}]);
-    // setIngredientsQty([...ingredientsQty, {id: ingredients.length+1}]);
+
 };
 
     const [recipeSize,setRecipeSize]=useState<"xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "full" | undefined>("sm");
@@ -126,7 +121,7 @@ export default function RecipeInputModal({
         setRecipeSize("sm")
         setRecipeSizeAction(<MdFullscreen/>)
       }
-    }
+    };
 
   const handleRemoveIngredient = (index: number) => {
     console.log(index);
@@ -330,12 +325,12 @@ export default function RecipeInputModal({
                   >
                     <span>-</span>
                   </Button>
-                  <Button isIconOnly aria-label="Add Ingredient" onClick={()=>AddIngredientHandler(index)}>
+                  {/* <Button isIconOnly aria-label="Add Ingredient" onClick={()=>AddIngredientHandler(index)}>
                   <FaPlus/>
                 </Button>
                 <Button isIconOnly aria-label="Remove Ingredient"  onClick={()=>RemoveIngredientHandler(index)}>
                   <IoRemoveOutline/>
-                </Button>
+                </Button> */}
                 </div>
               ))}
               <Editor onChange={setContents} />
