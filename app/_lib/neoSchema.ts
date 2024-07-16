@@ -86,11 +86,7 @@ const typeDefs = /* GraphQL */ `
   }
 
   type Query {
-    searchRecipes(
-      searchTerm: String!
-      skip: Int = 0
-      limit: Int = 10
-    ): [Recipe]
+    searchRecipes(searchTerm: String, skip: Int = 0, limit: Int = 10): [Recipe]
       @cypher(
         statement: """
         CALL db.index.fulltext.queryNodes('searchRecipeIndex', $searchTerm) YIELD node, score
@@ -111,7 +107,7 @@ const typeDefs = /* GraphQL */ `
     # columnName: "node"
     # )
 
-    searchRecipesCount(searchTerm: String!): Int
+    searchRecipesCount(searchTerm: String): Int
       @cypher(
         statement: """
         CALL db.index.fulltext.queryNodes('searchRecipeIndex', $searchTerm) YIELD node, score
