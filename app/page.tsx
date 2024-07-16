@@ -73,7 +73,7 @@ export default function Page() {
 
   return (
     <>
-      <div className="max-w-screen flex flex-col gap-4">
+      <div className="max-w-screen md:px-20 md:pt-5 flex flex-col gap-4">
         {/* Search recipe name input */}
         <Input
           label="Search"
@@ -101,6 +101,7 @@ export default function Page() {
 
         {/* Search recipe by ingredients */}
         <IngredientDropdown
+          className="md:px-20 md:mt-2"
           isMulti
           isClearable
           placeholder="Search for ingredient(s)"

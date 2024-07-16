@@ -96,17 +96,6 @@ const typeDefs = /* GraphQL */ `
         """
         columnName: "node"
       )
-
-    # @cypher(
-    # statement: """
-    # CALL db.index.fulltext.queryNodes('searchRecipeIndex', $searchTerm) YIELD node, score
-    # RETURN node
-    # SKIP $skip
-    # LIMIT $limit
-    # """
-    # columnName: "node"
-    # )
-
     searchRecipesCount(searchTerm: String): Int
       @cypher(
         statement: """

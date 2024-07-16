@@ -42,14 +42,14 @@ type RecipeModalProps = {
   isOpen: boolean;
   onOpenChange: () => void;
   recipe: Recipe;
-  missingIngredients?: Array<String>;
+  searchIngredients?: Array<String>;
 };
 
 export default function RecipeModal({
   recipe,
   isOpen,
   onOpenChange,
-  missingIngredients,
+  searchIngredients,
 }: RecipeModalProps) {
   const [recipeSize, setRecipeSize] = useState<
     | "xs"
@@ -77,6 +77,7 @@ export default function RecipeModal({
   };
   const [recRecipes, setRecRecipes] = useState<Recipe[]>([]);
   const [recipeIngredients, setRecipeIngredients] = useState<Recipe[]>([]);
+  const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
 
   const {
     loading: recRecipesLoading,
@@ -111,6 +112,22 @@ export default function RecipeModal({
     console.log("Closing the previous modal");
     modalState.current;
   };
+  useEffect(() => {
+    if (!searchIngredients) {
+      setMissingIngredients([]);
+      return;
+    }
+
+    const newMissingIngredients = recipe.ingredients.filter(
+      (recipeIngredient) => {
+        return !searchIngredients.some((searchedIngredient) =>
+          recipeIngredient.includes(searchedIngredient)
+        );
+      }
+    );
+
+    setMissingIngredients(newMissingIngredients);
+  }, [recipe.ingredients, searchIngredients]);
   return (
     <Modal
       size={recipeSize}
@@ -136,25 +153,36 @@ export default function RecipeModal({
                       : "/image_placeholder.jpeg"
                   }
                   alt="Recipe thumbnail image"
-                  style={{ width: "400px", height: "300px" }}
+                  // style={{ width: "400px", height: "300px" }}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
 
               <div className="flex flex-col gap-2 w-auto">
-                <div className="flex flex-row gap-2 items-center">
-                  <p className="text-sm">Missing Ingredients:</p>
-                  <p className="text-sm">{missingIngredients.join(" ,")}</p>
-                  <p className="text-sm">Preparation Time (mins):</p>
-                  <p className="text-sm">{recipe.time_taken_mins}</p>
+                <div className="flex flex-col gap-2 items-left">
+                  {searchIngredients?.length === 0 ? (
+                    ""
+                  ) : (
+                    <>
+                      <p className="text-sm font-bold">Missing Ingredients:</p>
+                      <p className="text-sm">{missingIngredients.join(", ")}</p>
+                    </>
+                  )}
+
+                  <p className="text-sm">
+                    <span className="font-bold">Preparation Time (mins):</span>{" "}
+                    {recipe.time_taken_mins}
+                  </p>
                 </div>
 
                 <div className="flex flex-row gap-2 items-center">
-                  <p className="text-sm">Serving: </p>
-                  <p className="text-sm">{recipe.serving}</p>
+                  <p className="text-sm">
+                    <span className="font-bold">Serving:</span> {recipe.serving}
+                  </p>
                 </div>
               </div>
 
-              <p className="text-sm">Ingredients:</p>
+              <p className="text-sm font-bold">Ingredients:</p>
               <ul>
                 {recipe.ingredients.map((ingredient, index) => (
                   <li key={index} className="text-sm">

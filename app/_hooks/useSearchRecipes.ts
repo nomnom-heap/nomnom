@@ -2,7 +2,7 @@ import { gql, useLazyQuery } from "@apollo/client";
 import { useState, useEffect } from "react";
 
 const SEARCH_RECIPES_QUERY = gql`
-  query searchRecipes($searchTerm: [String!]!, $skip: Int, $limit: Int) {
+  query searchRecipes($searchTerm: String, $skip: Int, $limit: Int) {
     searchRecipes(searchTerm: $searchTerm, skip: $skip, limit: $limit) {
       id
       name
@@ -72,7 +72,7 @@ export default function useSearchRecipes(limit: number = 3) {
 
     // const _searchTerm = searchTerm.ingredients;
     // console.log(_searchTerm);
-    // console.log("in useSearchRecipes hook searchTerm useEffect", _searchTerm);
+    console.log("in useSearchRecipes hook searchTerm useEffect", _searchTerm);
 
     searchRecipes({
       variables: {

@@ -114,19 +114,55 @@ export function RecipeCard({
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
+  // useEffect(() => {
+  // console.log(recipe.ingredients);
+  // setMissingIngredients([]);
+
+  // searchIngredients?.forEach((searchedIngredient) => {
+  // let n = 0;
+  // // let recipeIngredient = "";
+  // recipe.ingredients.forEach((recipeIngredient) => {
+  //   if (!recipeIngredient.includes(searchedIngredient)) {
+  //     n++;
+  //   }
+  //   if (n === recipe.ingredients.length) {
+  //     // console.log("bruh");
+  //     setMissingIngredients((prevMissingIngredients) => [
+  //       ...prevMissingIngredients,
+  //       recipeIngredient,
+  //     ]);
+  //   }
+
+  // });
+  // });
+  // console.log(missingIngredients);
+
+  // recipe.ingredients.forEach((ingredientInRecipe) => {
+  //   if (!searchIngredients.includes(ingredientInRecipe)) {
+  //     setMissingIngredients((prevMissingIngredients) => [
+  //       ...prevMissingIngredients,
+  //       ingredientInRecipe,
+  //     ]);
+  //   }
+  // });
+  // console.log(missingIngredients);
+  // }, [searchIngredients]);
   useEffect(() => {
-    // console.log(recipe.ingredients);
-    setMissingIngredients([]);
-    recipe.ingredients.forEach((ingredientInRecipe) => {
-      if (!searchIngredients.includes(ingredientInRecipe)) {
-        setMissingIngredients((prevMissingIngredients) => [
-          ...prevMissingIngredients,
-          ingredientInRecipe,
-        ]);
+    if (!searchIngredients) {
+      setMissingIngredients([]);
+      return;
+    }
+
+    const newMissingIngredients = recipe.ingredients.filter(
+      (recipeIngredient) => {
+        return !searchIngredients.some((searchedIngredient) =>
+          recipeIngredient.includes(searchedIngredient)
+        );
       }
-    });
-    // console.log(missingIngredients);
-  }, [searchIngredients]);
+    );
+
+    setMissingIngredients(newMissingIngredients);
+  }, [recipe.ingredients, searchIngredients]);
 
   return (
     <>
@@ -150,12 +186,19 @@ export function RecipeCard({
             <div className="grid-flow-row pb-1 space-y-0.5">
               {searchIngredients?.length === 0 ? (
                 ""
+              ) : missingIngredients?.length === 0 ? (
+                <p
+                  className="text-sm text-green-500"
+                  style={{ alignSelf: "flex-end" }}
+                >
+                  You have all ingredients 😊
+                </p>
               ) : (
                 <p
                   className="text-sm text-red-500"
                   style={{ alignSelf: "flex-end" }}
                 >
-                  You lack {missingIngredients.length} ingredients
+                  You lack {missingIngredients.length} ingredients 😔
                 </p>
               )}
 
@@ -193,7 +236,7 @@ export function RecipeCard({
         isOpen={isOpen}
         onOpenChange={onOpenChange}
         recipe={recipe}
-        missingIngredients={missingIngredients}
+        searchIngredients={searchIngredients}
       />
       {/* <Modal isOpen={isOpen} placement="center" onOpenChange={onOpenChange}>
         <ModalContent className="bg-gray-300">
