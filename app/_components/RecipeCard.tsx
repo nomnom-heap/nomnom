@@ -71,10 +71,10 @@ const FOLLOW_USER_MUTATION = gql`
 `;
 
 const UNFOLLOW_USER_MUTATION = gql`
-  mutation UnfollowUser($userId: ID!, $followedUserId: ID!) {
+  mutation UnfollowUser($userId: ID!, $userToUnfollowId: ID!) {
     updateUsers(
       disconnect: { following: { where: { node: { id: $userId } } } }
-      where: { id: $followedUserId }
+      where: { id: $userToUnfollowId }
     ) {
       info {
         relationshipsDeleted
@@ -139,24 +139,24 @@ export function RecipeCard({ recipe, onPress, followedInfo }: RecipeCardProps) {
     });
   }
 
-  async function handleFollowUser(userToFollow: string) {
+  async function handleFollowUser(userToFollowId: string) {
     try {
       const session = await fetchAuthSession();
       const userId = session?.tokens?.accessToken.payload.sub;
       await followUser({
-        variables: { personToFollow: userToFollow, userId: userId },
+        variables: { userToFollowId: userToFollow, userId: userId },
       });
     } catch (error) {
       console.error("Error occurred: ", error.message);
     }
   }
 
-  async function handleUnfollowUser(userToUnfollow: string) {
+  async function handleUnfollowUser(userToUnfollowId: string) {
     try {
       const session = await fetchAuthSession();
       const userId = session?.tokens?.accessToken.payload.sub;
       await unfollowUser({
-        variables: { userToUnfollow: userToUnfollow, userId: userId },
+        variables: { userToUnfollowId: userToUnfollowId, userId: userId },
       });
     } catch (error) {
       console.error("Error occurred: ", error.message);
@@ -207,21 +207,24 @@ export function RecipeCard({ recipe, onPress, followedInfo }: RecipeCardProps) {
                   {recipe.owner.display_name}
                 </h4>
               </div>
-
-              <Button
-                color="primary"
-                radius="full"
-                size="sm"
-                variant={isFollowed ? "bordered" : "solid"}
-                onPress={() => {
-                  isFollowed
-                    ? handleUnfollowUser(recipe.owner.id)
-                    : handleFollowUser(recipe.owner.id);
-                  setIsFollowed(!isFollowed);
-                }}
-              >
-                {isFollowed ? "Unfollow" : "Follow"}
-              </Button>
+              {userId === recipe.owner.id ? (
+                ""
+              ) : (
+                <Button
+                  color="primary"
+                  radius="full"
+                  size="sm"
+                  variant={isFollowed ? "bordered" : "solid"}
+                  onPress={() => {
+                    isFollowed
+                      ? handleUnfollowUser(recipe.owner.id)
+                      : handleFollowUser(recipe.owner.id);
+                    setIsFollowed(!isFollowed);
+                  }}
+                >
+                  {isFollowed ? "Unfollow" : "Follow"}
+                </Button>
+              )}
             </div>
 
             <div className="pt-4">
