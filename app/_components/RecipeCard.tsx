@@ -25,7 +25,8 @@ import { useAuth } from "../AuthProvider";
 
 type RecipeCardProps = {
   recipe: Recipe;
-  onPress?:()=>void;
+  onPress?: () => void;
+  searchIngredients?: Array<string>;
 };
 
 const FAVOURITE_RECIPE_MUTATION = gql`
@@ -54,9 +55,13 @@ const UNFAVOURITE_RECIPE_MUTATION = gql`
   }
 `;
 
-export function RecipeCard({ recipe,onPress }: RecipeCardProps) {
+export function RecipeCard({
+  recipe,
+  onPress,
+  searchIngredients,
+}: RecipeCardProps) {
   const { userId } = useAuth();
-
+  const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
   const [
     favouriteRecipe,
     { loading: favouriteLoading, error: favouriteError, data: favouriteData },
@@ -109,12 +114,26 @@ export function RecipeCard({ recipe,onPress }: RecipeCardProps) {
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
+  useEffect(() => {
+    // console.log(recipe.ingredients);
+    setMissingIngredients([]);
+    recipe.ingredients.forEach((ingredientInRecipe) => {
+      if (!searchIngredients.includes(ingredientInRecipe)) {
+        setMissingIngredients((prevMissingIngredients) => [
+          ...prevMissingIngredients,
+          ingredientInRecipe,
+        ]);
+      }
+    });
+    // console.log(missingIngredients);
+  }, [searchIngredients]);
+
   return (
     <>
       <div className="cursor-pointer" onClick={onOpen} key={recipe.id}>
-        <Card className="relative group">
+        <Card className="relative group" shadow="sm">
           <CardHeader className="pb-0 pt-3 px-3 m-2 flex-col items-start">
-            <h4 className="font-bold text-lg">{recipe.name}</h4>
+            <h4 className="font-bold text-md">{recipe.name}</h4>
           </CardHeader>
           <CardBody className="p-3 justify-end position: static object-fit: cover">
             <Image
@@ -129,13 +148,23 @@ export function RecipeCard({ recipe,onPress }: RecipeCardProps) {
           </CardBody>
           <CardFooter className="pt-0 px-3 mb-0 justify-between">
             <div className="grid-flow-row pb-1 space-y-0.5">
+              {searchIngredients?.length === 0 ? (
+                ""
+              ) : (
+                <p
+                  className="text-sm text-red-500"
+                  style={{ alignSelf: "flex-end" }}
+                >
+                  You lack {missingIngredients.length} ingredients
+                </p>
+              )}
+
               <p
-                className="mt-2 text-sm text-gray-500"
+                className="mt-2 text-sm text-grey-500"
                 style={{ alignSelf: "flex-end" }}
               >
                 🕛 {recipe.time_taken_mins} mins
               </p>
-
               <p
                 className="mt-2 text-sm text-gray-500"
                 style={{ alignSelf: "flex-end" }}
@@ -164,6 +193,7 @@ export function RecipeCard({ recipe,onPress }: RecipeCardProps) {
         isOpen={isOpen}
         onOpenChange={onOpenChange}
         recipe={recipe}
+        missingIngredients={missingIngredients}
       />
       {/* <Modal isOpen={isOpen} placement="center" onOpenChange={onOpenChange}>
         <ModalContent className="bg-gray-300">
