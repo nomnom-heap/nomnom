@@ -48,6 +48,7 @@ const typeDefs = /* GraphQL */ `
     id: ID! @id
     name: String!
     group: String
+    linkedRecipes: [Recipe!]! @relationship(type: "CONTAINS", direction: IN)
   }
 
   type Recipe
@@ -76,6 +77,8 @@ const typeDefs = /* GraphQL */ `
     time_taken_mins: Float!
     owner: User! @relationship(type: "OWNS", direction: IN)
     favouritedByUsers: [User!]! @relationship(type: "FAVOURITED", direction: IN)
+    linkedIngredients: [Ingredient!]!
+      @relationship(type: "CONTAINS", direction: OUT)
     thumbnail_url: String!
     contents: String!
     createdAt: DateTime! @timestamp(operations: [CREATE])
@@ -83,21 +86,38 @@ const typeDefs = /* GraphQL */ `
   }
 
   type Query {
-    searchRecipes(searchTerm: String, skip: Int = 0, limit: Int = 10): [Recipe]
+    searchRecipes(
+      searchTerm: [String!]!
+      skip: Int = 0
+      limit: Int = 10
+    ): [Recipe]
       @cypher(
         statement: """
-        CALL db.index.fulltext.queryNodes('searchRecipeIndex', $searchTerm) YIELD node, score
-        RETURN node
+        MATCH (r:Recipe)-[:CONTAINS]->(i:Ingredient)
+        WHERE i.name IN $searchTerm
+        RETURN r
         SKIP $skip
         LIMIT $limit
         """
-        columnName: "node"
+        columnName: "r"
       )
-    searchRecipesCount(searchTerm: String): Int
+
+    # @cypher(
+    #   statement: """
+    #   CALL db.index.fulltext.queryNodes('searchRecipeIndex', $searchTerm) YIELD node, score
+    #   RETURN node
+    #   SKIP $skip
+    #   LIMIT $limit
+    #   """
+    #   columnName: "node"
+    # )
+
+    searchRecipesCount(searchTerm: [String!]!): Int
       @cypher(
         statement: """
-        CALL db.index.fulltext.queryNodes('searchRecipeIndex', $searchTerm) YIELD node, score
-        RETURN COUNT(node) as num
+        MATCH (r:Recipe)-[:CONTAINS]->(i:Ingredient)
+        WHERE i.name IN $searchTerm
+        RETURN COUNT(r) as num
         """
         columnName: "num"
       )
