@@ -1,7 +1,7 @@
 "use client";
 import { Checkbox, Input } from "@nextui-org/react";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 import { RecipeCard } from "./_components/RecipeCard";
 import LoadingSkeleton from "./_components/LoadingSkeleton";
@@ -12,15 +12,39 @@ import IngredientDropdown, {
 import useRecipes from "./_hooks/useRecipes";
 import InfiniteScroll from "react-infinite-scroll-component";
 import useSearchRecipes from "./_hooks/useSearchRecipes";
+import useGetPeopleYouFollowQuery from "./_hooks/useGetPeopleYouFollow";
+import { fetchAuthSession } from "aws-amplify/auth";
+import { gql, useLazyQuery } from "@apollo/client";
 
 const LIMIT = 9;
 
+const GET_FOLLOWING_QUERY = gql`
+  query MyQuery($userId: ID!) {
+    users(where: { id: $userId }) {
+      following {
+        id
+      }
+    }
+  }
+`;
+
 export default function Page() {
+  // const peopleYouFollowRef = useRef<String[]>([]);
+  const [peopleYouFollow, setPeopleYouFollow] = useState<String[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [searchTerm, setSearchTerm] = useState<SearchTerm>({
     recipeName: "",
     ingredients: [],
   });
+
+  const [
+    getPeopleYouFollow,
+    {
+      data: getFollowingData,
+      loading: getFollowingLoading,
+      error: getFollowingError,
+    },
+  ] = useLazyQuery(GET_FOLLOWING_QUERY);
 
   const {
     recipes: allRecipes,
@@ -70,6 +94,27 @@ export default function Page() {
     }
     setSearchRecipesSearchTerm(searchTerm);
   }, [searchTerm]);
+
+  useEffect(() => {
+    async function fetchAuth() {
+      const session = await fetchAuthSession();
+      const userId = session?.tokens?.accessToken.payload.sub;
+      console.log("fetchAuth");
+      getPeopleYouFollow({ variables: { userId: userId } });
+    }
+
+    fetchAuth();
+  }, []);
+
+  useEffect(() => {
+    if (getFollowingError) {
+      console.error("getFollowingDataError: ", getFollowingError);
+    }
+
+    if (getFollowingData) {
+      setPeopleYouFollow(getFollowingData.users[0].following);
+    }
+  }, [getFollowingError, getFollowingData]);
 
   return (
     <>
@@ -150,7 +195,11 @@ export default function Page() {
           className="grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 p-4"
         >
           {recipes.map((recipe, index) => (
-            <RecipeCard recipe={recipe} key={`${recipe.id}-${index}`} />
+            <RecipeCard
+              recipe={recipe}
+              key={`${recipe.id}-${index}`}
+              followedInfo={peopleYouFollow}
+            />
           ))}
         </InfiniteScroll>
       )}

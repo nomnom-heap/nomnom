@@ -40,8 +40,8 @@ const typeDefs = /* GraphQL */ `
     recipes: [Recipe!]! @relationship(type: "OWNS", direction: OUT)
     favourite_recipes: [Recipe!]!
       @relationship(type: "FAVOURITED", direction: OUT)
-    following: [User]!
-    followers: [User]!
+    following: [User!]! @relationship(type: "FOLLOWING", direction: OUT)
+    followers: [User!]! @relationship(type: "FOLLOWING", direction: IN)
   }
 
   type Ingredient {

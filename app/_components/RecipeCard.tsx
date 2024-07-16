@@ -7,9 +7,10 @@ import {
   Image,
   CardFooter,
   Button,
+  Avatar,
 } from "@nextui-org/react";
 import { HeartIcon } from "./HeartIcon";
-import { useEffect, useState } from "react";
+import { MutableRefObject, useEffect, useState } from "react";
 import { useMutation } from "@apollo/client";
 import { gql } from "@apollo/client/core";
 import {
@@ -22,10 +23,12 @@ import {
 import { fetchAuthSession } from "aws-amplify/auth";
 import RecipeModal from "./RecipeModal";
 import { useAuth } from "../AuthProvider";
+import { IoConstructOutline } from "react-icons/io5";
 
 type RecipeCardProps = {
   recipe: Recipe;
-  onPress?:()=>void;
+  onPress?: () => void;
+  followedInfo: String[];
 };
 
 const FAVOURITE_RECIPE_MUTATION = gql`
@@ -54,8 +57,38 @@ const UNFAVOURITE_RECIPE_MUTATION = gql`
   }
 `;
 
-export function RecipeCard({ recipe,onPress }: RecipeCardProps) {
+const FOLLOW_USER_MUTATION = gql`
+  mutation FollowUser($userId: ID!, $userToFollowId: ID!) {
+    updateUsers(
+      where: { id: $userId }
+      connect: { following: { where: { node: { id: $userToFollowId } } } }
+    ) {
+      info {
+        relationshipsCreated
+      }
+    }
+  }
+`;
+
+const UNFOLLOW_USER_MUTATION = gql`
+  mutation UnfollowUser($userId: ID!, $followedUserId: ID!) {
+    updateUsers(
+      disconnect: { following: { where: { node: { id: $userId } } } }
+      where: { id: $followedUserId }
+    ) {
+      info {
+        relationshipsDeleted
+      }
+    }
+  }
+`;
+
+export function RecipeCard({ recipe, onPress, followedInfo }: RecipeCardProps) {
   const { userId } = useAuth();
+  // const { token } = useAuth();
+  // followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
+  // console.log(followedInfo);
+  // console.log("test : ${[].some((e) => e === "some");
 
   const [
     favouriteRecipe,
@@ -71,9 +104,28 @@ export function RecipeCard({ recipe,onPress }: RecipeCardProps) {
     },
   ] = useMutation(UNFAVOURITE_RECIPE_MUTATION);
 
+  const [
+    followUser,
+    {
+      loading: followUserLoading,
+      error: followUserError,
+      data: followUserData,
+    },
+  ] = useMutation(FOLLOW_USER_MUTATION);
+
+  const [
+    unfollowUser,
+    {
+      loading: unfollowUserLoading,
+      error: unfollowUserError,
+      data: unfollowUserData,
+    },
+  ] = useMutation(UNFOLLOW_USER_MUTATION);
+
   async function handleFavouriteRecipe(recipeId: string) {
     const session = await fetchAuthSession();
     const userId = session?.tokens?.accessToken.payload.sub;
+
     await favouriteRecipe({
       variables: { recipeId: recipeId, userId: userId },
     });
@@ -87,8 +139,36 @@ export function RecipeCard({ recipe,onPress }: RecipeCardProps) {
     });
   }
 
+  async function handleFollowUser(userToFollow: string) {
+    try {
+      const session = await fetchAuthSession();
+      const userId = session?.tokens?.accessToken.payload.sub;
+      await followUser({
+        variables: { personToFollow: userToFollow, userId: userId },
+      });
+    } catch (error) {
+      console.error("Error occurred: ", error.message);
+    }
+  }
+
+  async function handleUnfollowUser(userToUnfollow: string) {
+    try {
+      const session = await fetchAuthSession();
+      const userId = session?.tokens?.accessToken.payload.sub;
+      await unfollowUser({
+        variables: { userToUnfollow: userToUnfollow, userId: userId },
+      });
+    } catch (error) {
+      console.error("Error occurred: ", error.message);
+    }
+  }
+
   const [favourited, setFavourited] = useState<boolean>(
     userId ? recipe.favouritedByUsers.some((obj) => obj.id === userId) : false
+  );
+
+  const [isFollowed, setIsFollowed] = useState<boolean>(
+    userId ? followedInfo && followedInfo.includes(userId) : false
   );
 
   // useEffect(() => {
@@ -114,7 +194,39 @@ export function RecipeCard({ recipe,onPress }: RecipeCardProps) {
       <div className="cursor-pointer" onClick={onOpen} key={recipe.id}>
         <Card className="relative group">
           <CardHeader className="pb-0 pt-3 px-3 m-2 flex-col items-start">
-            <h4 className="font-bold text-lg">{recipe.name}</h4>
+            <div className="flex place-items-center justify-between w-full pr-2 pl-0">
+              <div className="flex gap-3 place-items-center">
+                <Avatar
+                  isBordered
+                  radius="full"
+                  size="md"
+                  showFallback
+                  src="https://images.unsplash.com/broken"
+                />
+                <h4 className="text-sm font-semibold leading-none text-default-600">
+                  {recipe.owner.display_name}
+                </h4>
+              </div>
+
+              <Button
+                color="primary"
+                radius="full"
+                size="sm"
+                variant={isFollowed ? "bordered" : "solid"}
+                onPress={() => {
+                  isFollowed
+                    ? handleUnfollowUser(recipe.owner.id)
+                    : handleFollowUser(recipe.owner.id);
+                  setIsFollowed(!isFollowed);
+                }}
+              >
+                {isFollowed ? "Unfollow" : "Follow"}
+              </Button>
+            </div>
+
+            <div className="pt-4">
+              <h4 className="font-bold text-md">{recipe.name}</h4>
+            </div>
           </CardHeader>
           <CardBody className="p-3 justify-end position: static object-fit: cover">
             <Image
