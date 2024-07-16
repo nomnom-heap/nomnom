@@ -49,6 +49,16 @@ export const FIND_INGREDIENTS_BY_NAME_QUERY = gql`
   }
 `;
 
+export const FIND_INGREDIENTS_BY_NAME_QUERY = gql`
+  query findIngredientsByNameQuery($name: String!) {
+    findIngredientsByName(name: $name) {
+      id
+      name
+      group
+    }
+  }
+`;
+
 
 export const UPDATE_RECIPE_MUTATION = gql`
   mutation updateRecipe(

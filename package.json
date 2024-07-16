@@ -28,7 +28,7 @@
     "@types/aws-lambda": "^8.10.141",
     "amplify": "^0.0.11",
     "aws": "^0.0.3-2",
-    "aws-amplify": "^6.3.7",
+    "aws-amplify": "^6.4.0",
     "framer-motion": "^11.2.10",
     "graphql": "^16.8.1",
     "graphql-yoga": "^5.3.1",
