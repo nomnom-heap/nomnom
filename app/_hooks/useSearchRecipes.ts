@@ -71,7 +71,7 @@ export default function useSearchRecipes(limit: number = 3) {
     if (_searchTerm.trim() == "") return;
 
     // const _searchTerm = searchTerm.ingredients;
-    console.log(_searchTerm);
+    // console.log(_searchTerm);
     // console.log("in useSearchRecipes hook searchTerm useEffect", _searchTerm);
 
     searchRecipes({
