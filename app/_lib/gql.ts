@@ -104,3 +104,12 @@ export const GET_RECIPE_QUERY = gql`
       serving
     }
   } `;
+
+
+export const DELETE_RECIPE_MUTATION = gql`
+  mutation deleteRecipe($id: ID!) {
+    deleteRecipes(where: { id: $id }) {
+      nodesDeleted
+    }
+  }
+`;

@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Modal,
   ModalBody,
@@ -9,7 +7,6 @@ import {
   Image,
   Button,
   Input,
-  Link,
   Autocomplete,
   AutocompleteItem,
 } from "@nextui-org/react";
@@ -19,7 +16,7 @@ const Editor = dynamic(() => import("@/app/_components/BlockNoteEditor"), {
 });
 
 import { ImageIcon } from "./ImageIcon";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Block } from "@blocknote/core";
 import { uploadFileToPublicFolder } from "../_lib/utils";
 import { useAuth } from "../AuthProvider";
@@ -28,15 +25,15 @@ import { useMutation, useQuery } from "@apollo/client";
 import { fetchAuthSession } from "aws-amplify/auth";
 import {
   CREATE_RECIPE_MUTATION,
+  UPDATE_RECIPE_MUTATION,
   GET_INGREDIENTS_QUERY,
-  
   type GetIngredientsData,
 } from "@/_lib/gql";
 
 type RecipeInputModalProps = {
   isOpen: boolean;
   onOpenChange: () => void;
-  recipe?: Recipe; 
+  recipe?: Recipe;
 };
 
 export default function RecipeInputModal({
@@ -44,7 +41,7 @@ export default function RecipeInputModal({
   isOpen,
   onOpenChange,
 }: RecipeInputModalProps) {
-  const { userId, setUserId } = useAuth();
+  const { userId } = useAuth();
 
   const [recipeName, setRecipeName] = useState(recipe?.name || "");
   const [ingredientsQty, setIngredientsQty] = useState<string[]>(
@@ -63,6 +60,7 @@ export default function RecipeInputModal({
     recipe?.time_taken_mins || 60
   );
   const [serving, setServing] = useState<number>(recipe?.serving || 1);
+  const [isEditable, setIsEditable] = useState<boolean>(!!recipe);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -104,14 +102,8 @@ export default function RecipeInputModal({
     error: ingredientsError,
   } = useQuery<GetIngredientsData>(GET_INGREDIENTS_QUERY);
 
-  const [
-    createRecipe,
-    {
-      data: createRecipeData,
-      loading: createRecipeLoading,
-      error: createRecipeError,
-    },
-  ] = useMutation(CREATE_RECIPE_MUTATION);
+  const [createRecipe] = useMutation(CREATE_RECIPE_MUTATION);
+  const [updateRecipe] = useMutation(UPDATE_RECIPE_MUTATION); 
 
   const handleSaveRecipe = async () => {
     if (
@@ -127,21 +119,41 @@ export default function RecipeInputModal({
     try {
       const session = await fetchAuthSession();
       const userId = session?.tokens?.accessToken.payload.sub;
-      await createRecipe({
-        variables: {
-          name: recipeName,
-          userId: userId,
-          contents: JSON.stringify(contents),
-          time_taken_mins: preparationTime,
-          ingredients: ingredients,
-          ingredients_qty: ingredientsQty,
-          thumbnail_url: thumbnailUrl,
-          serving: serving,
-        },
-      });
+
+      if (recipe) {
+        
+        await updateRecipe({
+          variables: {
+            id: recipe.id,
+            name: recipeName,
+            contents: JSON.stringify(contents),
+            time_taken_mins: preparationTime,
+            ingredients: ingredients,
+            ingredients_qty: ingredientsQty,
+            thumbnail_url: thumbnailUrl,
+            serving: serving,
+          },
+        });
+      } else {
+        
+        await createRecipe({
+          variables: {
+            name: recipeName,
+            userId: userId,
+            contents: JSON.stringify(contents),
+            time_taken_mins: preparationTime,
+            ingredients: ingredients,
+            ingredients_qty: ingredientsQty,
+            thumbnail_url: thumbnailUrl,
+            serving: serving,
+          },
+        });
+      }
+
+      onOpenChange(); 
     } catch (error: any) {
       console.error(error.message);
-      console.error("error creating recipe", error);
+      console.error("error creating/updating recipe", error);
     }
   };
 
@@ -215,7 +227,6 @@ export default function RecipeInputModal({
                 placeholder="Type your recipe name"
                 value={recipeName}
                 onChange={(e) => setRecipeName(e.target.value)}
-                readOnly={recipe ? true : false}
               />
             </ModalHeader>
             <ModalBody>
@@ -229,7 +240,6 @@ export default function RecipeInputModal({
                       setPreparationTime(parseFloat(e.target.value))
                     }
                     className="w-1/4"
-                    readOnly={recipe ? true : false}
                   />
                 </div>
 
@@ -240,7 +250,6 @@ export default function RecipeInputModal({
                     value={serving.toString()}
                     onChange={(e) => setServing(parseFloat(e.target.value))}
                     className="w-1/4"
-                    readOnly={recipe ? true : false}
                   />
                 </div>
               </div>
@@ -257,16 +266,6 @@ export default function RecipeInputModal({
                     }
                     onFocus={() => handleLastIngredientFocus(index)}
                   />
-                  {/* <Input
-                    type="text"
-                    placeholder="Ingredient"
-                    value={ingredient}
-                    onChange={(e) =>
-                      handleIngredientChange(index, e.target.value)
-                    }
-                    onFocus={() => handleLastIngredientFocus(index)}
-                  /> */}
-                  {/* Search recipe by ingredients autocomplete */}
                   <Autocomplete
                     label="Ingredients"
                     className="max-w-screen"
@@ -279,36 +278,38 @@ export default function RecipeInputModal({
                     }}
                   >
                     {ingredientsLoading ? (
-                      <AutocompleteItem
-                        key="loading"
-                        textValue="Loading ingredients..."
-                        className="flex justify-center items-center"
-                      >
-                        <p>Loading ingredients...</p>
+                      <AutocompleteItem key="loading" className="text-default-400 flex gap-2 items-center">
+                        <span>Loading...</span>
                       </AutocompleteItem>
-                    ) : ingredientsData?.ingredients ? (
-                      ingredientsData.ingredients.map((item) => (
+                    ) : ( 
+                      ingredientsData?.ingredients?.map((item) => (
                         <AutocompleteItem
-                          key={item.name}
-                          value={item.name}
-                          textValue={item.name}
+                          key={item.id}
+                          className="text-default-400 flex gap-2 items-center"
+                          onClick={() => handleIngredientChange(index, item.name)}
                         >
-                          {item.name}
+                          <span>{item.name}</span>
                         </AutocompleteItem>
                       ))
-                    ) : (
-                      <p>No ingredients found</p>
                     )}
                   </Autocomplete>
                 </div>
               ))}
 
-              <Editor onChange={setContents} />
+              <div className="flex flex-col gap-2 w-auto mt-4">
+              <p className="text-sm">Preparation Steps:</p>
+              <Editor initialBlocks={contents || []} onEditorContentChange={setContents} />
+              </div>
             </ModalBody>
             <ModalFooter>
-              <Button onPress={handleSaveRecipe}>Save</Button>
-              {createRecipeData && <p>Recipe created successfully</p>}
-              {createRecipeError && <p>Error creating recipe</p>}
+              <Button
+                color="primary"
+                type="button"
+                onPress={handleSaveRecipe}
+                className="w-full"
+              >
+                Save
+              </Button>
             </ModalFooter>
           </>
         )}

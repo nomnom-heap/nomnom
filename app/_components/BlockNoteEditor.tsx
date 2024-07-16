@@ -25,12 +25,13 @@ export default function Editor({
   editable,
   className,
 }: EditorProps) {
-  const [content, setContent] = useState<PartialBlock[] | undefined | "loading">("loading");
+  const [content, setContent] = useState<PartialBlock[] | "loading">("loading");
 
   useEffect(() => {
-    setContent(initialContent);
-  }, []);
-
+    if (initialContent) {
+      setContent(initialContent);
+    }
+  }, [initialContent]);
 
   const editor = useMemo(() => {
     if (content === "loading") {
@@ -43,7 +44,7 @@ export default function Editor({
     });
   }, [content]);
 
-  if (editor === undefined) {
+  if (!editor) {
     return <Spinner color="default" />;
   }
 

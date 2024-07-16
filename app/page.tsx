@@ -1,4 +1,5 @@
 "use client";
+import React, { useState, useEffect } from 'react';
 import {
   Autocomplete,
   AutocompleteItem,
@@ -6,29 +7,15 @@ import {
   Checkbox,
   Chip,
   Input,
-  Link,
-  Spinner,
-} from "@nextui-org/react";
-import { useQuery, useLazyQuery } from "@apollo/client";
-import { gql } from "@apollo/client/core";
+} from '@nextui-org/react';
+import { useQuery, useLazyQuery } from '@apollo/client';
+import { gql } from '@apollo/client/core';
+import { RecipeCard } from './_components/RecipeCard';
+import LoadingSkeleton from './_components/LoadingSkeleton';
+import { SearchIcon } from './_components/SearchIcon';
+import RecipeForm from './_components/RecipeForm'; 
 
-import { useState, useEffect } from "react";
 
-import { RecipeCard } from "./_components/RecipeCard";
-import LoadingSkeleton from "./_components/LoadingSkeleton";
-import { SearchIcon } from "./_components/SearchIcon";
-
-interface GetAllRecipesData {
-  recipes: Recipe[];
-}
-
-interface SearchRecipesData {
-  searchRecipes: Recipe[];
-}
-
-interface GetIngredientsData {
-  ingredients: Ingredient[];
-}
 
 const GET_ALL_RECIPES_QUERY = gql`
   query GetAllRecipes {
@@ -77,34 +64,29 @@ const GET_INGREDIENTS_QUERY = gql`
 
 export default function Page() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [recipeName, setRecipeName] = useState<string>("");
+  const [recipeName, setRecipeName] = useState<string>('');
   const [ingredientsSelected, setIngredientsSelected] = useState<string[]>([]);
+  const [isRecipeFormOpen, setIsRecipeFormOpen] = useState(false);
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
+ 
   const {
     data: ingredientsData,
     loading: ingredientsLoading,
-    error: ingredientsError,
-  } = useQuery<GetIngredientsData>(GET_INGREDIENTS_QUERY);
+  } = useQuery(GET_INGREDIENTS_QUERY);
 
   const {
     loading: allRecipesLoading,
-    error: allRecipesError,
     data: allRecipesData,
-  } = useQuery<GetAllRecipesData>(GET_ALL_RECIPES_QUERY, {
-    // fetchPolicy: "network-only", // Used for first execution
-    // nextFetchPolicy: "network-only", // Used for subsequent executions
-    // notifyOnNetworkStatusChange: true,
-  });
+  } = useQuery(GET_ALL_RECIPES_QUERY);
 
   const [
     searchRecipes,
     {
       loading: searchRecipesLoading,
-      error: searchRecipesError,
       data: searchRecipesData,
-      refetch: searchRecipesRefetch,
     },
-  ] = useLazyQuery<SearchRecipesData>(SEARCH_RECIPES_QUERY);
+  ] = useLazyQuery(SEARCH_RECIPES_QUERY);
 
   useEffect(() => {
     if (allRecipesData && allRecipesData.recipes) {
@@ -115,9 +97,8 @@ export default function Page() {
     }
   }, [allRecipesData, searchRecipesData]);
 
-  // search recipes when recipe name or ingredients change
   useEffect(() => {
-    const searchTerm = recipeName + ingredientsSelected.join(", ");
+    const searchTerm = recipeName + ingredientsSelected.join(', ');
     if (searchTerm) {
       searchRecipes({
         variables: { searchTerm: searchTerm },
@@ -127,22 +108,26 @@ export default function Page() {
     }
   }, [recipeName, ingredientsSelected]);
 
+  const handleSaveRecipe = (recipe) => {
+    // Save logic here (e.g., API call)
+    setIsRecipeFormOpen(false); // Close the modal after saving
+  };
+
   return (
     <>
       <div className="max-w-screen flex flex-col gap-4">
-        {/* Search recipe name input */}
         <Input
           label="Search"
           isClearable
           radius="lg"
           classNames={{
-            label: "text-black/50 dark:text-white/90",
+            label: 'text-black/50 dark:text-white/90',
             input: [
-              "bg-transparent",
-              "text-black/90 dark:text-white/90",
-              "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+              'bg-transparent',
+              'text-black/90 dark:text-white/90',
+              'placeholder:text-default-700/50 dark:placeholder:text-white/60',
             ],
-            innerWrapper: "",
+            innerWrapper: '',
             inputWrapper: [],
           }}
           placeholder="Search for recipe name"
@@ -151,20 +136,15 @@ export default function Page() {
           }
           onChange={(e) => setRecipeName(e.target.value)}
         />
-
-        {/* Search recipe by ingredients autocomplete */}
         <Autocomplete
           label="Ingredients"
           placeholder="Search an ingredient"
           className="max-w-screen"
           startContent={<SearchIcon />}
           onSelectionChange={(key) => {
-            if (!key) return;
             const keyString = key.toString();
             if (ingredientsSelected.includes(keyString)) {
-              setIngredientsSelected((prev) =>
-                prev.filter((item) => item !== keyString)
-              );
+              setIngredientsSelected((prev) => prev.filter((item) => item !== keyString));
             } else {
               setIngredientsSelected((prev) => [...prev, keyString]);
             }
@@ -180,11 +160,7 @@ export default function Page() {
             </AutocompleteItem>
           ) : ingredientsData?.ingredients ? (
             ingredientsData.ingredients.map((item) => (
-              <AutocompleteItem
-                key={item.name}
-                value={item.name}
-                textValue={item.name}
-              >
+              <AutocompleteItem key={item.name} value={item.name} textValue={item.name}>
                 {item.name}
               </AutocompleteItem>
             ))
@@ -195,14 +171,7 @@ export default function Page() {
         {ingredientsSelected.length > 0 && (
           <div className="flex gap-2">
             {ingredientsSelected.map((item) => (
-              <Chip
-                key={item}
-                onClose={() =>
-                  setIngredientsSelected(
-                    ingredientsSelected.filter((i) => i !== item)
-                  )
-                }
-              >
+              <Chip key={item} onClose={() => setIngredientsSelected(ingredientsSelected.filter((i) => i !== item))}>
                 {item}
               </Chip>
             ))}
@@ -210,7 +179,6 @@ export default function Page() {
         )}
       </div>
 
-      {/* Sortbar */}
       <div className="flex gap-4">
         <span>Sort by</span>
         <Checkbox size="md">Time Taken</Checkbox>
@@ -237,6 +205,14 @@ export default function Page() {
             </div>
           )}
         </div>
+      )}
+
+      {isRecipeFormOpen && (
+        <RecipeForm
+          initialRecipe={selectedRecipe}
+          onSave={handleSaveRecipe}
+          onClose={() => setIsRecipeFormOpen(false)}
+        />
       )}
     </>
   );
