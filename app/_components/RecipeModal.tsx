@@ -42,7 +42,7 @@ type RecipeModalProps = {
   isOpen: boolean;
   onOpenChange: () => void;
   recipe: Recipe;
-  missingIngredients: Array<String>;
+  missingIngredients?: Array<String>;
 };
 
 export default function RecipeModal({

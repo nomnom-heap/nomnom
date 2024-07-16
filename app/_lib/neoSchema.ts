@@ -93,31 +93,30 @@ const typeDefs = /* GraphQL */ `
     ): [Recipe]
       @cypher(
         statement: """
-        MATCH (r:Recipe)-[:CONTAINS]->(i:Ingredient)
-        WHERE i.name IN $searchTerm
-        RETURN r
+        CALL db.index.fulltext.queryNodes('searchRecipeIndex', $searchTerm) YIELD node, score
+        RETURN node
         SKIP $skip
         LIMIT $limit
         """
-        columnName: "r"
+        columnName: "node"
       )
 
     # @cypher(
-    #   statement: """
-    #   CALL db.index.fulltext.queryNodes('searchRecipeIndex', $searchTerm) YIELD node, score
-    #   RETURN node
-    #   SKIP $skip
-    #   LIMIT $limit
-    #   """
-    #   columnName: "node"
+    # statement: """
+    # CALL db.index.fulltext.queryNodes('searchRecipeIndex', $searchTerm) YIELD node, score
+    # RETURN node
+    # SKIP $skip
+    # LIMIT $limit
+    # """
+    # columnName: "node"
     # )
 
     searchRecipesCount(searchTerm: [String!]!): Int
       @cypher(
         statement: """
-        MATCH (r:Recipe)-[:CONTAINS]->(i:Ingredient)
-        WHERE i.name IN $searchTerm
-        RETURN COUNT(r) as num
+        CALL db.index.fulltext.queryNodes('searchRecipeIndex', $searchTerm) YIELD node, score
+        RETURN node
+        RETURN COUNT(node) as num
         """
         columnName: "num"
       )

@@ -26,7 +26,7 @@ import { useAuth } from "../AuthProvider";
 type RecipeCardProps = {
   recipe: Recipe;
   onPress?: () => void;
-  searchIngredients: Array<string>;
+  searchIngredients?: Array<string>;
 };
 
 const FAVOURITE_RECIPE_MUTATION = gql`
@@ -148,19 +148,23 @@ export function RecipeCard({
           </CardBody>
           <CardFooter className="pt-0 px-3 mb-0 justify-between">
             <div className="grid-flow-row pb-1 space-y-0.5">
-              <p
-                className="text-sm text-red-500"
-                style={{ alignSelf: "flex-end" }}
-              >
-                You lack {missingIngredients.length} ingredients
-              </p>
+              {searchIngredients?.length === 0 ? (
+                ""
+              ) : (
+                <p
+                  className="text-sm text-red-500"
+                  style={{ alignSelf: "flex-end" }}
+                >
+                  You lack {missingIngredients.length} ingredients
+                </p>
+              )}
+
               <p
                 className="mt-2 text-sm text-grey-500"
                 style={{ alignSelf: "flex-end" }}
               >
                 🕛 {recipe.time_taken_mins} mins
               </p>
-
               <p
                 className="mt-2 text-sm text-gray-500"
                 style={{ alignSelf: "flex-end" }}
