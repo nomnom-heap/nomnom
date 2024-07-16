@@ -13,6 +13,7 @@ type Movie = {
 type Ingredient = {
   id: string;
   name: string;
+  group?: string;
 };
 
 type User = {
@@ -39,3 +40,8 @@ type Recipe = {
   createdAt: string;
   updatedAt: string;
 };
+
+interface SearchTerm {
+  recipeName: string;
+  ingredients: string[];
+}

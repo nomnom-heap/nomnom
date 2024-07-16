@@ -25,6 +25,7 @@ import { useAuth } from "../AuthProvider";
 
 type RecipeCardProps = {
   recipe: Recipe;
+  onPress?:()=>void;
 };
 
 const FAVOURITE_RECIPE_MUTATION = gql`
@@ -53,7 +54,7 @@ const UNFAVOURITE_RECIPE_MUTATION = gql`
   }
 `;
 
-export function RecipeCard({ recipe }: RecipeCardProps) {
+export function RecipeCard({ recipe,onPress }: RecipeCardProps) {
   const { userId } = useAuth();
 
   const [
@@ -110,7 +111,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
 
   return (
     <>
-      <div className="cursor-pointer" onClick={onOpen}>
+      <div className="cursor-pointer" onClick={onOpen} key={recipe.id}>
         <Card className="relative group">
           <CardHeader className="pb-0 pt-3 px-3 m-2 flex-col items-start">
             <h4 className="font-bold text-lg">{recipe.name}</h4>

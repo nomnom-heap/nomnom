@@ -7,10 +7,13 @@ import {
   Image,
   Button,
   Input,
-  Autocomplete,
-  AutocompleteItem,
 } from "@nextui-org/react";
 import dynamic from "next/dynamic";
+import { FaPlus } from "react-icons/fa";
+import { IoRemoveOutline } from "react-icons/io5";
+import { MdFullscreen,MdFullscreenExit } from "react-icons/md";
+
+
 const Editor = dynamic(() => import("@/app/_components/BlockNoteEditor"), {
   ssr: false,
 });
@@ -20,8 +23,7 @@ import { useRef, useState, useEffect } from "react";
 import { Block } from "@blocknote/core";
 import { uploadFileToPublicFolder } from "../_lib/utils";
 import { useAuth } from "../AuthProvider";
-import { SearchIcon } from "./SearchIcon";
-import { useMutation, useQuery } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import { fetchAuthSession } from "aws-amplify/auth";
 import {
   CREATE_RECIPE_MUTATION,
@@ -33,7 +35,7 @@ import {
 type RecipeInputModalProps = {
   isOpen: boolean;
   onOpenChange: () => void;
-  recipe?: Recipe;
+  recipe?: any;
 };
 
 export default function RecipeInputModal({
@@ -78,12 +80,13 @@ export default function RecipeInputModal({
   };
 
   const handleIngredientChange = (index: number, value: string) => {
+    const newValue = value ?? "";
     const newIngredients = [...ingredients];
-    newIngredients[index] = value;
+    newIngredients[index] = newValue;
     setIngredients(newIngredients);
   };
 
-  const handleIngredientQtyChange = (index: number, value: string) => {
+  const handleAddIngredientsQty = (index: number, value: string) => {
     const newIngredientsQty = [...ingredientsQty];
     newIngredientsQty[index] = value;
     setIngredientsQty(newIngredientsQty);
@@ -160,6 +163,8 @@ export default function RecipeInputModal({
   if (!userId) {
     return (
       <Modal
+        size={recipeSize}
+        scrollBehavior="inside"
         className="h-auto"
         isOpen={isOpen}
         placement="center"
@@ -187,6 +192,7 @@ export default function RecipeInputModal({
 
   return (
     <Modal
+      scrollBehavior="inside"
       className="h-auto"
       isOpen={isOpen}
       placement="center"
@@ -205,6 +211,9 @@ export default function RecipeInputModal({
                 />
               ) : (
                 <>
+                {/* <Button isIconOnly className='ml-auto' aria-label="Full screen" onClick={setRecipeSizeHandler}>
+                        {windowIcon}
+                </Button> */}
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -230,7 +239,7 @@ export default function RecipeInputModal({
               />
             </ModalHeader>
             <ModalBody>
-              <div className="flex flex-col gap-2 w-auto">
+              <div className="flex flex-col gap-2 w-full">
                 <div className="flex flex-row gap-2 items-center">
                   <p className="text-sm">Preparation Time (mins):</p>
                   <Input
@@ -256,52 +265,55 @@ export default function RecipeInputModal({
 
               <p className="text-sm">Ingredients:</p>
               {ingredients.map((ingredient, index) => (
-                <div key={index} className="flex flex-row gap-2">
+                <div key={index} className="flex flex-row gap-2 items-center">
                   <Input
+                    className="w-1/6 text-xs"
                     type="text"
-                    placeholder="1 tbsp / 500g"
+                    placeholder="Quantity eg 1 tbsp / 500g"
                     value={ingredientsQty[index]}
                     onChange={(e) =>
-                      handleIngredientQtyChange(index, e.target.value)
+                      handleAddIngredientsQty(index, e.target.value)
                     }
+                    // onFocus={() => handleLastIngredientFocus(index)}
+                  />
+                  <IngredientDropdown
+                    isClearable
+                    className="w-56 mr-2"
+                    placeholder="Search for ingredient"
+                    menuPlacement="top"
+                    // TODO: buggy delete
+                    onChange={(newValue, actionMeta) => {
+                      const ingredient = (newValue as IngredientOption) ?? {
+                        label: "",
+                        value: "",
+                      };
+                      handleIngredientChange(index, ingredient.value);
+                    }}
                     onFocus={() => handleLastIngredientFocus(index)}
                   />
-                  <Autocomplete
-                    label="Ingredients"
-                    className="max-w-screen"
-                    startContent={<SearchIcon />}
-                    onFocus={() => handleLastIngredientFocus(index)}
-                    onSelectionChange={(key) => {
-                      if (!key) return;
-                      const keyString = key.toString();
-                      handleIngredientChange(index, keyString);
-                    }}
+                  <Button
+                    isIconOnly
+                    color="danger"
+                    aria-label="Remove ingredient"
+                    onPress={() => handleRemoveIngredient(index)}
                   >
-                    {ingredientsLoading ? (
-                      <AutocompleteItem key="loading" className="text-default-400 flex gap-2 items-center">
-                        <span>Loading...</span>
-                      </AutocompleteItem>
-                    ) : ( 
-                      ingredientsData?.ingredients?.map((item) => (
-                        <AutocompleteItem
-                          key={item.id}
-                          className="text-default-400 flex gap-2 items-center"
-                          onClick={() => handleIngredientChange(index, item.name)}
-                        >
-                          <span>{item.name}</span>
-                        </AutocompleteItem>
-                      ))
-                    )}
-                  </Autocomplete>
+                    <span>-</span>
+                  </Button>
+                  {/* <Button isIconOnly aria-label="Add Ingredient" onClick={()=>AddIngredientHandler(index)}>
+                  <FaPlus/>
+                </Button>
+                <Button isIconOnly aria-label="Remove Ingredient"  onClick={()=>RemoveIngredientHandler(index)}>
+                  <IoRemoveOutline/>
+                </Button> */}
                 </div>
               ))}
-
               <div className="flex flex-col gap-2 w-auto mt-4">
               <p className="text-sm">Preparation Steps:</p>
               <Editor initialBlocks={contents || []} onEditorContentChange={setContents} />
               </div>
             </ModalBody>
             <ModalFooter>
+            <Button onPress={setRecipeSizeHandler}>{recipeSizeAction}</Button>
               <Button
                 color="primary"
                 type="button"

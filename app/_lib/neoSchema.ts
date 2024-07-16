@@ -47,6 +47,7 @@ const typeDefs = /* GraphQL */ `
   type Ingredient {
     id: ID! @id
     name: String!
+    group: String
   }
 
   type Recipe
@@ -82,13 +83,33 @@ const typeDefs = /* GraphQL */ `
   }
 
   type Query {
-    searchRecipes(searchTerm: String): [Recipe]
+    searchRecipes(searchTerm: String, skip: Int = 0, limit: Int = 10): [Recipe]
       @cypher(
         statement: """
         CALL db.index.fulltext.queryNodes('searchRecipeIndex', $searchTerm) YIELD node, score
         RETURN node
+        SKIP $skip
+        LIMIT $limit
         """
         columnName: "node"
+      )
+    searchRecipesCount(searchTerm: String): Int
+      @cypher(
+        statement: """
+        CALL db.index.fulltext.queryNodes('searchRecipeIndex', $searchTerm) YIELD node, score
+        RETURN COUNT(node) as num
+        """
+        columnName: "num"
+      )
+    findIngredientsByName(name: String): [Ingredient]
+      @cypher(
+        statement: """
+        MATCH (i: Ingredient)
+        WHERE i.name CONTAINS trim(toLower($name))
+        RETURN i
+        LIMIT 30
+        """
+        columnName: "i"
       )
   }
 `;
