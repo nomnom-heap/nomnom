@@ -12,6 +12,10 @@ const SEARCH_RECIPES_QUERY = gql`
       thumbnail_url
       time_taken_mins
       serving
+      owner {
+        display_name
+        id
+      }
       favouritedByUsers {
         id
       }

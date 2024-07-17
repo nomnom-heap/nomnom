@@ -21,6 +21,10 @@ const GET_RECIPES_LAZY_QUERY = gql`
       thumbnail_url
       time_taken_mins
       serving
+      owner {
+        id
+        display_name
+      }
       favouritedByUsers {
         id
       }
