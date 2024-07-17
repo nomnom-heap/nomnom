@@ -30,6 +30,7 @@ type RecipeCardProps = {
   onPress?: () => void;
   peopleYouFollow: Object[];
   setPeopleYouFollow: React.Dispatch<React.SetStateAction<Object[]>>;
+  setMutatedFavourite: React.Dispatch<React.SetStateAction<string[]>>;
   searchIngredients: string[];
   // setPeopleYouFollow:
 };
@@ -96,6 +97,7 @@ export function RecipeCard({
   onPress,
   peopleYouFollow,
   setPeopleYouFollow,
+  setMutatedFavourite,
   searchIngredients,
 }: RecipeCardProps) {
   const { userId } = useAuth();
@@ -142,6 +144,14 @@ export function RecipeCard({
     const session = await fetchAuthSession();
     const userId = session?.tokens?.accessToken.payload.sub;
 
+    setMutatedFavourite((mutatedFavourites) => {
+      if (mutatedFavourites.includes(recipeId)) {
+        return mutatedFavourites.filter((recipe) => recipe !== recipeId);
+      } else {
+        return [...mutatedFavourites, recipeId];
+      }
+    });
+
     await favouriteRecipe({
       variables: { recipeId: recipeId, userId: userId },
     });
@@ -150,6 +160,13 @@ export function RecipeCard({
   async function handleUnfavouriteRecipe(recipeId: string) {
     const session = await fetchAuthSession();
     const userId = session?.tokens?.accessToken.payload.sub;
+    setMutatedFavourite((mutatedFavourites) => {
+      if (mutatedFavourites.includes(recipeId)) {
+        return mutatedFavourites.filter((recipe) => recipe !== recipeId);
+      } else {
+        return [...mutatedFavourites, recipeId];
+      }
+    });
     await unfavouriteRecipe({
       variables: { recipeId: recipeId, userId: userId },
     });
@@ -237,7 +254,7 @@ export function RecipeCard({
                   radius="full"
                   size="md"
                   showFallback
-                  src="https://images.unsplash.com/broken"
+                  src=""
                 />
                 <h4 className="text-sm font-semibold leading-none text-default-600">
                   {recipe.owner.display_name}
