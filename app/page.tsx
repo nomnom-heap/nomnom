@@ -12,7 +12,6 @@ import IngredientDropdown, {
 import useRecipes from "./_hooks/useRecipes";
 import InfiniteScroll from "react-infinite-scroll-component";
 import useSearchRecipes from "./_hooks/useSearchRecipes";
-import useGetPeopleYouFollowQuery from "./_hooks/useGetPeopleYouFollow";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { gql, useLazyQuery } from "@apollo/client";
 
@@ -30,7 +29,7 @@ const GET_FOLLOWING_QUERY = gql`
 
 export default function Page() {
   // const peopleYouFollowRef = useRef<String[]>([]);
-  const [peopleYouFollow, setPeopleYouFollow] = useState<String[]>([]);
+  const [peopleYouFollow, setPeopleYouFollow] = useState<Object[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [searchTerm, setSearchTerm] = useState<SearchTerm>({
     recipeName: "",
