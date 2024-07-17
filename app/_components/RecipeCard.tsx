@@ -10,7 +10,7 @@ import {
   Avatar,
 } from "@nextui-org/react";
 import { HeartIcon } from "./HeartIcon";
-import { MutableRefObject, useEffect, useState } from "react";
+import { MutableRefObject, SetStateAction, useEffect, useState } from "react";
 import { useMutation } from "@apollo/client";
 import { gql } from "@apollo/client/core";
 import {
@@ -28,7 +28,9 @@ import { IoConstructOutline } from "react-icons/io5";
 type RecipeCardProps = {
   recipe: Recipe;
   onPress?: () => void;
-  followedInfo: String[];
+  peopleYouFollow: Object[];
+  setPeopleYouFollow: React.Dispatch<React.SetStateAction<Object[]>>;
+  // setPeopleYouFollow:
 };
 
 const FAVOURITE_RECIPE_MUTATION = gql`
@@ -73,8 +75,8 @@ const FOLLOW_USER_MUTATION = gql`
 const UNFOLLOW_USER_MUTATION = gql`
   mutation UnfollowUser($userId: ID!, $userToUnfollowId: ID!) {
     updateUsers(
-      disconnect: { following: { where: { node: { id: $userId } } } }
-      where: { id: $userToUnfollowId }
+      where: { id: $userId }
+      disconnect: { following: { where: { node: { id: $userToUnfollowId } } } }
     ) {
       info {
         relationshipsDeleted
@@ -83,7 +85,12 @@ const UNFOLLOW_USER_MUTATION = gql`
   }
 `;
 
-export function RecipeCard({ recipe, onPress, followedInfo }: RecipeCardProps) {
+export function RecipeCard({
+  recipe,
+  onPress,
+  peopleYouFollow,
+  setPeopleYouFollow,
+}: RecipeCardProps) {
   const { userId } = useAuth();
   // const { token } = useAuth();
   // followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
@@ -141,10 +148,15 @@ export function RecipeCard({ recipe, onPress, followedInfo }: RecipeCardProps) {
 
   async function handleFollowUser(userToFollowId: string) {
     try {
+      setPeopleYouFollow((prevsPeopleYouFollow) => [
+        ...prevsPeopleYouFollow,
+        { __typename: "User", id: userToFollowId },
+      ]);
+
       const session = await fetchAuthSession();
       const userId = session?.tokens?.accessToken.payload.sub;
       await followUser({
-        variables: { userToFollowId: userToFollow, userId: userId },
+        variables: { userToFollowId: userToFollowId, userId: userId },
       });
     } catch (error) {
       console.error("Error occurred: ", error.message);
@@ -153,6 +165,9 @@ export function RecipeCard({ recipe, onPress, followedInfo }: RecipeCardProps) {
 
   async function handleUnfollowUser(userToUnfollowId: string) {
     try {
+      setPeopleYouFollow((prevsPeopleYouFollow) =>
+        prevsPeopleYouFollow.filter((obj) => obj.id !== userToUnfollowId)
+      );
       const session = await fetchAuthSession();
       const userId = session?.tokens?.accessToken.payload.sub;
       await unfollowUser({
@@ -167,9 +182,22 @@ export function RecipeCard({ recipe, onPress, followedInfo }: RecipeCardProps) {
     userId ? recipe.favouritedByUsers.some((obj) => obj.id === userId) : false
   );
 
-  const [isFollowed, setIsFollowed] = useState<boolean>(
-    userId ? followedInfo && followedInfo.includes(userId) : false
-  );
+  const [isFollowed, setIsFollowed] = useState(false);
+
+  // const [isFollowed, setIsFollowed] = useState<boolean>(
+  //   peopleYouFollow
+  //     ? peopleYouFollow.some((obj) => obj.id === recipe.owner.id)
+  //     : false
+  // );
+
+  useEffect(() => {
+    if (peopleYouFollow) {
+      const isUserFollowed = peopleYouFollow.some(
+        (obj) => obj.id === recipe.owner.id
+      );
+      setIsFollowed(isUserFollowed);
+    }
+  }, [peopleYouFollow]);
 
   // useEffect(() => {
   //   const fetchUserId = async () => {

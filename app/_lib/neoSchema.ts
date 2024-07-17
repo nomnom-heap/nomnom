@@ -27,12 +27,7 @@ const typeDefs = /* GraphQL */ `
       ]
     )
     @authorization(
-      validate: [
-        {
-          operations: [UPDATE, CREATE_RELATIONSHIP]
-          where: { node: { id: "$jwt.sub" } }
-        }
-      ]
+      validate: [{ operations: [UPDATE], where: { node: { id: "$jwt.sub" } } }]
     ) {
     id: ID! @id
     display_name: String!
@@ -40,8 +35,8 @@ const typeDefs = /* GraphQL */ `
     recipes: [Recipe!]! @relationship(type: "OWNS", direction: OUT)
     favourite_recipes: [Recipe!]!
       @relationship(type: "FAVOURITED", direction: OUT)
-    following: [User!]! @relationship(type: "FOLLOWING", direction: OUT)
-    followers: [User!]! @relationship(type: "FOLLOWING", direction: IN)
+    following: [User!]! @relationship(type: "FOLLOWS", direction: OUT)
+    followers: [User!]! @relationship(type: "FOLLOWS", direction: IN)
   }
 
   type Ingredient {

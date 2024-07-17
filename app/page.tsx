@@ -198,7 +198,8 @@ export default function Page() {
             <RecipeCard
               recipe={recipe}
               key={`${recipe.id}-${index}`}
-              followedInfo={peopleYouFollow}
+              peopleYouFollow={peopleYouFollow}
+              setPeopleYouFollow={setPeopleYouFollow}
             />
           ))}
         </InfiniteScroll>
