@@ -36,7 +36,7 @@ export default function NavBar() {
       </NavbarBrand>
       <NavbarContent className="hidden sm:flex gap-4" justify="end">
         <NavbarItem>
-          <Link className="text-white" href="#">
+          <Link className="text-white" href="/Favourites">
             My Favourites
           </Link>
         </NavbarItem>
