@@ -29,7 +29,9 @@ const GET_FOLLOWING_QUERY = gql`
 `;
 
 export default function Page() {
-  const userIdRef = useRef<String | undefined>("");
+  const userIdRef = useRef<string | undefined>("");
+
+  const [mutatedFavourite, setMutatedFavourite] = useState<Object[]>([]);
 
   const [peopleYouFollow, setPeopleYouFollow] = useState<Object[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -225,6 +227,7 @@ export default function Page() {
                     key={`${recipe.id}-${index}`}
                     peopleYouFollow={peopleYouFollow}
                     setPeopleYouFollow={setPeopleYouFollow}
+                    setMutatedFavourite={setMutatedFavourite}
                   />
                 ))
             : filterByFollowed || filterByFavourited
@@ -242,15 +245,17 @@ export default function Page() {
                       key={`${recipe.id}-${index}`}
                       peopleYouFollow={peopleYouFollow}
                       setPeopleYouFollow={setPeopleYouFollow}
+                      setMutatedFavourite={setMutatedFavourite}
                     />
                   ))
               : !filterByFollowed &&
                 filterByFavourited &&
                 recipes
-                  .filter((recipe) =>
-                    recipe.favouritedByUsers.some(
-                      (user) => user.id === userIdRef.current
-                    )
+                  .filter(
+                    (recipe) =>
+                      recipe.favouritedByUsers.some(
+                        (user) => user.id === userIdRef.current
+                      ) && !mutatedFavourite.includes(recipe.id)
                   )
                   .map((recipe, index) => (
                     <RecipeCard
@@ -258,6 +263,7 @@ export default function Page() {
                       key={`${recipe.id}-${index}`}
                       peopleYouFollow={peopleYouFollow}
                       setPeopleYouFollow={setPeopleYouFollow}
+                      setMutatedFavourite={setMutatedFavourite}
                     />
                   ))
             : recipes.map((recipe, index) => (
@@ -266,6 +272,7 @@ export default function Page() {
                   key={`${recipe.id}-${index}`}
                   peopleYouFollow={peopleYouFollow}
                   setPeopleYouFollow={setPeopleYouFollow}
+                  setMutatedFavourite={setMutatedFavourite}
                 />
               ))}
         </InfiniteScroll>
