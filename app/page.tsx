@@ -100,19 +100,21 @@ export default function Page() {
         />
 
         {/* Search recipe by ingredients */}
-        <IngredientDropdown
-          className="md:px-20 md:mt-2"
-          isMulti
-          isClearable
-          placeholder="Search for ingredient(s)"
-          onChange={(newValue, actionMeta) => {
-            newValue = newValue as IngredientOption[];
-            setSearchTerm({
-              ...searchTerm,
-              ingredients: newValue.map((item) => item.value),
-            });
-          }}
-        />
+        <div className="pb-5">
+          <IngredientDropdown
+            className="z-20"
+            isMulti
+            isClearable
+            placeholder="Search for ingredient(s)"
+            onChange={(newValue, actionMeta) => {
+              newValue = newValue as IngredientOption[];
+              setSearchTerm({
+                ...searchTerm,
+                ingredients: newValue.map((item) => item.value),
+              });
+            }}
+          />
+        </div>
       </div>
 
       {/* Sortbar */}

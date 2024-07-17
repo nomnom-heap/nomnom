@@ -42,7 +42,7 @@ type RecipeModalProps = {
   isOpen: boolean;
   onOpenChange: () => void;
   recipe: Recipe;
-  searchIngredients?: Array<String>;
+  searchIngredients?: Array<string>;
 };
 
 export default function RecipeModal({
@@ -214,7 +214,7 @@ export default function RecipeModal({
                   recipe={recipe}
                   key={recipe.id}
                   onPress={closePrevModal}
-                  searchIngredients={missingIngredients}
+                  searchIngredients={searchIngredients}
                 />
                 {/* <Button onClick={closePrevModal}>Close Prev Modal</Button> */}
               </div>
