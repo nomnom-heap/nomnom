@@ -7,8 +7,6 @@ import { useEffect, useState, useRef } from "react";
 import { fetchAuthSession } from "aws-amplify/auth";
 import InputComponent from "./InputComponent";
 import MessageComponent from "./MessageComponent";
-import initRephraseChain from "./RephraseQuestion";
-import VectorRetriever from "./VectorRetriever";
 import {
   Image,
   Card,
@@ -169,52 +167,73 @@ export default function Page() {
 
   useEffect(() => {
     if (chatHistoryData) {
-      // setChatHistory(chatHistoryData.getChatHistory);
       async function rephraseAnswer() {
         const chatMessagePassed = chatMessageRef.current;
         console.log(chatMessagePassed);
-        const rephraseAnswerChain = initRephraseChain(llm);
-
-        const output = await rephraseAnswerChain.invoke({
-          input: chatMessagePassed,
-          history: chatHistoryData.getChatHistory,
+        const response = await fetch('/api/rephraseAnswer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            input: chatMessagePassed,
+            history: chatHistoryData.getChatHistory,
+          }),
         });
-
-        return output;
+  
+        const data = await response.json();
+        if (response.ok) {
+          return data.output;
+        } else {
+          throw new Error(data.error);
+        }
       }
-
-      // console.log(JSON.stringify(chatHistoryData));
+  
       const history = chatHistoryData.getChatHistory;
-
+  
       rephraseAnswer()
         .then((output) => {
           console.log(output);
           console.log("Passing rephrased question to vector retriever");
-
-          // console.log(
-          //   "API Key for VectorRetriever:",
-          //   process.env.NEXT_PUBLIC_OPENAI_API_KEY
-          // );
-
-          VectorRetriever(
-            output,
-            history,
-            process.env.NEXT_PUBLIC_OPENAI_API_KEY
-          )
-            .then((finalAnswerStream) => {
-              async function handleStream() {
-                for await (const chunk of finalAnswerStream) {
-                  setChatbotResponse(
-                    (previousResponse) => previousResponse + chunk
-                  );
-                }
+  
+          fetch('/api/vectorRetriever', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              query: output,
+              chatHistory: history,
+            }),
+          })
+          .then(async (response) => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            //return response.text(); // or response.json() if the response is JSON
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let result = '';
+          
+            const processStream = async () => {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                result += decoder.decode(value, { stream: true });
+                setChatbotResponse(
+                  (previousResponse) => previousResponse + decoder.decode(value, { stream: true })
+                );
                 setChatbotProcessing(false);
-              }
-              handleStream();
-              // console.log(chatbotResponse);
+                // Optionally, update UI or state with each chunk received
+              };            
+            }
+            await processStream();
+            return result;
+          })
+          .then((data) => {
             })
             .catch((error) => {
-              console.error("error in vector retriever", error);
+              console.error("Error in vector retriever", error);
             });
         })
         .catch((error) => {
@@ -222,33 +241,7 @@ export default function Page() {
         });
     }
   }, [chatHistoryData]);
-
-  // useEffect(() => {
-  //   console.log(chatbotResponse);
-  // }, [chatbotResponse]);
-
-  // useEffect(() => {
-  //   const createSession = async () => {
-  //     try {
-  //       if (!hasEffectRan.current) {
-  //         const session = await fetchAuthSession();
-  //         const userId = session?.tokens?.accessToken.payload.sub;
-  //         console.log("test");
-  //         await createChatSession({
-  //           variables: {
-  //             userId: userId,
-  //           },
-  //         });
-  //       }
-  //     } catch (error) {
-  //       console.error(error.message);
-  //       console.error("Error creating chat session:", error);
-  //     }
-  //   };
-
-  //   createSession();
-  //   return () => (hasEffectRan.current = true);
-  // }, []); // Empty dependency array ensures useEffect runs only once on mount
+  
   useClassicEffect(() => {
     const createSession = async () => {
       try {
