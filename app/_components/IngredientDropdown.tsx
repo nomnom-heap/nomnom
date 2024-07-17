@@ -82,7 +82,7 @@ export default (props: Props) => {
   );
 
   return (
-    <div className="z-50 relative">
+    <>
       {/* @ts-ignore */}
       <AsyncCreatableSelect<IngredientOption, boolean, IngredientGroup>
         {...props}
@@ -91,6 +91,6 @@ export default (props: Props) => {
         loadOptions={loadOptions}
         formatGroupLabel={formatGroupLabel}
       />
-    </div>
+    </>
   );
 };

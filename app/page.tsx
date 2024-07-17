@@ -117,7 +117,7 @@ export default function Page() {
 
   return (
     <>
-      <div className="max-w-screen flex flex-col gap-4">
+      <div className="max-w-screen md:px-20 md:pt-5 flex flex-col gap-4">
         {/* Search recipe name input */}
         <Input
           label="Search"
@@ -144,18 +144,21 @@ export default function Page() {
         />
 
         {/* Search recipe by ingredients */}
-        <IngredientDropdown
-          isMulti
-          isClearable
-          placeholder="Search for ingredient(s)"
-          onChange={(newValue, actionMeta) => {
-            newValue = newValue as IngredientOption[];
-            setSearchTerm({
-              ...searchTerm,
-              ingredients: newValue.map((item) => item.value),
-            });
-          }}
-        />
+        <div className="pb-5">
+          <IngredientDropdown
+            className="z-20"
+            isMulti
+            isClearable
+            placeholder="Search for ingredient(s)"
+            onChange={(newValue, actionMeta) => {
+              newValue = newValue as IngredientOption[];
+              setSearchTerm({
+                ...searchTerm,
+                ingredients: newValue.map((item) => item.value),
+              });
+            }}
+          />
+        </div>
       </div>
 
       {/* Sortbar */}
@@ -197,6 +200,7 @@ export default function Page() {
             <RecipeCard
               recipe={recipe}
               key={`${recipe.id}-${index}`}
+              searchIngredients={searchTerm.ingredients}
               peopleYouFollow={peopleYouFollow}
               setPeopleYouFollow={setPeopleYouFollow}
             />
