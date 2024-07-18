@@ -25,14 +25,16 @@ export default function Editor({
   editable,
   className,
 }: EditorProps) {
-  const [content, setContent] = useState<PartialBlock[] | "loading">("loading");
-
+  const [content, setContent] = useState<
+    PartialBlock[] | undefined | "loading"
+  >("loading");
   useEffect(() => {
-    if (initialContent) {
-      setContent(initialContent);
-    }
-  }, [initialContent]);
+    setContent(initialContent);
+  }, []);
 
+  // Creates a new editor instance.
+  // We use useMemo + createBlockNoteEditor instead of useCreateBlockNote so we
+  // can delay the creation of the editor until the initial content is loaded.
   const editor = useMemo(() => {
     if (content === "loading") {
       return undefined;
@@ -44,7 +46,7 @@ export default function Editor({
     });
   }, [content]);
 
-  if (!editor) {
+  if (editor === undefined) {
     return <Spinner color="default" />;
   }
 
