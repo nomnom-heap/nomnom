@@ -1,3 +1,4 @@
+import { Client } from "langsmith";
 import { Neo4jVectorStore } from "@langchain/community/vectorstores/neo4j_vector";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { loadQAMapReduceChain } from "langchain/chains";
@@ -8,16 +9,21 @@ import {
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { PromptTemplate } from "@langchain/core/prompts";
+import { OpenAI } from "openai";
+import { traceable } from "langsmith/traceable";
+import { wrapOpenAI } from "langsmith/wrappers";
+import { wrap } from "module";
+import { LangChainTracer } from "@langchain/core/tracers/tracer_langchain";
 
 export default async function VectorRetriever(
   query: String,
   chatHistory: [],
-  apiKey = process.env.OPENAI_API_KEY
+  openAIapiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY
 ) {
   const llm = new ChatOpenAI({
     model: "gpt-4o",
     temperature: 0,
-    openAIApiKey: apiKey,
+    openAIApiKey: openAIapiKey,
   });
   const url = process.env.NEXT_PUBLIC_NEO4J_URI;
   const username = process.env.NEXT_PUBLIC_NEO4J_USER;
@@ -36,7 +42,7 @@ export default async function VectorRetriever(
   };
   const vectorStore = await Neo4jVectorStore.fromExistingGraph(
     new OpenAIEmbeddings({
-      openAIApiKey: apiKey,
+      openAIApiKey: openAIapiKey,
     }),
     config
   );
@@ -87,7 +93,7 @@ export default async function VectorRetriever(
     </ul>
 
     </br>
-    <strong> Steps: <strong>
+    <strong> Steps: </strong>
     <ol class="list-decimal">
     <li>In a large bowl, mix together the flour, sugar, baking powder, and salt.</li>
     <li>In another bowl, whisk together the milk, egg, melted butter, and vanilla extract.</li>
@@ -150,8 +156,12 @@ export default async function VectorRetriever(
   //   question: query,
   //   input_documents: relevantDocs,
   // });
-
-  return await chain.stream(query);
+  const client = new Client({
+    apiKey: "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",
+    apiUrl: "https://api.smith.langchain.com",
+  });
+  const tracer = new LangChainTracer({ client, projectName: "Nombot" });
+  return await chain.stream(query, { callbacks: [tracer] });
 
   // for await (const chunk of stream) {
   // }

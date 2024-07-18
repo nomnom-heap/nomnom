@@ -6,6 +6,7 @@ import {
 } from "@langchain/core/runnables";
 
 import { BaseChatModel } from "langchain/chat_models/base";
+
 // import { ChatbotResponse } from "../history";
 
 // tag::interface[]
@@ -68,7 +69,7 @@ export default function initRephraseChain(llm: BaseChatModel) {
       If the next question ask to provide more recipes, provide more Italian recipes.
   
       History:
-      {history}
+     {history}
   
       Question:
       {input}

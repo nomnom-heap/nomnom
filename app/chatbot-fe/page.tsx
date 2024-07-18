@@ -1,5 +1,7 @@
 "use client";
 
+import { LangChainTracer } from "@langchain/core/tracers/tracer_langchain";
+import { Client } from "langsmith";
 import { Poppins } from "next/font/google";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { gql, useLazyQuery, useMutation } from "@apollo/client";
@@ -89,6 +91,13 @@ export default function Page() {
   const chatMessageRef = useRef("");
   // const [chatHistory, setChatHistory] = useState("");
 
+  //Langsmith
+  const client = new Client({
+    apiKey: "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",
+    apiUrl: "https://api.smith.langchain.com",
+  });
+  const tracer = new LangChainTracer({ client, projectName: "Nombot" });
+
   //custom hook to avoid react strict mode for Effect
 
   const [
@@ -170,17 +179,17 @@ export default function Page() {
       async function rephraseAnswer() {
         const chatMessagePassed = chatMessageRef.current;
         console.log(chatMessagePassed);
-        const response = await fetch('/api/rephraseAnswer', {
-          method: 'POST',
+        const response = await fetch("/api/rephraseAnswer", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             input: chatMessagePassed,
             history: chatHistoryData.getChatHistory,
           }),
         });
-  
+
         const data = await response.json();
         if (response.ok) {
           return data.output;
@@ -188,50 +197,50 @@ export default function Page() {
           throw new Error(data.error);
         }
       }
-  
+
       const history = chatHistoryData.getChatHistory;
-  
+
       rephraseAnswer()
         .then((output) => {
           console.log(output);
           console.log("Passing rephrased question to vector retriever");
-  
-          fetch('/api/vectorRetriever', {
-            method: 'POST',
+
+          fetch("/api/vectorRetriever", {
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               query: output,
               chatHistory: history,
             }),
           })
-          .then(async (response) => {
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-            //return response.text(); // or response.json() if the response is JSON
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder('utf-8');
-            let result = '';
-          
-            const processStream = async () => {
-              while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                result += decoder.decode(value, { stream: true });
-                setChatbotResponse(
-                  (previousResponse) => previousResponse + decoder.decode(value, { stream: true })
-                );
-                setChatbotProcessing(false);
-                // Optionally, update UI or state with each chunk received
-              };            
-            }
-            await processStream();
-            return result;
-          })
-          .then((data) => {
+            .then(async (response) => {
+              if (!response.ok) {
+                throw new Error("Network response was not ok");
+              }
+              //return response.text(); // or response.json() if the response is JSON
+              const reader = response.body.getReader();
+              const decoder = new TextDecoder("utf-8");
+              let result = "";
+
+              const processStream = async () => {
+                while (true) {
+                  const { done, value } = await reader.read();
+                  if (done) break;
+                  result += decoder.decode(value, { stream: true });
+                  setChatbotResponse(
+                    (previousResponse) =>
+                      previousResponse + decoder.decode(value, { stream: true })
+                  );
+                  setChatbotProcessing(false);
+                  // Optionally, update UI or state with each chunk received
+                }
+              };
+              await processStream();
+              return result;
             })
+            .then((data) => {})
             .catch((error) => {
               console.error("Error in vector retriever", error);
             });
@@ -241,7 +250,7 @@ export default function Page() {
         });
     }
   }, [chatHistoryData]);
-  
+
   useClassicEffect(() => {
     const createSession = async () => {
       try {
