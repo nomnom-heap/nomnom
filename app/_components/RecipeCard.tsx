@@ -182,13 +182,11 @@ export function RecipeCard({
     userId ? recipe.favouritedByUsers.some((obj) => obj.id === userId) : false
   );
 
-  const [isFollowed, setIsFollowed] = useState(false);
-
-  // const [isFollowed, setIsFollowed] = useState<boolean>(
-  //   peopleYouFollow
-  //     ? peopleYouFollow.some((obj) => obj.id === recipe.owner.id)
-  //     : false
-  // );
+  const [isFollowed, setIsFollowed] = useState<boolean>(
+    peopleYouFollow
+      ? peopleYouFollow.some((obj) => obj.id === recipe.owner.id)
+      : false
+  );
 
   useEffect(() => {
     if (peopleYouFollow) {
@@ -198,22 +196,6 @@ export function RecipeCard({
       setIsFollowed(isUserFollowed);
     }
   }, [peopleYouFollow]);
-
-  // useEffect(() => {
-  //   const fetchUserId = async () => {
-  //     const session = await fetchAuthSession();
-  //     const userId = session?.tokens?.accessToken.payload.sub;
-  //     if (userId) {
-  //       setUserId(userId);
-  //     }
-  //   };
-
-  //   fetchUserId();
-  //   const checkUserFav = recipe.favouritedByUsers.some(
-  //     (obj) => obj.id === userId
-  //   );
-  //   setFavourited(checkUserFav);
-  // }, []);
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
