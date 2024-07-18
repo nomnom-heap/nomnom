@@ -280,6 +280,23 @@ export function RecipeCard({
           </CardBody>
           <CardFooter className="pt-0 px-3 mb-0 justify-between">
             <div className="grid-flow-row pb-1 space-y-0.5">
+              {searchIngredients?.length === 0 ? (
+                ""
+              ) : missingIngredients?.length === 0 ? (
+                <p
+                  className="text-sm text-green-500"
+                  style={{ alignSelf: "flex-end" }}
+                >
+                  You have all ingredients 😊
+                </p>
+              ) : (
+                <p
+                  className="text-sm text-red-500"
+                  style={{ alignSelf: "flex-end" }}
+                >
+                  You lack {missingIngredients.length} ingredients 😔
+                </p>
+              )}
               <p
                 className="mt-2 text-sm text-gray-500"
                 style={{ alignSelf: "flex-end" }}
