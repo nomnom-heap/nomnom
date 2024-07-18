@@ -15,7 +15,6 @@ import useSearchRecipes from "./_hooks/useSearchRecipes";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { gql, useLazyQuery } from "@apollo/client";
 import { filter } from "graphql-yoga";
-import useRecipesFilterFavourites from "./_hooks/useRecipesFilterFavourites";
 
 const LIMIT = 9;
 
@@ -126,6 +125,7 @@ export default function Page() {
 
     if (getFollowingData) {
       setPeopleYouFollow(getFollowingData.users[0].following);
+      console.log(JSON.stringify(getFollowingData.users[0].following));
     }
   }, [getFollowingError, getFollowingData]);
 
@@ -230,12 +230,15 @@ export default function Page() {
             ? peopleYouFollow &&
               recipes
                 .filter((recipe) => {
+                  const followStatus = peopleYouFollow.some(
+                    (person) => person.id === recipe.owner.id
+                  );
                   if (!mutatedFavourite.some((obj) => obj.id === recipe.id)) {
                     let favouriteStatus = recipe.favouritedByUsers.some(
                       (user) => user.id === userIdRef.current
                     );
 
-                    return favouriteStatus;
+                    return favouriteStatus && followStatus;
                   } else {
                     let favouriteStatus = mutatedFavourite.some(
                       (obj) => obj.id === recipe.id && obj.like === true

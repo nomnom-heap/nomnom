@@ -107,49 +107,6 @@ const typeDefs = /* GraphQL */ `
         columnName: "i"
       )
   }
-
-  type Query {
-    searchRecipesFilterFavourites(
-      searchTerm: String
-      userId: ID!
-      skip: Int = 0
-      limit: Int = 10
-    ): [Recipe]
-      @cypher(
-        statement: """
-        CALL db.index.fulltext.queryNodes('searchRecipeIndex', $searchTerm) YIELD node, score
-        MATCH (user:User {id: $userId})-[:FAVORITED]->(node)
-        RETURN node
-        SKIP $skip
-        LIMIT $limit
-        """
-        columnName: "node"
-      )
-
-    searchRecipesCountFilterByFavourites(searchTerm: String, userId: ID!): Int
-      @cypher(
-        statement: """
-        CALL db.index.fulltext.queryNodes('searchRecipeIndex', $searchTerm) YIELD node, score
-        MATCH (user:User {id: $userId})-[:FAVORITED]->(node)
-        RETURN COUNT(node) as num
-        """
-        columnName: "num"
-      )
-
-    findIngredientsByNameFilterByFavourites(
-      name: String
-      userId: ID!
-    ): [Ingredient]
-      @cypher(
-        statement: """
-        MATCH (user:User {id: $userId})-[:FAVORITED]->(recipe)-[:HAS_INGREDIENT]->(i:Ingredient)
-        WHERE i.name CONTAINS trim(toLower($name))
-        RETURN DISTINCT i
-        LIMIT 30
-        """
-        columnName: "i"
-      )
-  }
 `;
 
 // Create a Neo4j driver instance to connect to Neo4j AuraDB

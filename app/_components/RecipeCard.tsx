@@ -268,7 +268,7 @@ export function RecipeCard({
   return (
     <>
       <div className="cursor-pointer" onClick={onOpen} key={recipe.id}>
-        <Card className="relative group">
+        <Card className="relative group" shadow="sm">
           <CardHeader className="pb-0 pt-3 px-3 m-2 flex-col items-start">
             <div className="flex place-items-center justify-between w-full pr-2 pl-0">
               <div className="flex gap-3 place-items-center">
