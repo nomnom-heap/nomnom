@@ -30,6 +30,7 @@ type RecipeCardProps = {
   onPress?: () => void;
   peopleYouFollow: Object[];
   setPeopleYouFollow: React.Dispatch<React.SetStateAction<Object[]>>;
+  searchIngredients: string[];
   // setPeopleYouFollow:
 };
 
@@ -90,6 +91,7 @@ export function RecipeCard({
   onPress,
   peopleYouFollow,
   setPeopleYouFollow,
+  searchIngredients,
 }: RecipeCardProps) {
   const { userId } = useAuth();
   // const { token } = useAuth();
