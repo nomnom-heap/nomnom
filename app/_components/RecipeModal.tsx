@@ -43,6 +43,10 @@ type RecipeModalProps = {
   onOpenChange: () => void;
   recipe: Recipe;
   searchIngredients?: Array<string>;
+  peopleYouFollow: Object[];
+  setPeopleYouFollow: React.Dispatch<React.SetStateAction<Object[]>>;
+  setMutatedFavourite: React.Dispatch<React.SetStateAction<object[]>>;
+  mutatedFavourite: object[];
 };
 
 export default function RecipeModal({
@@ -50,7 +54,22 @@ export default function RecipeModal({
   isOpen,
   onOpenChange,
   searchIngredients,
+  peopleYouFollow,
+  setPeopleYouFollow,
+  setMutatedFavourite,
+  mutatedFavourite,
 }: RecipeModalProps) {
+  const [recipeSizeAction, setRecipeSizeAction] = useState(<MdFullscreen />);
+
+  const setRecipeSizeHandler = () => {
+    if (recipeSize === "sm") {
+      setRecipeSize("5xl");
+      setRecipeSizeAction(<MdFullscreenExit />);
+    } else {
+      setRecipeSize("sm");
+      setRecipeSizeAction(<MdFullscreen />);
+    }
+  };
   const [recipeSize, setRecipeSize] = useState<
     | "xs"
     | "sm"
@@ -64,17 +83,7 @@ export default function RecipeModal({
     | "full"
     | undefined
   >("sm");
-  const [recipeSizeAction, setRecipeSizeAction] = useState(<MdFullscreen />);
 
-  const setRecipeSizeHandler = () => {
-    if (recipeSize === "sm") {
-      setRecipeSize("5xl");
-      setRecipeSizeAction(<MdFullscreenExit />);
-    } else {
-      setRecipeSize("sm");
-      setRecipeSizeAction(<MdFullscreen />);
-    }
-  };
   const [recRecipes, setRecRecipes] = useState<Recipe[]>([]);
   const [recipeIngredients, setRecipeIngredients] = useState<Recipe[]>([]);
   const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
@@ -98,6 +107,7 @@ export default function RecipeModal({
   // }, [recipe.ingredients]);
 
   const { onClose, onOpen } = useDisclosure();
+
   useEffect(() => {
     if (recRecipesData) {
       setRecRecipes(recRecipes);
@@ -112,6 +122,7 @@ export default function RecipeModal({
     console.log("Closing the previous modal");
     modalState.current;
   };
+
   useEffect(() => {
     if (!searchIngredients) {
       setMissingIngredients([]);
@@ -120,14 +131,17 @@ export default function RecipeModal({
 
     const newMissingIngredients = recipe.ingredients.filter(
       (recipeIngredient) => {
-        return !searchIngredients.some((searchedIngredient) =>
-          recipeIngredient.includes(searchedIngredient)
+        return (
+          !searchIngredients.some((searchedIngredient) =>
+            recipeIngredient.includes(searchedIngredient.trim())
+          ) && recipeIngredient.trim() !== ""
         );
       }
     );
 
     setMissingIngredients(newMissingIngredients);
   }, [recipe.ingredients, searchIngredients]);
+
   return (
     <Modal
       size={recipeSize}
@@ -153,8 +167,7 @@ export default function RecipeModal({
                       : "/image_placeholder.jpeg"
                   }
                   alt="Recipe thumbnail image"
-                  // style={{ width: "400px", height: "300px" }}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  style={{ width: "400px", height: "300px" }}
                 />
               </div>
 
@@ -218,7 +231,10 @@ export default function RecipeModal({
                   recipe={recipe}
                   key={recipe.id}
                   onPress={closePrevModal}
-                  searchIngredients={searchIngredients}
+                  peopleYouFollow={peopleYouFollow}
+                  setPeopleYouFollow={setPeopleYouFollow}
+                  mutatedFavourite={mutatedFavourite}
+                  setMutatedFavourite={setMutatedFavourite}
                 />
                 {/* <Button onClick={closePrevModal}>Close Prev Modal</Button> */}
               </div>
