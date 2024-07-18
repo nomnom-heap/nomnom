@@ -38,6 +38,7 @@ type RecipeCardProps = {
   setPeopleYouFollow: React.Dispatch<React.SetStateAction<Object[]>>;
   setMutatedFavourite: React.Dispatch<React.SetStateAction<string[]>>;
   mutatedFavourite: string[];
+  searchIngredients: string[];
   // setPeopleYouFollow:
 };
 
@@ -66,6 +67,11 @@ const UNFAVOURITE_RECIPE_MUTATION = gql`
     }
   }
 `;
+
+// const { token } = useAuth();
+// followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
+// console.log(followedInfo);
+// console.log("test : ${[].some((e) => e === "some");
 
 const FOLLOW_USER_MUTATION = gql`
   mutation FollowUser($userId: ID!, $userToFollowId: ID!) {
@@ -100,6 +106,7 @@ export function RecipeCard({
   setPeopleYouFollow,
   setMutatedFavourite,
   mutatedFavourite,
+  searchIngredients,
 }: RecipeCardProps) {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const userId = useAuth().userId;
@@ -108,6 +115,8 @@ export function RecipeCard({
   if (userId) {
     setIsLoggedIn(true);
   }
+
+  const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
   // const { token } = useAuth();
   // followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
   // console.log(followedInfo);
@@ -216,13 +225,11 @@ export function RecipeCard({
       : false
   );
 
-  const [isFollowed, setIsFollowed] = useState(false);
-
-  // const [isFollowed, setIsFollowed] = useState<boolean>(
-  //   peopleYouFollow
-  //     ? peopleYouFollow.some((obj) => obj.id === recipe.owner.id)
-  //     : false
-  // );
+  const [isFollowed, setIsFollowed] = useState<boolean>(
+    peopleYouFollow
+      ? peopleYouFollow.some((obj) => obj.id === recipe.owner.id)
+      : false
+  );
 
   useEffect(() => {
     if (peopleYouFollow) {
@@ -233,23 +240,24 @@ export function RecipeCard({
     }
   }, [peopleYouFollow]);
 
-  // useEffect(() => {
-  //   const fetchUserId = async () => {
-  //     const session = await fetchAuthSession();
-  //     const userId = session?.tokens?.accessToken.payload.sub;
-  //     if (userId) {
-  //       setUserId(userId);
-  //     }
-  //   };
-
-  //   fetchUserId();
-  //   const checkUserFav = recipe.favouritedByUsers.some(
-  //     (obj) => obj.id === userId
-  //   );
-  //   setFavourited(checkUserFav);
-  // }, []);
-
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
+  useEffect(() => {
+    if (!searchIngredients) {
+      setMissingIngredients([]);
+      return;
+    }
+
+    const newMissingIngredients = recipe.ingredients.filter(
+      (recipeIngredient) => {
+        return !searchIngredients.some((searchedIngredient) =>
+          recipeIngredient.includes(searchedIngredient)
+        );
+      }
+    );
+
+    setMissingIngredients(newMissingIngredients);
+  }, [recipe.ingredients, searchIngredients]);
 
   return (
     <>
@@ -308,6 +316,23 @@ export function RecipeCard({
           </CardBody>
           <CardFooter className="pt-0 px-3 mb-0 justify-between">
             <div className="grid-flow-row pb-1 space-y-0.5">
+              {searchIngredients?.length === 0 ? (
+                ""
+              ) : missingIngredients?.length === 0 ? (
+                <p
+                  className="text-sm text-green-500"
+                  style={{ alignSelf: "flex-end" }}
+                >
+                  You have all ingredients 😊
+                </p>
+              ) : (
+                <p
+                  className="text-sm text-red-500"
+                  style={{ alignSelf: "flex-end" }}
+                >
+                  You lack {missingIngredients.length} ingredients 😔
+                </p>
+              )}
               <p
                 className="mt-2 text-sm text-gray-500"
                 style={{ alignSelf: "flex-end" }}
@@ -347,6 +372,7 @@ export function RecipeCard({
         isOpen={isOpen}
         onOpenChange={onOpenChange}
         recipe={recipe}
+        searchIngredients={searchIngredients}
       />
       {/* <Modal isOpen={isOpen} placement="center" onOpenChange={onOpenChange}>
         <ModalContent className="bg-gray-300">

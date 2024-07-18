@@ -43,6 +43,7 @@ const typeDefs = /* GraphQL */ `
     id: ID! @id
     name: String!
     group: String
+    linkedRecipes: [Recipe!]! @relationship(type: "CONTAINS", direction: IN)
   }
 
   type Recipe
@@ -68,6 +69,8 @@ const typeDefs = /* GraphQL */ `
     time_taken_mins: Float!
     owner: User! @relationship(type: "OWNS", direction: IN)
     favouritedByUsers: [User!]! @relationship(type: "FAVOURITED", direction: IN)
+    linkedIngredients: [Ingredient!]!
+      @relationship(type: "CONTAINS", direction: OUT)
     thumbnail_url: String!
     contents: String!
     createdAt: DateTime! @timestamp(operations: [CREATE])
