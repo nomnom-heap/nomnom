@@ -148,13 +148,11 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
     userId ? recipe.favouritedByUsers.some((obj) => obj.id === userId) : false
   );
 
-  const [isFollowed, setIsFollowed] = useState(false);
-
-  // const [isFollowed, setIsFollowed] = useState<boolean>(
-  //   peopleYouFollow
-  //     ? peopleYouFollow.some((obj) => obj.id === recipe.owner.id)
-  //     : false
-  // );
+  const [isFollowed, setIsFollowed] = useState<boolean>(
+    peopleYouFollow
+      ? peopleYouFollow.some((obj) => obj.id === recipe.owner.id)
+      : false
+  );
 
   useEffect(() => {
     if (peopleYouFollow) {
@@ -165,57 +163,8 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
     }
   }, [peopleYouFollow]);
 
-  // useEffect(() => {
-  //   const fetchUserId = async () => {
-  //     const session = await fetchAuthSession();
-  //     const userId = session?.tokens?.accessToken.payload.sub;
-  //     if (userId) {
-  //       setUserId(userId);
-  //     }
-  //   };
-
-  //   fetchUserId();
-  //   const checkUserFav = recipe.favouritedByUsers.some(
-  //     (obj) => obj.id === userId
-  //   );
-  //   setFavourited(checkUserFav);
-  // }, []);
-
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  // useEffect(() => {
-  // console.log(recipe.ingredients);
-  // setMissingIngredients([]);
-
-  // searchIngredients?.forEach((searchedIngredient) => {
-  // let n = 0;
-  // // let recipeIngredient = "";
-  // recipe.ingredients.forEach((recipeIngredient) => {
-  //   if (!recipeIngredient.includes(searchedIngredient)) {
-  //     n++;
-  //   }
-  //   if (n === recipe.ingredients.length) {
-  //     // console.log("bruh");
-  //     setMissingIngredients((prevMissingIngredients) => [
-  //       ...prevMissingIngredients,
-  //       recipeIngredient,
-  //     ]);
-  //   }
-
-  // });
-  // });
-  // console.log(missingIngredients);
-
-  // recipe.ingredients.forEach((ingredientInRecipe) => {
-  //   if (!searchIngredients.includes(ingredientInRecipe)) {
-  //     setMissingIngredients((prevMissingIngredients) => [
-  //       ...prevMissingIngredients,
-  //       ingredientInRecipe,
-  //     ]);
-  //   }
-  // });
-  // console.log(missingIngredients);
-  // }, [searchIngredients]);
   useEffect(() => {
     if (!searchIngredients) {
       setMissingIngredients([]);
