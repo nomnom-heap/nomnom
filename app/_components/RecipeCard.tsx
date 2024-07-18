@@ -37,8 +37,8 @@ type RecipeCardProps = {
   onPress?: () => void;
   peopleYouFollow: Object[];
   setPeopleYouFollow: React.Dispatch<React.SetStateAction<Object[]>>;
-  setMutatedFavourite: React.Dispatch<React.SetStateAction<string[]>>;
-  mutatedFavourite: string[];
+  setMutatedFavourite: React.Dispatch<React.SetStateAction<object[]>>;
+  mutatedFavourite: object[];
   searchIngredients: string[];
   // setPeopleYouFollow:
 };
@@ -254,8 +254,10 @@ export function RecipeCard({
 
     const newMissingIngredients = recipe.ingredients.filter(
       (recipeIngredient) => {
-        return !searchIngredients.some((searchedIngredient) =>
-          recipeIngredient.includes(searchedIngredient)
+        return (
+          !searchIngredients.some((searchedIngredient) =>
+            recipeIngredient.includes(searchedIngredient.trim())
+          ) && recipeIngredient.trim() !== ""
         );
       }
     );
@@ -380,6 +382,7 @@ export function RecipeCard({
         setPeopleYouFollow={setPeopleYouFollow}
         setMutatedFavourite={setMutatedFavourite}
         mutatedFavourite={mutatedFavourite}
+        searchIngredients={searchIngredients}
       />
       {/* <Modal isOpen={isOpen} placement="center" onOpenChange={onOpenChange}>
         <ModalContent className="bg-gray-300">

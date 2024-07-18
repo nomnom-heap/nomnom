@@ -14,7 +14,6 @@ import {
   Card,
   CardBody,
   CardHeader,
-  CardHeader,
 } from "@nextui-org/react";
 import dynamic from "next/dynamic";
 import { useState, useEffect, useRef } from "react";
@@ -31,13 +30,6 @@ interface RecRecipesData {
   recRecipes: Recipe[];
 }
 
-const REC_RECIPE_QUERY = gql`
-  query GetRecRecipe($ingredientName: String!) {
-    recRecipes(where: { ingredients_INCLUDES: $ingredientName }) {
-      id
-    }
-  }
-`;
 const REC_RECIPE_QUERY = gql`
   query GetRecRecipe($ingredientName: String!) {
     recRecipes(where: { ingredients_INCLUDES: $ingredientName }) {
@@ -67,41 +59,6 @@ export default function RecipeModal({
   setMutatedFavourite,
   mutatedFavourite,
 }: RecipeModalProps) {
-  const [recipeSize, setRecipeSize] = useState<
-    | "xs"
-    | "sm"
-    | "md"
-    | "lg"
-    | "xl"
-    | "2xl"
-    | "3xl"
-    | "4xl"
-    | "5xl"
-    | "full"
-    | undefined
-  >("sm");
-  const [recipeSizeAction, setRecipeSizeAction] = useState(<MdFullscreen />);
-
-  const setRecipeSizeHandler = () => {
-    if (recipeSize === "sm") {
-      setRecipeSize("5xl");
-      setRecipeSizeAction(<MdFullscreenExit />);
-    } else {
-      setRecipeSize("sm");
-      setRecipeSizeAction(<MdFullscreen />);
-  const [recipeSize, setRecipeSize] = useState<
-    | "xs"
-    | "sm"
-    | "md"
-    | "lg"
-    | "xl"
-    | "2xl"
-    | "3xl"
-    | "4xl"
-    | "5xl"
-    | "full"
-    | undefined
-  >("sm");
   const [recipeSizeAction, setRecipeSizeAction] = useState(<MdFullscreen />);
 
   const setRecipeSizeHandler = () => {
@@ -113,16 +70,24 @@ export default function RecipeModal({
       setRecipeSizeAction(<MdFullscreen />);
     }
   };
+  const [recipeSize, setRecipeSize] = useState<
+    | "xs"
+    | "sm"
+    | "md"
+    | "lg"
+    | "xl"
+    | "2xl"
+    | "3xl"
+    | "4xl"
+    | "5xl"
+    | "full"
+    | undefined
+  >("sm");
+
   const [recRecipes, setRecRecipes] = useState<Recipe[]>([]);
   const [recipeIngredients, setRecipeIngredients] = useState<Recipe[]>([]);
   const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
 
-  const {
-    loading: recRecipesLoading,
-    error: recRecipesError,
-    data: recRecipesData,
-    refetch: recRecipesRefetch,
-  } = useQuery<RecRecipesData>(REC_RECIPE_QUERY);
   const {
     loading: recRecipesLoading,
     error: recRecipesError,
@@ -142,7 +107,7 @@ export default function RecipeModal({
   // }, [recipe.ingredients]);
 
   const { onClose, onOpen } = useDisclosure();
-  const { onClose, onOpen } = useDisclosure();
+
   useEffect(() => {
     if (recRecipesData) {
       setRecRecipes(recRecipes);
@@ -157,6 +122,26 @@ export default function RecipeModal({
     console.log("Closing the previous modal");
     modalState.current;
   };
+
+  useEffect(() => {
+    if (!searchIngredients) {
+      setMissingIngredients([]);
+      return;
+    }
+
+    const newMissingIngredients = recipe.ingredients.filter(
+      (recipeIngredient) => {
+        return (
+          !searchIngredients.some((searchedIngredient) =>
+            recipeIngredient.includes(searchedIngredient.trim())
+          ) && recipeIngredient.trim() !== ""
+        );
+      }
+    );
+
+    setMissingIngredients(newMissingIngredients);
+  }, [recipe.ingredients, searchIngredients]);
+
   return (
     <Modal
       size={recipeSize}
@@ -246,6 +231,10 @@ export default function RecipeModal({
                   recipe={recipe}
                   key={recipe.id}
                   onPress={closePrevModal}
+                  peopleYouFollow={peopleYouFollow}
+                  setPeopleYouFollow={setPeopleYouFollow}
+                  mutatedFavourite={mutatedFavourite}
+                  setMutatedFavourite={setMutatedFavourite}
                 />
                 {/* <Button onClick={closePrevModal}>Close Prev Modal</Button> */}
               </div>

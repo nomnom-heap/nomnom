@@ -252,6 +252,7 @@ export default function Page() {
                     setPeopleYouFollow={setPeopleYouFollow}
                     setMutatedFavourite={setMutatedFavourite}
                     mutatedFavourite={mutatedFavourite}
+                    searchIngredients={searchTerm.ingredients}
                   />
                 ))
             : filterByFollowed || filterByFavourited
@@ -271,6 +272,7 @@ export default function Page() {
                       setPeopleYouFollow={setPeopleYouFollow}
                       setMutatedFavourite={setMutatedFavourite}
                       mutatedFavourite={mutatedFavourite}
+                      searchIngredients={searchTerm.ingredients}
                     />
                   ))
               : !filterByFollowed &&
@@ -299,6 +301,7 @@ export default function Page() {
                       setPeopleYouFollow={setPeopleYouFollow}
                       setMutatedFavourite={setMutatedFavourite}
                       mutatedFavourite={mutatedFavourite}
+                      searchIngredients={searchTerm.ingredients}
                     />
                   ))
             : recipes.map((recipe, index) => (
@@ -309,6 +312,7 @@ export default function Page() {
                   setPeopleYouFollow={setPeopleYouFollow}
                   setMutatedFavourite={setMutatedFavourite}
                   mutatedFavourite={mutatedFavourite}
+                  searchIngredients={searchTerm.ingredients}
                 />
               ))}
         </InfiniteScroll>
