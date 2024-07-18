@@ -1,10 +1,32 @@
 import { useState, useEffect } from "react";
 import { Modal, ModalBody, ModalContent, ModalHeader, ModalFooter, Image, Button } from "@nextui-org/react";
 import { MdFullscreen, MdFullscreenExit } from "react-icons/md";
+"use client";
+
+import { useDisclosure } from "@nextui-org/react";
+import { gql } from "@apollo/client/core";
+import { useQuery, useLazyQuery } from "@apollo/client";
+import {
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  Image,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+} from "@nextui-org/react";
 import dynamic from "next/dynamic";
 import { useMutation } from "@apollo/client";
 import { DELETE_RECIPE_MUTATION } from "@/_lib/gql";
 import RecipeInputModal from "./RecipeInputModal";
+import { useState, useEffect, useRef } from "react";
+import { MdFullscreen, MdFullscreenExit } from "react-icons/md";
+import { AddIngredient } from "./AddIngredient";
+import { RecommendedRecipeCard } from "./RecommendedRecipeCard";
+import { RecipeCard } from "./RecipeCard";
 
 const Editor = dynamic(() => import("@/app/_components/BlockNoteEditor"), { ssr: false });
 
@@ -26,6 +48,52 @@ export default function RecipeModal({ recipe, isOpen, onOpenChange }) {
     } else {
       setRecipeSize("sm");
       setRecipeSizeAction(<MdFullscreen />);
+const Editor = dynamic(() => import("@/app/_components/BlockNoteEditor"), {
+  ssr: false,
+});
+
+interface RecRecipesData {
+  recRecipes: Recipe[];
+}
+
+const REC_RECIPE_QUERY = gql`
+  query GetRecRecipe($ingredientName: String!) {
+    recRecipes(where: { ingredients_INCLUDES: $ingredientName }) {
+      id
+    }
+  }
+`;
+
+type RecipeModalProps = {
+  isOpen: boolean;
+  onOpenChange: () => void;
+  recipe: Recipe;
+  searchIngredients?: Array<string>;
+  peopleYouFollow: Object[];
+  setPeopleYouFollow: React.Dispatch<React.SetStateAction<Object[]>>;
+  setMutatedFavourite: React.Dispatch<React.SetStateAction<object[]>>;
+  mutatedFavourite: object[];
+};
+
+export default function RecipeModal({
+  recipe,
+  isOpen,
+  onOpenChange,
+  searchIngredients,
+  peopleYouFollow,
+  setPeopleYouFollow,
+  setMutatedFavourite,
+  mutatedFavourite,
+}: RecipeModalProps) {
+  const [recipeSizeAction, setRecipeSizeAction] = useState(<MdFullscreen />);
+
+  const setRecipeSizeHandler = () => {
+    if (recipeSize === "sm") {
+      setRecipeSize("5xl");
+      setRecipeSizeAction(<MdFullscreenExit />);
+    } else {
+      setRecipeSize("sm");
+      setRecipeSizeAction(<MdFullscreen />);
     }
   };
 
@@ -36,6 +104,42 @@ export default function RecipeModal({ recipe, isOpen, onOpenChange }) {
       console.error("Error deleting recipe:", err);
     }
   };
+  };
+  const [recipeSize, setRecipeSize] = useState<
+    | "xs"
+    | "sm"
+    | "md"
+    | "lg"
+    | "xl"
+    | "2xl"
+    | "3xl"
+    | "4xl"
+    | "5xl"
+    | "full"
+    | undefined
+  >("sm");
+
+  const [recRecipes, setRecRecipes] = useState<Recipe[]>([]);
+  const [recipeIngredients, setRecipeIngredients] = useState<Recipe[]>([]);
+  const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
+
+  const {
+    loading: recRecipesLoading,
+    error: recRecipesError,
+    data: recRecipesData,
+    refetch: recRecipesRefetch,
+  } = useQuery<RecRecipesData>(REC_RECIPE_QUERY);
+
+  // useEffect(() => {
+  //   const ingredientName = recipe.ingredients;
+  //   if (ingredientName) {
+  //     searchRecipes({
+  //       variables: { searchTerm: ingredientName },
+  //     });
+  //   } else {
+  //     setRecipeIngredients(recRecipesData?.recRecipes || []);
+  //   }
+  // }, [recipe.ingredients]);
 
   const handleEditClick = () => {
     setIsInputModalOpen(true);

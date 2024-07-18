@@ -10,7 +10,7 @@ export function RecipeContainer({ recipes }: RecipeContainerProps) {
     return;
   }
   return (
-    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+    <div className="grid gap-4 md:p-40 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {recipes.map((recipe) => (
         <RecipeCard recipe={recipe} key={recipe.id} />
       ))}
