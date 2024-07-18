@@ -162,11 +162,15 @@ export default function RecipeModal({
                 <div className="flex flex-col gap-2 items-left">
                   {searchIngredients?.length === 0 ? (
                     ""
-                  ) : (
+                  ) : missingIngredients.length > 0 ? (
                     <>
                       <p className="text-sm font-bold">Missing Ingredients:</p>
                       <p className="text-sm">{missingIngredients.join(", ")}</p>
                     </>
+                  ) : (
+                    <p className="text-sm text-green-500">
+                      You have all ingredients! 😊
+                    </p>
                   )}
 
                   <p className="text-sm">

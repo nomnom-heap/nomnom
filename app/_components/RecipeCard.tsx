@@ -28,6 +28,10 @@ import { IoConstructOutline } from "react-icons/io5";
 type RecipeCardProps = {
   recipe: Recipe;
   onPress?: () => void;
+  peopleYouFollow: Object[];
+  setPeopleYouFollow: React.Dispatch<React.SetStateAction<Object[]>>;
+  searchIngredients: string[];
+  // setPeopleYouFollow:
 };
 
 const FAVOURITE_RECIPE_MUTATION = gql`
@@ -56,13 +60,52 @@ const UNFAVOURITE_RECIPE_MUTATION = gql`
   }
 `;
 
-export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
+// const { token } = useAuth();
+// followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
+// console.log(followedInfo);
+// console.log("test : ${[].some((e) => e === "some");
+
+const FOLLOW_USER_MUTATION = gql`
+  mutation FollowUser($userId: ID!, $userToFollowId: ID!) {
+    updateUsers(
+      where: { id: $userId }
+      connect: { following: { where: { node: { id: $userToFollowId } } } }
+    ) {
+      info {
+        relationshipsCreated
+      }
+    }
+  }
+`;
+
+const UNFOLLOW_USER_MUTATION = gql`
+  mutation UnfollowUser($userId: ID!, $userToUnfollowId: ID!) {
+    updateUsers(
+      where: { id: $userId }
+      disconnect: { following: { where: { node: { id: $userToUnfollowId } } } }
+    ) {
+      info {
+        relationshipsDeleted
+      }
+    }
+  }
+`;
+
+export function RecipeCard({
+  recipe,
+  onPress,
+  peopleYouFollow,
+  setPeopleYouFollow,
+  searchIngredients,
+}: RecipeCardProps) {
   const { userId } = useAuth();
+
+  const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
   // const { token } = useAuth();
   // followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
   // console.log(followedInfo);
   // console.log("test : ${[].some((e) => e === "some");
-  const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
+
   const [
     favouriteRecipe,
     { loading: favouriteLoading, error: favouriteError, data: favouriteData },
@@ -148,13 +191,11 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
     userId ? recipe.favouritedByUsers.some((obj) => obj.id === userId) : false
   );
 
-  const [isFollowed, setIsFollowed] = useState(false);
-
-  // const [isFollowed, setIsFollowed] = useState<boolean>(
-  //   peopleYouFollow
-  //     ? peopleYouFollow.some((obj) => obj.id === recipe.owner.id)
-  //     : false
-  // );
+  const [isFollowed, setIsFollowed] = useState<boolean>(
+    peopleYouFollow
+      ? peopleYouFollow.some((obj) => obj.id === recipe.owner.id)
+      : false
+  );
 
   useEffect(() => {
     if (peopleYouFollow) {
@@ -165,57 +206,8 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
     }
   }, [peopleYouFollow]);
 
-  // useEffect(() => {
-  //   const fetchUserId = async () => {
-  //     const session = await fetchAuthSession();
-  //     const userId = session?.tokens?.accessToken.payload.sub;
-  //     if (userId) {
-  //       setUserId(userId);
-  //     }
-  //   };
-
-  //   fetchUserId();
-  //   const checkUserFav = recipe.favouritedByUsers.some(
-  //     (obj) => obj.id === userId
-  //   );
-  //   setFavourited(checkUserFav);
-  // }, []);
-
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  // useEffect(() => {
-  // console.log(recipe.ingredients);
-  // setMissingIngredients([]);
-
-  // searchIngredients?.forEach((searchedIngredient) => {
-  // let n = 0;
-  // // let recipeIngredient = "";
-  // recipe.ingredients.forEach((recipeIngredient) => {
-  //   if (!recipeIngredient.includes(searchedIngredient)) {
-  //     n++;
-  //   }
-  //   if (n === recipe.ingredients.length) {
-  //     // console.log("bruh");
-  //     setMissingIngredients((prevMissingIngredients) => [
-  //       ...prevMissingIngredients,
-  //       recipeIngredient,
-  //     ]);
-  //   }
-
-  // });
-  // });
-  // console.log(missingIngredients);
-
-  // recipe.ingredients.forEach((ingredientInRecipe) => {
-  //   if (!searchIngredients.includes(ingredientInRecipe)) {
-  //     setMissingIngredients((prevMissingIngredients) => [
-  //       ...prevMissingIngredients,
-  //       ingredientInRecipe,
-  //     ]);
-  //   }
-  // });
-  // console.log(missingIngredients);
-  // }, [searchIngredients]);
   useEffect(() => {
     if (!searchIngredients) {
       setMissingIngredients([]);
@@ -236,7 +228,7 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
   return (
     <>
       <div className="cursor-pointer" onClick={onOpen} key={recipe.id}>
-        <Card className="relative group" shadow="sm">
+        <Card className="relative group">
           <CardHeader className="pb-0 pt-3 px-3 m-2 flex-col items-start">
             <div className="flex place-items-center justify-between w-full pr-2 pl-0">
               <div className="flex gap-3 place-items-center">
@@ -305,13 +297,13 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
                   You lack {missingIngredients.length} ingredients 😔
                 </p>
               )}
-
               <p
-                className="mt-2 text-sm text-grey-500"
+                className="mt-2 text-sm text-gray-500"
                 style={{ alignSelf: "flex-end" }}
               >
                 🕛 {recipe.time_taken_mins} mins
               </p>
+
               <p
                 className="mt-2 text-sm text-gray-500"
                 style={{ alignSelf: "flex-end" }}
