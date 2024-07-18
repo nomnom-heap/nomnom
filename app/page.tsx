@@ -29,7 +29,7 @@ const GET_FOLLOWING_QUERY = gql`
 `;
 
 export default function Page() {
-  const userIdRef = useRef<string | undefined>("");
+  const [userId, setUserId] = useState<string>("");
 
   const [mutatedFavourite, setMutatedFavourite] = useState<object[]>([]);
 
@@ -111,8 +111,11 @@ export default function Page() {
     async function fetchAuth() {
       const session = await fetchAuthSession();
       const userId = session?.tokens?.accessToken.payload.sub;
-      userIdRef.current = userId;
-      getPeopleYouFollow({ variables: { userId: userId } });
+
+      if (userId) {
+        setUserId(userId);
+        getPeopleYouFollow({ variables: { userId: userId } });
+      }
     }
 
     fetchAuth();
@@ -182,21 +185,25 @@ export default function Page() {
       </div>
 
       {/* Sortbar */}
-      <div className="flex gap-4 p-5">
-        <span>Filter by</span>
-        <Checkbox
-          size="md"
-          onValueChange={(value) => setFilterByFollowed(value)}
-        >
-          Followed Users
-        </Checkbox>
-        <Checkbox
-          size="md"
-          onValueChange={(value) => setFilterByFavourited(value)}
-        >
-          Favourited
-        </Checkbox>
-      </div>
+      {userId !== "" ? (
+        <div className="flex gap-4 pb-5 px-20">
+          <span>Filter by</span>
+          <Checkbox
+            size="md"
+            onValueChange={(value) => setFilterByFollowed(value)}
+          >
+            Followed Users
+          </Checkbox>
+          <Checkbox
+            size="md"
+            onValueChange={(value) => setFilterByFavourited(value)}
+          >
+            Favourited
+          </Checkbox>
+        </div>
+      ) : (
+        ""
+      )}
 
       {recipes.length == 0 ? (
         <div className="grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 p-4">
@@ -235,7 +242,7 @@ export default function Page() {
                   );
                   if (!mutatedFavourite.some((obj) => obj.id === recipe.id)) {
                     let favouriteStatus = recipe.favouritedByUsers.some(
-                      (user) => user.id === userIdRef.current
+                      (user) => user.id === userId
                     );
 
                     return favouriteStatus && followStatus;
@@ -284,7 +291,7 @@ export default function Page() {
                   .filter((recipe) => {
                     if (!mutatedFavourite.some((obj) => obj.id === recipe.id)) {
                       let favouriteStatus = recipe.favouritedByUsers.some(
-                        (user) => user.id === userIdRef.current
+                        (user) => user.id === userId
                       );
 
                       return favouriteStatus;
