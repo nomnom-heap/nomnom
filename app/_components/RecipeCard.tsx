@@ -376,7 +376,10 @@ export function RecipeCard({
         isOpen={isOpen}
         onOpenChange={onOpenChange}
         recipe={recipe}
-        searchIngredients={searchIngredients}
+        peopleYouFollow={peopleYouFollow}
+        setPeopleYouFollow={setPeopleYouFollow}
+        setMutatedFavourite={setMutatedFavourite}
+        mutatedFavourite={mutatedFavourite}
       />
       {/* <Modal isOpen={isOpen} placement="center" onOpenChange={onOpenChange}>
         <ModalContent className="bg-gray-300">
