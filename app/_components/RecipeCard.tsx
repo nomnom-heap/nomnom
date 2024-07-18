@@ -10,7 +10,13 @@ import {
   Avatar,
 } from "@nextui-org/react";
 import { HeartIcon } from "./HeartIcon";
-import { MutableRefObject, SetStateAction, useEffect, useState } from "react";
+import {
+  MutableRefObject,
+  SetStateAction,
+  useEffect,
+  useState,
+  useRef,
+} from "react";
 import { useMutation } from "@apollo/client";
 import { gql } from "@apollo/client/core";
 import {
@@ -31,6 +37,7 @@ type RecipeCardProps = {
   peopleYouFollow: Object[];
   setPeopleYouFollow: React.Dispatch<React.SetStateAction<Object[]>>;
   setMutatedFavourite: React.Dispatch<React.SetStateAction<string[]>>;
+  mutatedFavourite: string[];
   searchIngredients: string[];
   // setPeopleYouFollow:
 };
@@ -98,15 +105,21 @@ export function RecipeCard({
   peopleYouFollow,
   setPeopleYouFollow,
   setMutatedFavourite,
+  mutatedFavourite,
   searchIngredients,
 }: RecipeCardProps) {
-  const { userId } = useAuth();
-
-  const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
   // const { token } = useAuth();
   // followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
   // console.log(followedInfo);
   // console.log("test : ${[].some((e) => e === "some");
+  const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const userId = useAuth().userId;
+  // console.log(userId);
+
+  if (userId) {
+    setIsLoggedIn(true);
+  }
 
   const [
     favouriteRecipe,
@@ -205,7 +218,10 @@ export function RecipeCard({
   }
 
   const [favourited, setFavourited] = useState<boolean>(
-    userId ? recipe.favouritedByUsers.some((obj) => obj.id === userId) : false
+    userId
+      ? recipe.favouritedByUsers.some((obj) => obj.id === userId) &&
+          !mutatedFavourite.includes(recipe.id)
+      : false
   );
 
   const [isFollowed, setIsFollowed] = useState<boolean>(
@@ -260,7 +276,9 @@ export function RecipeCard({
                   {recipe.owner.display_name}
                 </h4>
               </div>
-              {userId === recipe.owner.id ? (
+              {!isLoggedIn ? (
+                ""
+              ) : userId === recipe.owner.id ? (
                 ""
               ) : (
                 <Button
@@ -329,19 +347,23 @@ export function RecipeCard({
               </p>
             </div>
 
-            <Button
-              isIconOnly
-              className="bg-white"
-              aria-label="Like"
-              onClick={() => {
-                setFavourited((value) => !value);
-                favourited
-                  ? handleUnfavouriteRecipe(recipe.id)
-                  : handleFavouriteRecipe(recipe.id);
-              }}
-            >
-              <HeartIcon filled={favourited} />
-            </Button>
+            {isLoggedIn ? (
+              <Button
+                isIconOnly
+                className="bg-white"
+                aria-label="Like"
+                onClick={() => {
+                  setFavourited((value) => !value);
+                  favourited
+                    ? handleUnfavouriteRecipe(recipe.id)
+                    : handleFavouriteRecipe(recipe.id);
+                }}
+              >
+                <HeartIcon filled={favourited} />
+              </Button>
+            ) : (
+              ""
+            )}
           </CardFooter>
         </Card>
       </div>

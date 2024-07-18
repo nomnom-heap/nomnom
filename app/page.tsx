@@ -15,6 +15,7 @@ import useSearchRecipes from "./_hooks/useSearchRecipes";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { gql, useLazyQuery } from "@apollo/client";
 import { filter } from "graphql-yoga";
+import useRecipesFilterFavourites from "./_hooks/useRecipesFilterFavourites";
 
 const LIMIT = 9;
 
@@ -31,7 +32,7 @@ const GET_FOLLOWING_QUERY = gql`
 export default function Page() {
   const userIdRef = useRef<string | undefined>("");
 
-  const [mutatedFavourite, setMutatedFavourite] = useState<Object[]>([]);
+  const [mutatedFavourite, setMutatedFavourite] = useState<string[]>([]);
 
   const [peopleYouFollow, setPeopleYouFollow] = useState<Object[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -65,6 +66,13 @@ export default function Page() {
     setCurrentPage: setSearchRecipesCurrentPage,
     setSearchTerm: setSearchRecipesSearchTerm,
   } = useSearchRecipes(LIMIT);
+
+  // const {
+  //   recipes: FavouriteRecipes,
+  //   totalPages: FavouriteRecipesTotalPages,
+  //   currentPage: favouriteRecipesCurrentPage,
+  //   setCurrentPage: setFavouriteRecipesCurrentPage,
+  // } = useRecipesFilterFavourites(LIMIT);
 
   useEffect(() => {
     if (
@@ -120,6 +128,12 @@ export default function Page() {
       setPeopleYouFollow(getFollowingData.users[0].following);
     }
   }, [getFollowingError, getFollowingData]);
+
+  // useEffect(() => {
+  //   if (filterByFavourited && mutatedFavourite.length > 0) {
+  //     setRecipes(FavouriteRecipes);
+  //   }
+  // }, [filterByFavourited, mutatedFavourite]);
 
   return (
     <>
@@ -231,6 +245,7 @@ export default function Page() {
                     peopleYouFollow={peopleYouFollow}
                     setPeopleYouFollow={setPeopleYouFollow}
                     setMutatedFavourite={setMutatedFavourite}
+                    mutatedFavourite={mutatedFavourite}
                   />
                 ))
             : filterByFollowed || filterByFavourited
@@ -249,6 +264,7 @@ export default function Page() {
                       peopleYouFollow={peopleYouFollow}
                       setPeopleYouFollow={setPeopleYouFollow}
                       setMutatedFavourite={setMutatedFavourite}
+                      mutatedFavourite={mutatedFavourite}
                     />
                   ))
               : !filterByFollowed &&
@@ -267,6 +283,7 @@ export default function Page() {
                       peopleYouFollow={peopleYouFollow}
                       setPeopleYouFollow={setPeopleYouFollow}
                       setMutatedFavourite={setMutatedFavourite}
+                      mutatedFavourite={mutatedFavourite}
                     />
                   ))
             : recipes.map((recipe, index) => (
@@ -276,6 +293,7 @@ export default function Page() {
                   peopleYouFollow={peopleYouFollow}
                   setPeopleYouFollow={setPeopleYouFollow}
                   setMutatedFavourite={setMutatedFavourite}
+                  mutatedFavourite={mutatedFavourite}
                 />
               ))}
         </InfiniteScroll>
