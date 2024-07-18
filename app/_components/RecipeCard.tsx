@@ -56,12 +56,14 @@ const UNFAVOURITE_RECIPE_MUTATION = gql`
   }
 `;
 
+// const { token } = useAuth();
+// followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
+// console.log(followedInfo);
+// console.log("test : ${[].some((e) => e === "some");
+
 export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
   const { userId } = useAuth();
-  // const { token } = useAuth();
-  // followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
-  // console.log(followedInfo);
-  // console.log("test : ${[].some((e) => e === "some");
+
   const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
   const [
     favouriteRecipe,
