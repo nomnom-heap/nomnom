@@ -60,6 +60,11 @@ const UNFAVOURITE_RECIPE_MUTATION = gql`
   }
 `;
 
+// const { token } = useAuth();
+// followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
+// console.log(followedInfo);
+// console.log("test : ${[].some((e) => e === "some");
+
 const FOLLOW_USER_MUTATION = gql`
   mutation FollowUser($userId: ID!, $userToFollowId: ID!) {
     updateUsers(
@@ -94,6 +99,8 @@ export function RecipeCard({
   searchIngredients,
 }: RecipeCardProps) {
   const { userId } = useAuth();
+
+  const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
   // const { token } = useAuth();
   // followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
   // console.log(followedInfo);
