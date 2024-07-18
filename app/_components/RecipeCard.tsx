@@ -30,6 +30,7 @@ import { fetchAuthSession } from "aws-amplify/auth";
 import RecipeModal from "./RecipeModal";
 import { useAuth } from "../AuthProvider";
 import { IoConstructOutline } from "react-icons/io5";
+import { FaGalacticSenate } from "react-icons/fa";
 
 type RecipeCardProps = {
   recipe: Recipe;
@@ -117,9 +118,16 @@ export function RecipeCard({
   const userId = useAuth().userId;
   // console.log(userId);
 
-  if (userId) {
-    setIsLoggedIn(true);
-  }
+  useEffect(() => {
+    if (userId) {
+      setIsLoggedIn(true);
+    }
+  }, [userId]);
+
+  // const { token } = useAuth();
+  // followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
+  // console.log(followedInfo);
+  // console.log("test : ${[].some((e) => e === "some");
 
   const [
     favouriteRecipe,
@@ -157,13 +165,10 @@ export function RecipeCard({
     const session = await fetchAuthSession();
     const userId = session?.tokens?.accessToken.payload.sub;
 
-    setMutatedFavourite((mutatedFavourites) => {
-      if (mutatedFavourites.includes(recipeId)) {
-        return mutatedFavourites.filter((recipe) => recipe !== recipeId);
-      } else {
-        return [...mutatedFavourites, recipeId];
-      }
-    });
+    setMutatedFavourite([
+      ...mutatedFavourite.filter((recipe) => recipe.id !== recipeId),
+      { id: recipeId, like: true },
+    ]);
 
     await favouriteRecipe({
       variables: { recipeId: recipeId, userId: userId },
@@ -173,13 +178,10 @@ export function RecipeCard({
   async function handleUnfavouriteRecipe(recipeId: string) {
     const session = await fetchAuthSession();
     const userId = session?.tokens?.accessToken.payload.sub;
-    setMutatedFavourite((mutatedFavourites) => {
-      if (mutatedFavourites.includes(recipeId)) {
-        return mutatedFavourites.filter((recipe) => recipe !== recipeId);
-      } else {
-        return [...mutatedFavourites, recipeId];
-      }
-    });
+    setMutatedFavourite([
+      ...mutatedFavourite.filter((recipe) => recipe.id !== recipeId),
+      { id: recipeId, like: false },
+    ]);
     await unfavouriteRecipe({
       variables: { recipeId: recipeId, userId: userId },
     });
@@ -219,8 +221,11 @@ export function RecipeCard({
 
   const [favourited, setFavourited] = useState<boolean>(
     userId
-      ? recipe.favouritedByUsers.some((obj) => obj.id === userId) &&
-          !mutatedFavourite.includes(recipe.id)
+      ? (!mutatedFavourite.some((obj) => obj.id === recipe.id) &&
+          recipe.favouritedByUsers.some((obj) => obj.id === userId)) ||
+          mutatedFavourite.some(
+            (obj) => obj.id === recipe.id && obj.like === true
+          )
       : false
   );
 

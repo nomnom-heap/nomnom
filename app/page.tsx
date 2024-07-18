@@ -32,7 +32,7 @@ const GET_FOLLOWING_QUERY = gql`
 export default function Page() {
   const userIdRef = useRef<string | undefined>("");
 
-  const [mutatedFavourite, setMutatedFavourite] = useState<string[]>([]);
+  const [mutatedFavourite, setMutatedFavourite] = useState<object[]>([]);
 
   const [peopleYouFollow, setPeopleYouFollow] = useState<Object[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -229,15 +229,21 @@ export default function Page() {
           {filterByFollowed && filterByFavourited
             ? peopleYouFollow &&
               recipes
-                .filter(
-                  (recipe) =>
-                    peopleYouFollow.some(
-                      (person) => person.id === recipe.owner.id
-                    ) &&
-                    recipe.favouritedByUsers.some(
+                .filter((recipe) => {
+                  if (!mutatedFavourite.some((obj) => obj.id === recipe.id)) {
+                    let favouriteStatus = recipe.favouritedByUsers.some(
                       (user) => user.id === userIdRef.current
-                    )
-                )
+                    );
+
+                    return favouriteStatus;
+                  } else {
+                    let favouriteStatus = mutatedFavourite.some(
+                      (obj) => obj.id === recipe.id && obj.like === true
+                    );
+                    return favouriteStatus;
+                  }
+                })
+
                 .map((recipe, index) => (
                   <RecipeCard
                     recipe={recipe}
@@ -270,12 +276,21 @@ export default function Page() {
               : !filterByFollowed &&
                 filterByFavourited &&
                 recipes
-                  .filter(
-                    (recipe) =>
-                      recipe.favouritedByUsers.some(
+                  .filter((recipe) => {
+                    if (!mutatedFavourite.some((obj) => obj.id === recipe.id)) {
+                      let favouriteStatus = recipe.favouritedByUsers.some(
                         (user) => user.id === userIdRef.current
-                      ) && !mutatedFavourite.includes(recipe.id)
-                  )
+                      );
+
+                      return favouriteStatus;
+                    } else {
+                      let favouriteStatus = mutatedFavourite.some(
+                        (obj) => obj.id === recipe.id && obj.like === true
+                      );
+                      return favouriteStatus;
+                    }
+                  })
+
                   .map((recipe, index) => (
                     <RecipeCard
                       recipe={recipe}
