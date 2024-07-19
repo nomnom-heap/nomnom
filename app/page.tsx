@@ -9,17 +9,13 @@ import { useState, useEffect } from "react";
 import { RecipeCard } from "./_components/RecipeCard";
 import LoadingSkeleton from "./_components/LoadingSkeleton";
 import { SearchIcon } from "./_components/SearchIcon";
->>>>>>> parent of be02710 (edit and delete done, left id)
 import IngredientDropdown, {
   IngredientOption,
 } from "./_components/IngredientDropdown";
 import useRecipes from "./_hooks/useRecipes";
 import InfiniteScroll from "react-infinite-scroll-component";
 import useSearchRecipes from "./_hooks/useSearchRecipes";
-<<<<<<< HEAD
-=======
 import React, { useState, useEffect } from 'react';
->>>>>>> parent of be02710 (edit and delete done, left id)
 import {
   Autocomplete,
   AutocompleteItem,
@@ -34,11 +30,8 @@ import { RecipeCard } from './_components/RecipeCard';
 import LoadingSkeleton from './_components/LoadingSkeleton';
 import { SearchIcon } from './_components/SearchIcon';
 import RecipeForm from './_components/RecipeForm'; 
-<<<<<<< HEAD
-=======
 
 
->>>>>>> parent of be02710 (edit and delete done, left id)
 
 const GET_ALL_RECIPES_QUERY = gql`
   query GetAllRecipes {
@@ -76,30 +69,7 @@ const SEARCH_RECIPES_QUERY = gql`
   }
 `;
 
-<<<<<<< HEAD
-const GET_INGREDIENTS_QUERY = gql`
-  query FindAllIngredients {
-    ingredients {
-      id
-      name
-    }
-  }
-`;
-
 const LIMIT = 9;
-
-const GET_FOLLOWING_QUERY = gql`
-  query MyQuery($userId: ID!) {
-    users(where: { id: $userId }) {
-      following {
-        id
-      }
-    }
-  }
-`;
-=======
-const LIMIT = 9;
->>>>>>> parent of be02710 (edit and delete done, left id)
 
 export default function Page() {
   const [userId, setUserId] = useState<string>("");
@@ -112,6 +82,12 @@ export default function Page() {
   const [ingredientsSelected, setIngredientsSelected] = useState<string[]>([]);
   const [isRecipeFormOpen, setIsRecipeFormOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+
+ 
+  const [searchTerm, setSearchTerm] = useState<SearchTerm>({
+    recipeName: "",
+    ingredients: [],
+  });
 
 <<<<<<< HEAD
   const [filterByFollowed, setFilterByFollowed] = useState<Boolean>(false);
@@ -183,81 +159,27 @@ export default function Page() {
     }
   }, [allRecipesData, searchRecipesData]);
 
-  // const {
-  //   recipes: FavouriteRecipes,
-  //   totalPages: FavouriteRecipesTotalPages,
-  //   currentPage: favouriteRecipesCurrentPage,
-  //   setCurrentPage: setFavouriteRecipesCurrentPage,
-  // } = useRecipesFilterFavourites(LIMIT);
-
-  useEffect(() => {
-    if (allRecipesData && allRecipesData.recipes) {
-      setRecipes(allRecipesData.recipes);
-    }
-    if (searchRecipesData && searchRecipesData.searchRecipes) {
-      setRecipes(searchRecipesData.searchRecipes);
-    }
-  }, [allRecipesData, searchRecipesData]);
-
-<<<<<<< HEAD
-  useEffect(() => {
-    const searchTerm = recipeName + ingredientsSelected.join(", ");
-    if (searchTerm) {
-      triggerSearchRecipes({
-        variables: { searchTerm: searchTerm },
-      });
-    }
-  }, [recipeName, ingredientsSelected]);
-
-  // const {
-  //   recipes: FavouriteRecipes,
-  //   totalPages: FavouriteRecipesTotalPages,
-  //   currentPage: favouriteRecipesCurrentPage,
-  //   setCurrentPage: setFavouriteRecipesCurrentPage,
-  // } = useRecipesFilterFavourites(LIMIT);
-
-  useEffect(() => {
-=======
->>>>>>> parent of be02710 (edit and delete done, left id)
     if (
       searchTerm.recipeName.trim() == "" &&
       searchTerm.ingredients.length == 0
     ) {
-<<<<<<< HEAD
-    if (searchTerm.recipeName.trim() === "" && searchTerm.ingredients.length === 0) {
-=======
       // console.log("set all recipes");
->>>>>>> parent of be02710 (edit and delete done, left id)
       setRecipes(allRecipes);
     }
   }, [allRecipes]);
 
   useEffect(() => {
-<<<<<<< HEAD
-    if (searchTerm.recipeName.trim() !== "" || searchTerm.ingredients.length > 0) {
-=======
     // console.log("searchRecipes useEffect");
     if (
       searchTerm.recipeName.trim() != "" ||
       searchTerm.ingredients.length > 0
     ) {
       // console.log("set search recipes");
->>>>>>> parent of be02710 (edit and delete done, left id)
       setRecipes(searchRecipes);
     }
   }, [searchRecipes]);
 
   useEffect(() => {
-<<<<<<< HEAD
-    const searchTermString = recipeName + ingredientsSelected.join(', ');
-    if (searchTermString) {
-      executeSearchRecipes({ variables: { searchTerm: searchTermString } });
-    } else {
-      setRecipes(allRecipesData?.recipes || []);
-    }
-
-    if (searchTerm.recipeName.trim() === "" && searchTerm.ingredients.length === 0) {
-=======
     const searchTerm = recipeName + ingredientsSelected.join(', ');
     if (searchTerm) {
       searchRecipes({
@@ -276,13 +198,6 @@ export default function Page() {
       return;
     }
   }, [recipeName, ingredientsSelected]);
-<<<<<<< HEAD
-
-  const handleSaveRecipe = (recipe) => {
-    setIsRecipeFormOpen(false);
-  };
-=======
->>>>>>> parent of be02710 (edit and delete done, left id)
 
   const handleSaveRecipe = (recipe) => {
     // Save logic here (e.g., API call)
@@ -291,37 +206,6 @@ export default function Page() {
     setSearchRecipesSearchTerm(searchTerm);
   }, [searchTerm]);
 
-  useEffect(() => {
-    async function fetchAuth() {
-      const session = await fetchAuthSession();
-      const userId = session?.tokens?.accessToken.payload.sub;
-
-      if (userId) {
-        setUserId(userId);
-        getPeopleYouFollow({ variables: { userId: userId } });
-      }
-    }
-
-    fetchAuth();
-  }, []);
-
-  useEffect(() => {
-    if (getFollowingError) {
-      console.error("getFollowingDataError: ", getFollowingError);
-    }
-
-    if (getFollowingData) {
-      setPeopleYouFollow(getFollowingData.users[0].following);
-      console.log(JSON.stringify(getFollowingData.users[0].following));
-    }
-  }, [getFollowingError, getFollowingData]);
-
-  // useEffect(() => {
-  //   if (filterByFavourited && mutatedFavourite.length > 0) {
-  //     setRecipes(FavouriteRecipes);
-  //   }
-  // }, [filterByFavourited, mutatedFavourite]);
-
   return (
     <>
 <<<<<<< HEAD
@@ -329,7 +213,6 @@ export default function Page() {
         {/* Search recipe name input */}
 =======
       <div className="max-w-screen flex flex-col gap-4">
->>>>>>> parent of be02710 (edit and delete done, left id)
         <Input
           label="Search"
           isClearable
@@ -415,28 +298,6 @@ export default function Page() {
         </div>
       </div>
 
-<<<<<<< HEAD
-      {/* Sortbar */}
-      {userId !== "" ? (
-        <div className="flex gap-4 pb-0 px-5 md:px-20">
-          <span>Filter by</span>
-          <Checkbox
-            size="md"
-            onValueChange={(value) => setFilterByFollowed(value)}
-          >
-            Followed Users
-          </Checkbox>
-          <Checkbox
-            size="md"
-            onValueChange={(value) => setFilterByFavourited(value)}
-          >
-            Favourited
-          </Checkbox>
-        </div>
-      ) : (
-        ""
-      )}
-=======
       <div className="flex gap-4">
         <span>Sort by</span>
         <Checkbox size="md">Time Taken</Checkbox>
@@ -449,42 +310,6 @@ export default function Page() {
           {...Array(LIMIT).map(() => <LoadingSkeleton />)}
         </div>
       ) : (
-<<<<<<< HEAD
-        <InfiniteScroll
-          dataLength={recipes.length}
-          next={() => {
-            if (
-              searchTerm.recipeName.trim() != "" ||
-              searchTerm.ingredients.length > 0
-            ) {
-              // console.log("searching more recipes based on search term");
-              setSearchRecipesCurrentPage(searchRecipesCurrentPage + 1);
-            } else {
-              // console.log("searching more recipes");
-              setAllRecipesCurrentPage(allRecipesCurrentPage + 1);
-            }
-          }}
-          hasMore={
-            searchTerm.recipeName.trim() != "" ||
-            searchTerm.ingredients.length > 0
-              ? searchRecipesCurrentPage <= searchRecipesTotalPages
-              : allRecipesCurrentPage < allRecipesTotalPages
-          }
-          loader={<LoadingSkeleton />}
-          className="pt-5 px-2 grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:px-20 md:pt-5"
-        >
-          {filterByFollowed && filterByFavourited
-            ? peopleYouFollow &&
-              recipes
-                .filter((recipe) => {
-                  const followStatus = peopleYouFollow.some(
-                    (person) => person.id === recipe.owner.id
-                  );
-                  if (!mutatedFavourite.some((obj) => obj.id === recipe.id)) {
-                    let favouriteStatus = recipe.favouritedByUsers.some(
-                      (user) => user.id === userId
-                    );
-=======
         <div>
           {recipes.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -498,90 +323,6 @@ export default function Page() {
             </div>
           )}
         </div>
-      )}
->>>>>>> parent of be02710 (edit and delete done, left id)
-
-                    return favouriteStatus && followStatus;
-                  } else {
-                    let favouriteStatus = mutatedFavourite.some(
-                      (obj) => obj.id === recipe.id && obj.like === true
-                    );
-                    return favouriteStatus;
-                  }
-                })
-
-                .map((recipe, index) => (
-                  <RecipeCard
-                    recipe={recipe}
-                    key={`${recipe.id}-${index}`}
-                    peopleYouFollow={peopleYouFollow}
-                    setPeopleYouFollow={setPeopleYouFollow}
-                    setMutatedFavourite={setMutatedFavourite}
-                    mutatedFavourite={mutatedFavourite}
-                    searchIngredients={searchTerm.ingredients}
-                  />
-                ))
-            : filterByFollowed || filterByFavourited
-            ? filterByFollowed && !filterByFavourited
-              ? peopleYouFollow &&
-                recipes
-                  .filter((recipe) =>
-                    peopleYouFollow.some(
-                      (person) => person.id === recipe.owner.id
-                    )
-                  )
-                  .map((recipe, index) => (
-                    <RecipeCard
-                      recipe={recipe}
-                      key={`${recipe.id}-${index}`}
-                      peopleYouFollow={peopleYouFollow}
-                      setPeopleYouFollow={setPeopleYouFollow}
-                      setMutatedFavourite={setMutatedFavourite}
-                      mutatedFavourite={mutatedFavourite}
-                      searchIngredients={searchTerm.ingredients}
-                    />
-                  ))
-              : !filterByFollowed &&
-                filterByFavourited &&
-                recipes
-                  .filter((recipe) => {
-                    if (!mutatedFavourite.some((obj) => obj.id === recipe.id)) {
-                      let favouriteStatus = recipe.favouritedByUsers.some(
-                        (user) => user.id === userId
-                      );
-
-                      return favouriteStatus;
-                    } else {
-                      let favouriteStatus = mutatedFavourite.some(
-                        (obj) => obj.id === recipe.id && obj.like === true
-                      );
-                      return favouriteStatus;
-                    }
-                  })
-
-                  .map((recipe, index) => (
-                    <RecipeCard
-                      recipe={recipe}
-                      key={`${recipe.id}-${index}`}
-                      peopleYouFollow={peopleYouFollow}
-                      setPeopleYouFollow={setPeopleYouFollow}
-                      setMutatedFavourite={setMutatedFavourite}
-                      mutatedFavourite={mutatedFavourite}
-                      searchIngredients={searchTerm.ingredients}
-                    />
-                  ))
-            : recipes.map((recipe, index) => (
-                <RecipeCard
-                  recipe={recipe}
-                  key={`${recipe.id}-${index}`}
-                  peopleYouFollow={peopleYouFollow}
-                  setPeopleYouFollow={setPeopleYouFollow}
-                  setMutatedFavourite={setMutatedFavourite}
-                  mutatedFavourite={mutatedFavourite}
-                  searchIngredients={searchTerm.ingredients}
-                />
-              ))}
-        </InfiniteScroll>
       )}
     </>
   );

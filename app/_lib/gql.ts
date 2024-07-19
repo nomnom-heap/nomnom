@@ -120,17 +120,3 @@ export const DELETE_RECIPE_MUTATION = gql`
     }
   }
 `;
-<<<<<<< HEAD
-
-
-export interface GetIngredientsData {
-  ingredients: Ingredient[];
-}
-
-export interface Ingredient {
-  id: string;
-  name: string;
-  group?: string;
-}
-=======
->>>>>>> parent of be02710 (edit and delete done, left id)
