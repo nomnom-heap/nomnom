@@ -10,7 +10,13 @@ import {
   Avatar,
 } from "@nextui-org/react";
 import { HeartIcon } from "./HeartIcon";
-import { MutableRefObject, SetStateAction, useEffect, useState } from "react";
+import {
+  MutableRefObject,
+  SetStateAction,
+  useEffect,
+  useState,
+  useRef,
+} from "react";
 import { useMutation } from "@apollo/client";
 import { gql } from "@apollo/client/core";
 import {
@@ -24,12 +30,16 @@ import { fetchAuthSession } from "aws-amplify/auth";
 import RecipeModal from "./RecipeModal";
 import { useAuth } from "../AuthProvider";
 import { IoConstructOutline } from "react-icons/io5";
+import { FaGalacticSenate } from "react-icons/fa";
 
 type RecipeCardProps = {
   recipe: Recipe;
   onPress?: () => void;
   peopleYouFollow: Object[];
   setPeopleYouFollow: React.Dispatch<React.SetStateAction<Object[]>>;
+  setMutatedFavourite: React.Dispatch<React.SetStateAction<object[]>>;
+  mutatedFavourite: object[];
+  searchIngredients: string[];
   // setPeopleYouFollow:
 };
 
@@ -58,6 +68,11 @@ const UNFAVOURITE_RECIPE_MUTATION = gql`
     }
   }
 `;
+
+// const { token } = useAuth();
+// followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
+// console.log(followedInfo);
+// console.log("test : ${[].some((e) => e === "some");
 
 const FOLLOW_USER_MUTATION = gql`
   mutation FollowUser($userId: ID!, $userToFollowId: ID!) {
@@ -90,8 +105,25 @@ export function RecipeCard({
   onPress,
   peopleYouFollow,
   setPeopleYouFollow,
+  setMutatedFavourite,
+  mutatedFavourite,
+  searchIngredients,
 }: RecipeCardProps) {
-  const { userId } = useAuth();
+  // const { token } = useAuth();
+  // followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
+  // console.log(followedInfo);
+  // console.log("test : ${[].some((e) => e === "some");
+  const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const userId = useAuth().userId;
+  // console.log(userId);
+
+  useEffect(() => {
+    if (userId) {
+      setIsLoggedIn(true);
+    }
+  }, [userId]);
+
   // const { token } = useAuth();
   // followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
   // console.log(followedInfo);
@@ -133,6 +165,11 @@ export function RecipeCard({
     const session = await fetchAuthSession();
     const userId = session?.tokens?.accessToken.payload.sub;
 
+    setMutatedFavourite([
+      ...mutatedFavourite.filter((recipe) => recipe.id !== recipeId),
+      { id: recipeId, like: true },
+    ]);
+
     await favouriteRecipe({
       variables: { recipeId: recipeId, userId: userId },
     });
@@ -141,6 +178,10 @@ export function RecipeCard({
   async function handleUnfavouriteRecipe(recipeId: string) {
     const session = await fetchAuthSession();
     const userId = session?.tokens?.accessToken.payload.sub;
+    setMutatedFavourite([
+      ...mutatedFavourite.filter((recipe) => recipe.id !== recipeId),
+      { id: recipeId, like: false },
+    ]);
     await unfavouriteRecipe({
       variables: { recipeId: recipeId, userId: userId },
     });
@@ -179,16 +220,20 @@ export function RecipeCard({
   }
 
   const [favourited, setFavourited] = useState<boolean>(
-    userId ? recipe.favouritedByUsers.some((obj) => obj.id === userId) : false
+    userId
+      ? (!mutatedFavourite.some((obj) => obj.id === recipe.id) &&
+          recipe.favouritedByUsers.some((obj) => obj.id === userId)) ||
+          mutatedFavourite.some(
+            (obj) => obj.id === recipe.id && obj.like === true
+          )
+      : false
   );
 
-  const [isFollowed, setIsFollowed] = useState(false);
-
-  // const [isFollowed, setIsFollowed] = useState<boolean>(
-  //   peopleYouFollow
-  //     ? peopleYouFollow.some((obj) => obj.id === recipe.owner.id)
-  //     : false
-  // );
+  const [isFollowed, setIsFollowed] = useState<boolean>(
+    peopleYouFollow
+      ? peopleYouFollow.some((obj) => obj.id === recipe.owner.id)
+      : false
+  );
 
   useEffect(() => {
     if (peopleYouFollow) {
@@ -199,28 +244,31 @@ export function RecipeCard({
     }
   }, [peopleYouFollow]);
 
-  // useEffect(() => {
-  //   const fetchUserId = async () => {
-  //     const session = await fetchAuthSession();
-  //     const userId = session?.tokens?.accessToken.payload.sub;
-  //     if (userId) {
-  //       setUserId(userId);
-  //     }
-  //   };
-
-  //   fetchUserId();
-  //   const checkUserFav = recipe.favouritedByUsers.some(
-  //     (obj) => obj.id === userId
-  //   );
-  //   setFavourited(checkUserFav);
-  // }, []);
-
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
+  useEffect(() => {
+    if (!searchIngredients) {
+      setMissingIngredients([]);
+      return;
+    }
+
+    const newMissingIngredients = recipe.ingredients.filter(
+      (recipeIngredient) => {
+        return (
+          !searchIngredients.some((searchedIngredient) =>
+            recipeIngredient.includes(searchedIngredient.trim())
+          ) && recipeIngredient.trim() !== ""
+        );
+      }
+    );
+
+    setMissingIngredients(newMissingIngredients);
+  }, [recipe.ingredients, searchIngredients]);
 
   return (
     <>
       <div className="cursor-pointer" onClick={onOpen} key={recipe.id}>
-        <Card className="relative group">
+        <Card className="relative group" shadow="sm">
           <CardHeader className="pb-0 pt-3 px-3 m-2 flex-col items-start">
             <div className="flex place-items-center justify-between w-full pr-2 pl-0">
               <div className="flex gap-3 place-items-center">
@@ -229,13 +277,15 @@ export function RecipeCard({
                   radius="full"
                   size="md"
                   showFallback
-                  src="https://images.unsplash.com/broken"
+                  src=""
                 />
                 <h4 className="text-sm font-semibold leading-none text-default-600">
                   {recipe.owner.display_name}
                 </h4>
               </div>
-              {userId === recipe.owner.id ? (
+              {!isLoggedIn ? (
+                ""
+              ) : userId === recipe.owner.id ? (
                 ""
               ) : (
                 <Button
@@ -272,6 +322,23 @@ export function RecipeCard({
           </CardBody>
           <CardFooter className="pt-0 px-3 mb-0 justify-between">
             <div className="grid-flow-row pb-1 space-y-0.5">
+              {searchIngredients?.length === 0 ? (
+                ""
+              ) : missingIngredients?.length === 0 ? (
+                <p
+                  className="text-sm text-green-500"
+                  style={{ alignSelf: "flex-end" }}
+                >
+                  You have all ingredients 😊
+                </p>
+              ) : (
+                <p
+                  className="text-sm text-red-500"
+                  style={{ alignSelf: "flex-end" }}
+                >
+                  You lack {missingIngredients.length} ingredients 😔
+                </p>
+              )}
               <p
                 className="mt-2 text-sm text-gray-500"
                 style={{ alignSelf: "flex-end" }}
@@ -287,19 +354,23 @@ export function RecipeCard({
               </p>
             </div>
 
-            <Button
-              isIconOnly
-              className="bg-white"
-              aria-label="Like"
-              onClick={() => {
-                setFavourited((value) => !value);
-                favourited
-                  ? handleUnfavouriteRecipe(recipe.id)
-                  : handleFavouriteRecipe(recipe.id);
-              }}
-            >
-              <HeartIcon filled={favourited} />
-            </Button>
+            {isLoggedIn ? (
+              <Button
+                isIconOnly
+                className="bg-white"
+                aria-label="Like"
+                onClick={() => {
+                  setFavourited((value) => !value);
+                  favourited
+                    ? handleUnfavouriteRecipe(recipe.id)
+                    : handleFavouriteRecipe(recipe.id);
+                }}
+              >
+                <HeartIcon filled={favourited} />
+              </Button>
+            ) : (
+              ""
+            )}
           </CardFooter>
         </Card>
       </div>
@@ -307,6 +378,11 @@ export function RecipeCard({
         isOpen={isOpen}
         onOpenChange={onOpenChange}
         recipe={recipe}
+        peopleYouFollow={peopleYouFollow}
+        setPeopleYouFollow={setPeopleYouFollow}
+        setMutatedFavourite={setMutatedFavourite}
+        mutatedFavourite={mutatedFavourite}
+        searchIngredients={searchIngredients}
       />
       {/* <Modal isOpen={isOpen} placement="center" onOpenChange={onOpenChange}>
         <ModalContent className="bg-gray-300">
