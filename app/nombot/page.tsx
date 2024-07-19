@@ -18,6 +18,7 @@ import {
 } from "@nextui-org/react";
 // console.log(process.env.OPENAI_API_KEY);
 import { useClassicEffect } from "./useClassicEffect";
+import { permanentRedirect } from "next/navigation";
 
 const poppins = Poppins({ weight: ["600"], subsets: ["latin"] });
 
@@ -236,19 +237,31 @@ export default function Page() {
   //custom hook to avoid react strict mode for Effect
   useClassicEffect(() => {
     const createSession = async () => {
-      try {
-        const session = await fetchAuthSession();
-        const userId = session?.tokens?.accessToken.payload.sub;
-        console.log("test");
-        await createChatSession({
-          variables: {
-            userId: userId,
-          },
-        });
-      } catch (error) {
-        console.error(error.message);
-        console.error("Error creating chat session:", error);
-      }
+      const session = await fetchAuthSession();
+      const userId = session?.tokens?.accessToken.payload.sub;
+      await createChatSession({
+        variables: {
+          userId: userId,
+        },
+      });
+
+      // try {
+      //   const session = await fetchAuthSession();
+      //   const userId = session?.tokens?.accessToken.payload.sub;
+
+      //   await createChatSession({
+      //     variables: {
+      //       userId: userId,
+      //     },
+      //   });
+      // } catch (error) {
+      //   console.error(error.message);
+      //   console.error("Error creating chat session:", error);
+      // }
+      // finally {
+
+      //
+      // }
     };
 
     return () => {
