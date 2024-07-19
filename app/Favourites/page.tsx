@@ -12,6 +12,7 @@ import IngredientDropdown, {
 import useRecipes from "../_hooks/useRecipes";
 import InfiniteScroll from "react-infinite-scroll-component";
 import useSearchRecipes from "../_hooks/useSearchRecipes";
+import useFavRecipes from "../_hooks/useFavRecipes";
 
 const LIMIT = 9;
 
@@ -27,7 +28,7 @@ export default function Page() {
     totalPages: allRecipesTotalPages,
     currentPage: allRecipesCurrentPage,
     setCurrentPage: setAllRecipesCurrentPage,
-  } = useRecipes(LIMIT);
+  } = useFavRecipes(LIMIT);
 
   const {
     recipes: searchRecipes,
