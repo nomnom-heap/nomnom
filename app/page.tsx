@@ -14,7 +14,6 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import useSearchRecipes from "./_hooks/useSearchRecipes";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { gql, useLazyQuery } from "@apollo/client";
-import { filter } from "graphql-yoga";
 
 const LIMIT = 9;
 

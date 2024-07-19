@@ -12,17 +12,14 @@ import {
   Link,
 } from "@nextui-org/react";
 import dynamic from "next/dynamic";
-import { FaPlus } from "react-icons/fa";
-import { IoRemoveOutline } from "react-icons/io5";
-import { MdFullscreen,MdFullscreenExit } from "react-icons/md";
-
+import { MdFullscreen, MdFullscreenExit } from "react-icons/md";
 
 const Editor = dynamic(() => import("@/app/_components/BlockNoteEditor"), {
   ssr: false,
 });
 
 import { ImageIcon } from "./ImageIcon";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Block } from "@blocknote/core";
 import { uploadFileToPublicFolder } from "../_lib/utils";
 import { useAuth } from "../AuthProvider";
@@ -30,12 +27,23 @@ import { useMutation } from "@apollo/client";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { CREATE_RECIPE_MUTATION } from "@/_lib/gql";
 import IngredientDropdown, { IngredientOption } from "./IngredientDropdown";
+import toast from "react-hot-toast";
 
 type RecipeInputModalProps = {
   isOpen: boolean;
   onOpenChange: () => void;
-  recipe?: any; // recipe should be provided if editing, else it should be undefined (for creating recipe)
+  recipe?: Recipe; // recipe should be provided if editing, else it should be undefined (for creating recipe)
 };
+
+const createRecipeSuccessToast = () =>
+  toast.success("Nicely done! Recipe created successfully.", {
+    position: "top-right",
+  });
+
+const createRecipeErrorToast = () =>
+  toast.error("Oops! Error creating recipe.", {
+    position: "top-right",
+  });
 
 export default function RecipeInputModal({
   recipe,
@@ -63,6 +71,8 @@ export default function RecipeInputModal({
   const [serving, setServing] = useState<number>(recipe?.serving || 1);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [fullScreen, setFullScreen] = useState(false);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -96,32 +106,6 @@ export default function RecipeInputModal({
       setIngredientsQty([...ingredientsQty, ""]);
     }
   };
-
-  const AddIngredientHandler = (index: number) => {
-      setIngredients([...ingredients, ""]);
-      setIngredientsQty([...ingredientsQty, ""]);
-  };
-
-  const RemoveIngredientHandler = (index: number) => {
-    if(ingredients.length!=1){
-      setIngredients(ingredients=>ingredients.filter((_,key)=>key!==index));
-      setIngredientsQty(ingredientsQty=>ingredientsQty.filter((_,key)=>key!==index));
-    }
-
-};
-
-    const [recipeSize,setRecipeSize]=useState<"xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "full" | undefined>("sm");
-    const [recipeSizeAction,setRecipeSizeAction]=useState(<MdFullscreen/>)
-    
-    const setRecipeSizeHandler=()=>{
-      if(recipeSize==="sm"){
-        setRecipeSize("5xl")
-        setRecipeSizeAction(<MdFullscreenExit/>)
-      }else{
-        setRecipeSize("sm")
-        setRecipeSizeAction(<MdFullscreen/>)
-      }
-    };
 
   const handleRemoveIngredient = (index: number) => {
     console.log(index);
@@ -183,10 +167,22 @@ export default function RecipeInputModal({
     }
   };
 
+  useEffect(() => {
+    if (createRecipeData) {
+      createRecipeSuccessToast();
+    }
+  }, [createRecipeData]);
+
+  useEffect(() => {
+    if (createRecipeError) {
+      console.error("Error creating recipe", createRecipeError.message);
+      createRecipeErrorToast();
+    }
+  }, [createRecipeError]);
+
   if (!userId) {
     return (
       <Modal
-        size={recipeSize}
         scrollBehavior="inside"
         className="h-auto"
         isOpen={isOpen}
@@ -216,7 +212,7 @@ export default function RecipeInputModal({
   return (
     <Modal
       scrollBehavior="inside"
-      className="h-auto"
+      className={`size-full ${fullScreen ? "min-w-full min-h-full" : ""}`}
       isOpen={isOpen}
       placement="center"
       onOpenChange={onOpenChange}
@@ -224,7 +220,7 @@ export default function RecipeInputModal({
       <ModalContent className="bg-white h-auto">
         {(onClose) => (
           <>
-            <ModalHeader className="flex flex-col gap-4">
+            <ModalHeader className="flex flex-col gap-4 items-center">
               {thumbnailUrl ? (
                 <Image
                   className="rounded-xl"
@@ -234,7 +230,7 @@ export default function RecipeInputModal({
                 />
               ) : (
                 <>
-                {/* <Button isIconOnly className='ml-auto' aria-label="Full screen" onClick={setRecipeSizeHandler}>
+                  {/* <Button isIconOnly className='ml-auto' aria-label="Full screen" onClick={setRecipeSizeHandler}>
                         {windowIcon}
                 </Button> */}
                   <input
@@ -291,7 +287,7 @@ export default function RecipeInputModal({
 
               <p className="text-sm">Ingredients:</p>
               {ingredients.map((ingredient, index) => (
-                <div key={index} className="flex flex-row gap-2 items-center">
+                <div key={index} className="flex flex-row gap-2">
                   <Input
                     className="w-1/6 text-xs"
                     type="text"
@@ -300,15 +296,34 @@ export default function RecipeInputModal({
                     onChange={(e) =>
                       handleAddIngredientsQty(index, e.target.value)
                     }
-                    // onFocus={() => handleLastIngredientFocus(index)}
+                    onFocus={() => handleLastIngredientFocus(index)}
                   />
                   <IngredientDropdown
+                    key={`ingredient-dropdown-${ingredients.length}-${index}`}
                     isClearable
-                    className="w-56 mr-2"
+                    className="min-w-60 w-auto mr-2"
                     placeholder="Search for ingredient"
-                    menuPlacement="top"
-                    // TODO: buggy delete
+                    menuPlacement="auto"
+                    createOptionPosition="first"
+                    blurInputOnSelect
+                    allowCreateWhileLoading
+                    defaultInputValue={ingredients[index]}
+                    onInputChange={(newValue, actionMeta) => {
+                      if (
+                        actionMeta.action !== "input-change" &&
+                        actionMeta.action !== "set-value"
+                      )
+                        return;
+                      handleIngredientChange(index, newValue);
+                    }}
                     onChange={(newValue, actionMeta) => {
+                      if (
+                        actionMeta.action !== "create-option" &&
+                        actionMeta.action !== "select-option" &&
+                        actionMeta.action !== "clear"
+                      )
+                        return;
+
                       const ingredient = (newValue as IngredientOption) ?? {
                         label: "",
                         value: "",
@@ -319,27 +334,26 @@ export default function RecipeInputModal({
                   />
                   <Button
                     isIconOnly
-                    color="danger"
+                    color="default"
                     aria-label="Remove ingredient"
                     onPress={() => handleRemoveIngredient(index)}
                   >
                     <span>-</span>
                   </Button>
-                  {/* <Button isIconOnly aria-label="Add Ingredient" onClick={()=>AddIngredientHandler(index)}>
-                  <FaPlus/>
-                </Button>
-                <Button isIconOnly aria-label="Remove Ingredient"  onClick={()=>RemoveIngredientHandler(index)}>
-                  <IoRemoveOutline/>
-                </Button> */}
                 </div>
               ))}
               <Editor onChange={setContents} />
             </ModalBody>
             <ModalFooter>
-            <Button onPress={setRecipeSizeHandler}>{recipeSizeAction}</Button>
-              <Button onPress={handleSaveRecipe}>Save</Button>
-              {createRecipeData && <p>Recipe created successfully</p>}
-              {createRecipeError && <p>Error creating recipe</p>}
+              <Button onPress={() => setFullScreen(!fullScreen)}>
+                {fullScreen ? <MdFullscreenExit /> : <MdFullscreen />}
+              </Button>
+              <Button
+                isLoading={createRecipeLoading}
+                onPress={handleSaveRecipe}
+              >
+                Save
+              </Button>
             </ModalFooter>
           </>
         )}
