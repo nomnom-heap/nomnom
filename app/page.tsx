@@ -5,10 +5,10 @@ import { useState, useEffect } from "react";
 =======
 import { Checkbox, Input } from "@nextui-org/react";
 
-<<<<<<< HEAD
 import { useState, useEffect } from "react";
 =======
 import { Checkbox, Input } from "@nextui-org/react";
+
 import { useState, useEffect } from "react";
 
 import { RecipeCard } from "./_components/RecipeCard";
@@ -177,6 +177,22 @@ export default function Page() {
       return;
     }
   }, [recipeName, ingredientsSelected]);
+<<<<<<< HEAD
+
+  const handleSaveRecipe = (recipe) => {
+    // Save logic here (e.g., API call)
+    setIsRecipeFormOpen(false); // Close the modal after saving
+  };
+    setSearchRecipesSearchTerm(searchTerm);
+  }, [searchTerm]);
+
+  return (
+    <>
+<<<<<<< HEAD
+      <div className="max-w-screen pt-5 px-2 md:px-20 md:pt-5 flex flex-col gap-4">
+        {/* Search recipe name input */}
+=======
+=======
 
   const handleSaveRecipe = (recipe) => {
     // Save logic here (e.g., API call)
