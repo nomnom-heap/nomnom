@@ -1,12 +1,4 @@
 "use client";
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { useState, useEffect } from "react";
-=======
-import { Checkbox, Input } from "@nextui-org/react";
-
-import { useState, useEffect } from "react";
-=======
 import { Checkbox, Input } from "@nextui-org/react";
 
 import { useState, useEffect } from "react";
@@ -103,7 +95,6 @@ export default function Page() {
     currentPage: allRecipesCurrentPage,
     setCurrentPage: setAllRecipesCurrentPage,
   } = useRecipes(LIMIT);
->>>>>>> parent of be02710 (edit and delete done, left id)
 
   const {
     loading: allRecipesLoading,
@@ -123,11 +114,6 @@ export default function Page() {
     setCurrentPage: setSearchRecipesCurrentPage,
     setSearchTerm: setSearchRecipesSearchTerm,
   } = useSearchRecipes(LIMIT);
-  const { loading: allRecipesLoading, data: allRecipesData } = useQuery(GET_ALL_RECIPES_QUERY);
-
-  const [executeSearchRecipes, { loading: searchRecipesLoading, data: searchRecipesData }] = useLazyQuery(SEARCH_RECIPES_QUERY);
-
-  const { recipes: searchRecipes, currentPage: searchRecipesCurrentPage, totalPages: searchRecipesTotalPages, setCurrentPage: setSearchRecipesCurrentPage, setSearchTerm: setSearchRecipesSearchTerm } = useSearchRecipes(LIMIT);
 
   useEffect(() => {
     if (allRecipesData && allRecipesData.recipes) {
@@ -171,7 +157,6 @@ export default function Page() {
       searchTerm.recipeName.trim() == "" &&
       searchTerm.ingredients.length == 0
     ) {
->>>>>>> parent of be02710 (edit and delete done, left id)
       setRecipes(allRecipes);
       setSearchRecipesCurrentPage(1);
       return;
@@ -257,21 +242,18 @@ export default function Page() {
         />
 
         {/* Search recipe by ingredients */}
-        <div className="pb-5 px-2">
-          <IngredientDropdown
-            className="z-20"
-            isMulti
-            isClearable
-            placeholder="Search for ingredient(s)"
-            onChange={(newValue, actionMeta) => {
-              newValue = newValue as IngredientOption[];
-              setSearchTerm({
-                ...searchTerm,
-                ingredients: newValue.map((item) => item.value),
-              });
-            }}
-          />
-        </div>
+        <IngredientDropdown
+          isMulti
+          isClearable
+          placeholder="Search for ingredient(s)"
+          onChange={(newValue, actionMeta) => {
+            newValue = newValue as IngredientOption[];
+            setSearchTerm({
+              ...searchTerm,
+              ingredients: newValue.map((item) => item.value),
+            });
+          }}
+        />
       </div>
 
       <div className="flex gap-4">
@@ -282,7 +264,7 @@ export default function Page() {
 >>>>>>> parent of be02710 (edit and delete done, left id)
 
       {recipes.length == 0 ? (
-        <div className="grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 p-4">
           {...Array(LIMIT).map(() => <LoadingSkeleton />)}
         </div>
       ) : (
