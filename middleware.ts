@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
   });
 
   // If user is authenticated then the route request will continue on
-  if (authenticated) {
+  if (authenticated || request.nextUrl.pathname === "/") {
     return response;
   }
 
