@@ -68,17 +68,43 @@ const GET_INGREDIENTS_QUERY = gql`
 
 const LIMIT = 9;
 
+const GET_FOLLOWING_QUERY = gql`
+  query MyQuery($userId: ID!) {
+    users(where: { id: $userId }) {
+      following {
+        id
+      }
+    }
+  }
+`;
+
 export default function Page() {
+  const [userId, setUserId] = useState<string>("");
+
+  const [mutatedFavourite, setMutatedFavourite] = useState<object[]>([]);
+
+  const [peopleYouFollow, setPeopleYouFollow] = useState<Object[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [recipeName, setRecipeName] = useState<string>('');
   const [ingredientsSelected, setIngredientsSelected] = useState<string[]>([]);
   const [isRecipeFormOpen, setIsRecipeFormOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
+  const [filterByFollowed, setFilterByFollowed] = useState<Boolean>(false);
+  const [filterByFavourited, setFilterByFavourited] = useState<Boolean>(false);
   const [searchTerm, setSearchTerm] = useState({
     recipeName: "",
     ingredients: [],
   });
+
+  const [
+    getPeopleYouFollow,
+    {
+      data: getFollowingData,
+      loading: getFollowingLoading,
+      error: getFollowingError,
+    },
+  ] = useLazyQuery(GET_FOLLOWING_QUERY);
 
   const { data: ingredientsData, loading: ingredientsLoading } = useQuery(GET_INGREDIENTS_QUERY);
 
@@ -98,6 +124,13 @@ export default function Page() {
       setRecipes(searchRecipesData.searchRecipes);
     }
   }, [allRecipesData, searchRecipesData]);
+
+  // const {
+  //   recipes: FavouriteRecipes,
+  //   totalPages: FavouriteRecipesTotalPages,
+  //   currentPage: favouriteRecipesCurrentPage,
+  //   setCurrentPage: setFavouriteRecipesCurrentPage,
+  // } = useRecipesFilterFavourites(LIMIT);
 
   useEffect(() => {
     if (searchTerm.recipeName.trim() === "" && searchTerm.ingredients.length === 0) {
@@ -130,9 +163,41 @@ export default function Page() {
     setIsRecipeFormOpen(false);
   };
 
+  useEffect(() => {
+    async function fetchAuth() {
+      const session = await fetchAuthSession();
+      const userId = session?.tokens?.accessToken.payload.sub;
+
+      if (userId) {
+        setUserId(userId);
+        getPeopleYouFollow({ variables: { userId: userId } });
+      }
+    }
+
+    fetchAuth();
+  }, []);
+
+  useEffect(() => {
+    if (getFollowingError) {
+      console.error("getFollowingDataError: ", getFollowingError);
+    }
+
+    if (getFollowingData) {
+      setPeopleYouFollow(getFollowingData.users[0].following);
+      console.log(JSON.stringify(getFollowingData.users[0].following));
+    }
+  }, [getFollowingError, getFollowingData]);
+
+  // useEffect(() => {
+  //   if (filterByFavourited && mutatedFavourite.length > 0) {
+  //     setRecipes(FavouriteRecipes);
+  //   }
+  // }, [filterByFavourited, mutatedFavourite]);
+
   return (
     <>
-      <div className="max-w-screen flex flex-col gap-4">
+      <div className="max-w-screen pt-5 px-2 md:px-20 md:pt-5 flex flex-col gap-4">
+        {/* Search recipe name input */}
         <Input
           label="Search"
           isClearable
@@ -151,83 +216,172 @@ export default function Page() {
           startContent={
             <SearchIcon className="text-black/50 mb-0.5 dark:text-white/90 text-slate-400 pointer-events-none flex-shrink-0" />
           }
-          onChange={(e) => setRecipeName(e.target.value)}
-        />
-        <Autocomplete
-          label="Ingredients"
-          placeholder="Search an ingredient"
-          className="max-w-screen"
-          startContent={<SearchIcon />}
-          onSelectionChange={(key) => {
-            const keyString = key.toString();
-            if (ingredientsSelected.includes(keyString)) {
-              setIngredientsSelected((prev) => prev.filter((item) => item !== keyString));
-            } else {
-              setIngredientsSelected((prev) => [...prev, keyString]);
-            }
+          onChange={(e) => {
+            // if (e.target.value.trim() === "") return; // use search all recipes instead of search recipes by name
+            setSearchTerm({ ...searchTerm, recipeName: e.target.value });
           }}
-        >
-          {ingredientsLoading ? (
-            <AutocompleteItem
-              key="loading"
-              textValue="Loading ingredients..."
-              className="flex justify-center items-center"
-            >
-              <p>Loading ingredients...</p>
-            </AutocompleteItem>
-          ) : ingredientsData?.ingredients ? (
-            ingredientsData.ingredients.map((item) => (
-              <AutocompleteItem key={item.name} value={item.name} textValue={item.name}>
-                {item.name}
-              </AutocompleteItem>
-            ))
-          ) : (
-            <p>No ingredients found</p>
-          )}
-        </Autocomplete>
-        {ingredientsSelected.length > 0 && (
-          <div className="flex gap-2">
-            {ingredientsSelected.map((item) => (
-              <Chip key={item} onClose={() => setIngredientsSelected(ingredientsSelected.filter((i) => i !== item))}>
-                {item}
-              </Chip>
-            ))}
-          </div>
-        )}
+        />
+
+        {/* Search recipe by ingredients */}
+        <div className="pb-5 px-2">
+          <IngredientDropdown
+            className="z-20"
+            isMulti
+            isClearable
+            placeholder="Search for ingredient(s)"
+            onChange={(newValue, actionMeta) => {
+              newValue = newValue as IngredientOption[];
+              setSearchTerm({
+                ...searchTerm,
+                ingredients: newValue.map((item) => item.value),
+              });
+            }}
+          />
+        </div>
       </div>
 
-      <div className="flex gap-4">
-        <span>Sort by</span>
-        <Checkbox size="md">Time Taken</Checkbox>
-        <Checkbox size="md">Preparation Time</Checkbox>
-      </div>
-
-      {recipes.length === 0 ? (
-        <div className="grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 p-4">
-          {[...Array(LIMIT)].map((_, index) => <LoadingSkeleton key={index} />)}
+      {/* Sortbar */}
+      {userId !== "" ? (
+        <div className="flex gap-4 pb-0 px-5 md:px-20">
+          <span>Filter by</span>
+          <Checkbox
+            size="md"
+            onValueChange={(value) => setFilterByFollowed(value)}
+          >
+            Followed Users
+          </Checkbox>
+          <Checkbox
+            size="md"
+            onValueChange={(value) => setFilterByFavourited(value)}
+          >
+            Favourited
+          </Checkbox>
         </div>
       ) : (
-        <div>
-          {recipes.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {recipes.map((recipe) => (
-                <RecipeCard recipe={recipe} key={recipe.id} />
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col gap-4">
-              <span>No recipes found 😅 Consider creating one!</span>
-            </div>
-          )}
-        </div>
+        ""
       )}
 
-      {isRecipeFormOpen && (
-        <RecipeForm
-          initialRecipe={selectedRecipe}
-          onSave={handleSaveRecipe}
-          onClose={() => setIsRecipeFormOpen(false)}
-        />
+      {recipes.length == 0 ? (
+        <div className="grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {...Array(LIMIT).map(() => <LoadingSkeleton />)}
+        </div>
+      ) : (
+        <InfiniteScroll
+          dataLength={recipes.length}
+          next={() => {
+            if (
+              searchTerm.recipeName.trim() != "" ||
+              searchTerm.ingredients.length > 0
+            ) {
+              // console.log("searching more recipes based on search term");
+              setSearchRecipesCurrentPage(searchRecipesCurrentPage + 1);
+            } else {
+              // console.log("searching more recipes");
+              setAllRecipesCurrentPage(allRecipesCurrentPage + 1);
+            }
+          }}
+          hasMore={
+            searchTerm.recipeName.trim() != "" ||
+            searchTerm.ingredients.length > 0
+              ? searchRecipesCurrentPage <= searchRecipesTotalPages
+              : allRecipesCurrentPage < allRecipesTotalPages
+          }
+          loader={<LoadingSkeleton />}
+          className="pt-5 px-2 grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:px-20 md:pt-5"
+        >
+          {filterByFollowed && filterByFavourited
+            ? peopleYouFollow &&
+              recipes
+                .filter((recipe) => {
+                  const followStatus = peopleYouFollow.some(
+                    (person) => person.id === recipe.owner.id
+                  );
+                  if (!mutatedFavourite.some((obj) => obj.id === recipe.id)) {
+                    let favouriteStatus = recipe.favouritedByUsers.some(
+                      (user) => user.id === userId
+                    );
+
+                    return favouriteStatus && followStatus;
+                  } else {
+                    let favouriteStatus = mutatedFavourite.some(
+                      (obj) => obj.id === recipe.id && obj.like === true
+                    );
+                    return favouriteStatus;
+                  }
+                })
+
+                .map((recipe, index) => (
+                  <RecipeCard
+                    recipe={recipe}
+                    key={`${recipe.id}-${index}`}
+                    peopleYouFollow={peopleYouFollow}
+                    setPeopleYouFollow={setPeopleYouFollow}
+                    setMutatedFavourite={setMutatedFavourite}
+                    mutatedFavourite={mutatedFavourite}
+                    searchIngredients={searchTerm.ingredients}
+                  />
+                ))
+            : filterByFollowed || filterByFavourited
+            ? filterByFollowed && !filterByFavourited
+              ? peopleYouFollow &&
+                recipes
+                  .filter((recipe) =>
+                    peopleYouFollow.some(
+                      (person) => person.id === recipe.owner.id
+                    )
+                  )
+                  .map((recipe, index) => (
+                    <RecipeCard
+                      recipe={recipe}
+                      key={`${recipe.id}-${index}`}
+                      peopleYouFollow={peopleYouFollow}
+                      setPeopleYouFollow={setPeopleYouFollow}
+                      setMutatedFavourite={setMutatedFavourite}
+                      mutatedFavourite={mutatedFavourite}
+                      searchIngredients={searchTerm.ingredients}
+                    />
+                  ))
+              : !filterByFollowed &&
+                filterByFavourited &&
+                recipes
+                  .filter((recipe) => {
+                    if (!mutatedFavourite.some((obj) => obj.id === recipe.id)) {
+                      let favouriteStatus = recipe.favouritedByUsers.some(
+                        (user) => user.id === userId
+                      );
+
+                      return favouriteStatus;
+                    } else {
+                      let favouriteStatus = mutatedFavourite.some(
+                        (obj) => obj.id === recipe.id && obj.like === true
+                      );
+                      return favouriteStatus;
+                    }
+                  })
+
+                  .map((recipe, index) => (
+                    <RecipeCard
+                      recipe={recipe}
+                      key={`${recipe.id}-${index}`}
+                      peopleYouFollow={peopleYouFollow}
+                      setPeopleYouFollow={setPeopleYouFollow}
+                      setMutatedFavourite={setMutatedFavourite}
+                      mutatedFavourite={mutatedFavourite}
+                      searchIngredients={searchTerm.ingredients}
+                    />
+                  ))
+            : recipes.map((recipe, index) => (
+                <RecipeCard
+                  recipe={recipe}
+                  key={`${recipe.id}-${index}`}
+                  peopleYouFollow={peopleYouFollow}
+                  setPeopleYouFollow={setPeopleYouFollow}
+                  setMutatedFavourite={setMutatedFavourite}
+                  mutatedFavourite={mutatedFavourite}
+                  searchIngredients={searchTerm.ingredients}
+                />
+              ))}
+        </InfiniteScroll>
       )}
     </>
   );
