@@ -140,7 +140,7 @@ export default function Page() {
 
   return (
     <>
-      <div className="max-w-screen md:px-20 md:pt-5 flex flex-col gap-4">
+      <div className="max-w-screen pt-5 px-2 md:px-20 md:pt-5 flex flex-col gap-4">
         {/* Search recipe name input */}
         <Input
           label="Search"
@@ -167,7 +167,7 @@ export default function Page() {
         />
 
         {/* Search recipe by ingredients */}
-        <div className="pb-5">
+        <div className="pb-5 px-2">
           <IngredientDropdown
             className="z-20"
             isMulti
@@ -186,7 +186,7 @@ export default function Page() {
 
       {/* Sortbar */}
       {userId !== "" ? (
-        <div className="flex gap-4 pb-5 px-20">
+        <div className="flex gap-4 pb-0 px-5 md:px-20">
           <span>Filter by</span>
           <Checkbox
             size="md"
@@ -206,7 +206,7 @@ export default function Page() {
       )}
 
       {recipes.length == 0 ? (
-        <div className="grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 p-4">
+        <div className="grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {...Array(LIMIT).map(() => <LoadingSkeleton />)}
         </div>
       ) : (
@@ -231,7 +231,7 @@ export default function Page() {
               : allRecipesCurrentPage < allRecipesTotalPages
           }
           loader={<LoadingSkeleton />}
-          className="grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 p-4"
+          className="pt-5 px-2 grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:px-20 md:pt-5"
         >
           {filterByFollowed && filterByFavourited
             ? peopleYouFollow &&
