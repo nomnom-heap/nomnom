@@ -59,10 +59,16 @@ export default function NavBar() {
       </NavbarBrand>
 
       <NavbarContent className="hidden sm:flex gap-4" justify="end">
-        <NavbarItem isActive={pathname === "/chatbot-fe" ? true : false}>
-          <Link className="text-white" href="/chatbot-fe">
-            Nombot
-          </Link>
+        <NavbarItem isActive={pathname === "/nombot" ? true : false}>
+          {userId ? (
+            <Link className="text-white" href="/nombot">
+              Nombot
+            </Link>
+          ) : (
+            <Link className="text-white" href="/login">
+              Nombot
+            </Link>
+          )}
         </NavbarItem>
         <NavbarItem>
           <Link className="text-white" href="#">

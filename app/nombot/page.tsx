@@ -1,7 +1,5 @@
 "use client";
 
-import { LangChainTracer } from "@langchain/core/tracers/tracer_langchain";
-import { Client } from "langsmith";
 import { Poppins } from "next/font/google";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { gql, useLazyQuery, useMutation } from "@apollo/client";
@@ -22,11 +20,6 @@ import {
 import { useClassicEffect } from "./useClassicEffect";
 
 const poppins = Poppins({ weight: ["600"], subsets: ["latin"] });
-const llm = new ChatOpenAI({
-  model: "gpt-4o",
-  temperature: 0,
-  openAIApiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-});
 
 const CREATE_CHAT_SESSION_MUTATION = gql`
   mutation createChatSession($userId: ID!) {
@@ -91,15 +84,6 @@ export default function Page() {
   const chatMessageRef = useRef("");
   // const [chatHistory, setChatHistory] = useState("");
 
-  //Langsmith
-  const client = new Client({
-    apiKey: "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",
-    apiUrl: "https://api.smith.langchain.com",
-  });
-  const tracer = new LangChainTracer({ client, projectName: "Nombot" });
-
-  //custom hook to avoid react strict mode for Effect
-
   const [
     createChatSession,
     {
@@ -148,7 +132,7 @@ export default function Page() {
       });
     }
 
-    console.log(sessionId);
+    // console.log(sessionId);
     setChatbotProcessing(true);
     setChatbotResponse("");
 
@@ -219,7 +203,7 @@ export default function Page() {
               if (!response.ok) {
                 throw new Error("Network response was not ok");
               }
-              //return response.text(); // or response.json() if the response is JSON
+
               const reader = response.body.getReader();
               const decoder = new TextDecoder("utf-8");
               let result = "";
@@ -234,7 +218,6 @@ export default function Page() {
                       previousResponse + decoder.decode(value, { stream: true })
                   );
                   setChatbotProcessing(false);
-                  // Optionally, update UI or state with each chunk received
                 }
               };
               await processStream();
@@ -250,7 +233,7 @@ export default function Page() {
         });
     }
   }, [chatHistoryData]);
-
+  //custom hook to avoid react strict mode for Effect
   useClassicEffect(() => {
     const createSession = async () => {
       try {
@@ -311,26 +294,24 @@ export default function Page() {
                 className="bg-slate-500 text-white"
                 size="sm"
                 onPress={() =>
-                  setChatMessage("Any healthy recipes to recommend?")
+                  setChatMessage("Any ideas what I can make with leftovers?")
                 }
               >
-                Any healthy recipes to recommend?
+                Any ideas what I can make with leftovers?
               </Button>
               <Button
                 className="bg-slate-500 text-white"
                 size="sm"
-                onPress={() =>
-                  setChatMessage("Any food I can cook for a family?")
-                }
+                onPress={() => setChatMessage("Any breakfast ideas?")}
               >
-                Any food I can cook for a family?
+                Any breakfast ideas?
               </Button>
               <Button
                 className="bg-slate-500 text-white"
                 size="sm"
-                onPress={() => setChatMessage("Any protein-rich recipes?")}
+                onPress={() => setChatMessage("Any vitamin-rich recipes?")}
               >
-                Any protein-rich recipes?
+                Any vitamin-rich recipes?
               </Button>
             </div>
           </CardBody>

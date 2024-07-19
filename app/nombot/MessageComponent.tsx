@@ -30,7 +30,7 @@ export default function MessageComponent({ content, identity }) {
         <div className="bg-white">
           <Card className="shadow-none border-none bg-white p-5 rounded-none md:px-40">
             <CardHeader className="flex gap-4">
-              <Avatar isBordered color="default" src="./DefaultAvatar.jpg" />
+              <Avatar isBordered color="default" src="" showFallback />
               <h4>{data ? data.users[0].display_name : "username"}</h4>
             </CardHeader>
             <CardBody className="justify-between">

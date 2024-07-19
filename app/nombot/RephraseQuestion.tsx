@@ -93,7 +93,7 @@ export default function initRephraseChain(llm: BaseChatModel) {
               return `AI: ${message.content}`;
             }
           })
-          .join("/n");
+          .join("\n");
 
         // message.content).join("\n");
       },

@@ -11,7 +11,7 @@ export default function InputComponent({
       <Textarea
         value={chatMessage}
         minRows={1}
-        maxRows={3}
+        maxRows={2}
         // size="lg"
         isRequired
         label="Ask Nombot!"

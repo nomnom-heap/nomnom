@@ -119,7 +119,7 @@ export default async function VectorRetriever(
     ["human", "{question}"],
   ]);
   // const query = "What are all the spaghetti recipes?";
-  const retriever = vectorStore.asRetriever();
+  const retriever = vectorStore.asRetriever({ k: 3 });
 
   // const relevantDocs = await retriever.invoke(query);
 
@@ -161,7 +161,10 @@ export default async function VectorRetriever(
     apiUrl: "https://api.smith.langchain.com",
   });
   const tracer = new LangChainTracer({ client, projectName: "Nombot" });
-  return await chain.stream(query, { callbacks: [tracer] });
+  return await chain.stream(query, {
+    callbacks: [tracer],
+    runName: "Vector Retriever",
+  });
 
   // for await (const chunk of stream) {
   // }
