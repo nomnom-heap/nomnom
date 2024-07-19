@@ -110,6 +110,13 @@ export default function Page() {
 
   const { recipes: allRecipes, totalPages: allRecipesTotalPages, currentPage: allRecipesCurrentPage, setCurrentPage: setAllRecipesCurrentPage } = useRecipes(LIMIT);
 
+  const {
+    recipes: searchedRecipes,
+    currentPage: searchRecipesCurrentPage,
+    totalPages: searchRecipesTotalPages,
+    setCurrentPage: setSearchRecipesCurrentPage,
+    setSearchTerm: setSearchRecipesSearchTerm,
+  } = useSearchRecipes(LIMIT);
   const { loading: allRecipesLoading, data: allRecipesData } = useQuery(GET_ALL_RECIPES_QUERY);
 
   const [executeSearchRecipes, { loading: searchRecipesLoading, data: searchRecipesData }] = useLazyQuery(SEARCH_RECIPES_QUERY);
@@ -133,6 +140,38 @@ export default function Page() {
   // } = useRecipesFilterFavourites(LIMIT);
 
   useEffect(() => {
+    if (allRecipesData && allRecipesData.recipes) {
+      setRecipes(allRecipesData.recipes);
+    }
+  }, [allRecipesData]);
+
+  useEffect(() => {
+    if (searchRecipesData && searchRecipesData.searchRecipes) {
+      setRecipes(searchRecipesData.searchRecipes);
+    }
+  }, [searchRecipesData]);
+
+  useEffect(() => {
+    const searchTerm = recipeName + ingredientsSelected.join(", ");
+    if (searchTerm) {
+      triggerSearchRecipes({
+        variables: { searchTerm: searchTerm },
+      });
+    }
+  }, [recipeName, ingredientsSelected]);
+
+  // const {
+  //   recipes: FavouriteRecipes,
+  //   totalPages: FavouriteRecipesTotalPages,
+  //   currentPage: favouriteRecipesCurrentPage,
+  //   setCurrentPage: setFavouriteRecipesCurrentPage,
+  // } = useRecipesFilterFavourites(LIMIT);
+
+  useEffect(() => {
+    if (
+      searchTerm.recipeName.trim() == "" &&
+      searchTerm.ingredients.length == 0
+    ) {
     if (searchTerm.recipeName.trim() === "" && searchTerm.ingredients.length === 0) {
       setRecipes(allRecipes);
     }
@@ -161,6 +200,10 @@ export default function Page() {
 
   const handleSaveRecipe = (recipe) => {
     setIsRecipeFormOpen(false);
+  };
+
+  const handleSaveRecipe = (recipe: Recipe) => {
+    setIsRecipeFormOpen(false); // Close the modal after saving
   };
 
   useEffect(() => {
