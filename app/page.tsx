@@ -1,11 +1,25 @@
 "use client";
+<<<<<<< HEAD
 import { useState, useEffect } from "react";
+=======
+import { Checkbox, Input } from "@nextui-org/react";
+
+import { useState, useEffect } from "react";
+
+import { RecipeCard } from "./_components/RecipeCard";
+import LoadingSkeleton from "./_components/LoadingSkeleton";
+import { SearchIcon } from "./_components/SearchIcon";
+>>>>>>> parent of be02710 (edit and delete done, left id)
 import IngredientDropdown, {
   IngredientOption,
 } from "./_components/IngredientDropdown";
 import useRecipes from "./_hooks/useRecipes";
 import InfiniteScroll from "react-infinite-scroll-component";
 import useSearchRecipes from "./_hooks/useSearchRecipes";
+<<<<<<< HEAD
+=======
+import React, { useState, useEffect } from 'react';
+>>>>>>> parent of be02710 (edit and delete done, left id)
 import {
   Autocomplete,
   AutocompleteItem,
@@ -20,6 +34,11 @@ import { RecipeCard } from './_components/RecipeCard';
 import LoadingSkeleton from './_components/LoadingSkeleton';
 import { SearchIcon } from './_components/SearchIcon';
 import RecipeForm from './_components/RecipeForm'; 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> parent of be02710 (edit and delete done, left id)
 
 const GET_ALL_RECIPES_QUERY = gql`
   query GetAllRecipes {
@@ -57,6 +76,7 @@ const SEARCH_RECIPES_QUERY = gql`
   }
 `;
 
+<<<<<<< HEAD
 const GET_INGREDIENTS_QUERY = gql`
   query FindAllIngredients {
     ingredients {
@@ -77,6 +97,9 @@ const GET_FOLLOWING_QUERY = gql`
     }
   }
 `;
+=======
+const LIMIT = 9;
+>>>>>>> parent of be02710 (edit and delete done, left id)
 
 export default function Page() {
   const [userId, setUserId] = useState<string>("");
@@ -90,13 +113,19 @@ export default function Page() {
   const [isRecipeFormOpen, setIsRecipeFormOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
+<<<<<<< HEAD
   const [filterByFollowed, setFilterByFollowed] = useState<Boolean>(false);
   const [filterByFavourited, setFilterByFavourited] = useState<Boolean>(false);
   const [searchTerm, setSearchTerm] = useState({
+=======
+ 
+  const [searchTerm, setSearchTerm] = useState<SearchTerm>({
+>>>>>>> parent of be02710 (edit and delete done, left id)
     recipeName: "",
     ingredients: [],
   });
 
+<<<<<<< HEAD
   const [
     getPeopleYouFollow,
     {
@@ -109,9 +138,31 @@ export default function Page() {
   const { data: ingredientsData, loading: ingredientsLoading } = useQuery(GET_INGREDIENTS_QUERY);
 
   const { recipes: allRecipes, totalPages: allRecipesTotalPages, currentPage: allRecipesCurrentPage, setCurrentPage: setAllRecipesCurrentPage } = useRecipes(LIMIT);
+=======
+  const {
+    data: ingredientsData,
+    loading: ingredientsLoading,
+  } = useQuery(GET_INGREDIENTS_QUERY);
+    recipes: allRecipes,
+    totalPages: allRecipesTotalPages,
+    currentPage: allRecipesCurrentPage,
+    setCurrentPage: setAllRecipesCurrentPage,
+  } = useRecipes(LIMIT);
+>>>>>>> parent of be02710 (edit and delete done, left id)
 
   const {
-    recipes: searchedRecipes,
+    loading: allRecipesLoading,
+    data: allRecipesData,
+  } = useQuery(GET_ALL_RECIPES_QUERY);
+
+  const [
+    searchRecipes,
+    {
+      loading: searchRecipesLoading,
+      data: searchRecipesData,
+    },
+  ] = useLazyQuery(SEARCH_RECIPES_QUERY);
+    recipes: searchRecipes,
     currentPage: searchRecipesCurrentPage,
     totalPages: searchRecipesTotalPages,
     setCurrentPage: setSearchRecipesCurrentPage,
@@ -143,14 +194,12 @@ export default function Page() {
     if (allRecipesData && allRecipesData.recipes) {
       setRecipes(allRecipesData.recipes);
     }
-  }, [allRecipesData]);
-
-  useEffect(() => {
     if (searchRecipesData && searchRecipesData.searchRecipes) {
       setRecipes(searchRecipesData.searchRecipes);
     }
-  }, [searchRecipesData]);
+  }, [allRecipesData, searchRecipesData]);
 
+<<<<<<< HEAD
   useEffect(() => {
     const searchTerm = recipeName + ingredientsSelected.join(", ");
     if (searchTerm) {
@@ -168,22 +217,38 @@ export default function Page() {
   // } = useRecipesFilterFavourites(LIMIT);
 
   useEffect(() => {
+=======
+>>>>>>> parent of be02710 (edit and delete done, left id)
     if (
       searchTerm.recipeName.trim() == "" &&
       searchTerm.ingredients.length == 0
     ) {
+<<<<<<< HEAD
     if (searchTerm.recipeName.trim() === "" && searchTerm.ingredients.length === 0) {
+=======
+      // console.log("set all recipes");
+>>>>>>> parent of be02710 (edit and delete done, left id)
       setRecipes(allRecipes);
     }
   }, [allRecipes]);
 
   useEffect(() => {
+<<<<<<< HEAD
     if (searchTerm.recipeName.trim() !== "" || searchTerm.ingredients.length > 0) {
+=======
+    // console.log("searchRecipes useEffect");
+    if (
+      searchTerm.recipeName.trim() != "" ||
+      searchTerm.ingredients.length > 0
+    ) {
+      // console.log("set search recipes");
+>>>>>>> parent of be02710 (edit and delete done, left id)
       setRecipes(searchRecipes);
     }
   }, [searchRecipes]);
 
   useEffect(() => {
+<<<<<<< HEAD
     const searchTermString = recipeName + ingredientsSelected.join(', ');
     if (searchTermString) {
       executeSearchRecipes({ variables: { searchTerm: searchTermString } });
@@ -192,19 +257,39 @@ export default function Page() {
     }
 
     if (searchTerm.recipeName.trim() === "" && searchTerm.ingredients.length === 0) {
+=======
+    const searchTerm = recipeName + ingredientsSelected.join(', ');
+    if (searchTerm) {
+      searchRecipes({
+        variables: { searchTerm: searchTerm },
+      });
+    } else {
+      setRecipes(allRecipesData?.recipes || []);
+    // console.log("searcTerm useEffect");
+    if (
+      searchTerm.recipeName.trim() == "" &&
+      searchTerm.ingredients.length == 0
+    ) {
+>>>>>>> parent of be02710 (edit and delete done, left id)
       setRecipes(allRecipes);
       setSearchRecipesCurrentPage(1);
       return;
     }
   }, [recipeName, ingredientsSelected]);
+<<<<<<< HEAD
 
   const handleSaveRecipe = (recipe) => {
     setIsRecipeFormOpen(false);
   };
+=======
+>>>>>>> parent of be02710 (edit and delete done, left id)
 
-  const handleSaveRecipe = (recipe: Recipe) => {
+  const handleSaveRecipe = (recipe) => {
+    // Save logic here (e.g., API call)
     setIsRecipeFormOpen(false); // Close the modal after saving
   };
+    setSearchRecipesSearchTerm(searchTerm);
+  }, [searchTerm]);
 
   useEffect(() => {
     async function fetchAuth() {
@@ -239,8 +324,12 @@ export default function Page() {
 
   return (
     <>
+<<<<<<< HEAD
       <div className="max-w-screen pt-5 px-2 md:px-20 md:pt-5 flex flex-col gap-4">
         {/* Search recipe name input */}
+=======
+      <div className="max-w-screen flex flex-col gap-4">
+>>>>>>> parent of be02710 (edit and delete done, left id)
         <Input
           label="Search"
           isClearable
@@ -259,6 +348,49 @@ export default function Page() {
           startContent={
             <SearchIcon className="text-black/50 mb-0.5 dark:text-white/90 text-slate-400 pointer-events-none flex-shrink-0" />
           }
+          onChange={(e) => setRecipeName(e.target.value)}
+        />
+        <Autocomplete
+          label="Ingredients"
+          placeholder="Search an ingredient"
+          className="max-w-screen"
+          startContent={<SearchIcon />}
+          onSelectionChange={(key) => {
+            const keyString = key.toString();
+            if (ingredientsSelected.includes(keyString)) {
+              setIngredientsSelected((prev) => prev.filter((item) => item !== keyString));
+            } else {
+              setIngredientsSelected((prev) => [...prev, keyString]);
+            }
+          }}
+        >
+          {ingredientsLoading ? (
+            <AutocompleteItem
+              key="loading"
+              textValue="Loading ingredients..."
+              className="flex justify-center items-center"
+            >
+              <p>Loading ingredients...</p>
+            </AutocompleteItem>
+          ) : ingredientsData?.ingredients ? (
+            ingredientsData.ingredients.map((item) => (
+              <AutocompleteItem key={item.name} value={item.name} textValue={item.name}>
+                {item.name}
+              </AutocompleteItem>
+            ))
+          ) : (
+            <p>No ingredients found</p>
+          )}
+        </Autocomplete>
+        {ingredientsSelected.length > 0 && (
+          <div className="flex gap-2">
+            {ingredientsSelected.map((item) => (
+              <Chip key={item} onClose={() => setIngredientsSelected(ingredientsSelected.filter((i) => i !== item))}>
+                {item}
+              </Chip>
+            ))}
+          </div>
+        )}
           onChange={(e) => {
             // if (e.target.value.trim() === "") return; // use search all recipes instead of search recipes by name
             setSearchTerm({ ...searchTerm, recipeName: e.target.value });
@@ -283,6 +415,7 @@ export default function Page() {
         </div>
       </div>
 
+<<<<<<< HEAD
       {/* Sortbar */}
       {userId !== "" ? (
         <div className="flex gap-4 pb-0 px-5 md:px-20">
@@ -303,12 +436,20 @@ export default function Page() {
       ) : (
         ""
       )}
+=======
+      <div className="flex gap-4">
+        <span>Sort by</span>
+        <Checkbox size="md">Time Taken</Checkbox>
+        <Checkbox size="md">Preparation Time</Checkbox>
+      </div>
+>>>>>>> parent of be02710 (edit and delete done, left id)
 
       {recipes.length == 0 ? (
         <div className="grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {...Array(LIMIT).map(() => <LoadingSkeleton />)}
         </div>
       ) : (
+<<<<<<< HEAD
         <InfiniteScroll
           dataLength={recipes.length}
           next={() => {
@@ -343,6 +484,22 @@ export default function Page() {
                     let favouriteStatus = recipe.favouritedByUsers.some(
                       (user) => user.id === userId
                     );
+=======
+        <div>
+          {recipes.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              {recipes.map((recipe) => (
+                <RecipeCard recipe={recipe} key={recipe.id} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              <span>No recipes found 😅 Consider creating one!</span>
+            </div>
+          )}
+        </div>
+      )}
+>>>>>>> parent of be02710 (edit and delete done, left id)
 
                     return favouriteStatus && followStatus;
                   } else {
