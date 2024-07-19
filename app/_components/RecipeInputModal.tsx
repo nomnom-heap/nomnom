@@ -113,30 +113,30 @@ export default function RecipeInputModal({
     }
   };
 
-  const [recipeSize, setRecipeSize] = useState<
-    | "xs"
-    | "sm"
-    | "md"
-    | "lg"
-    | "xl"
-    | "2xl"
-    | "3xl"
-    | "4xl"
-    | "5xl"
-    | "full"
-    | undefined
-  >("sm");
-  const [recipeSizeAction, setRecipeSizeAction] = useState(<MdFullscreen />);
+  // const [recipeSize, setRecipeSize] = useState<
+  //   | "xs"
+  //   | "sm"
+  //   | "md"
+  //   | "lg"
+  //   | "xl"
+  //   | "2xl"
+  //   | "3xl"
+  //   | "4xl"
+  //   | "5xl"
+  //   | "full"
+  //   | undefined
+  // >("sm");
+  // const [recipeSizeAction, setRecipeSizeAction] = useState(<MdFullscreen />);
 
-  const setRecipeSizeHandler = () => {
-    if (recipeSize === "sm") {
-      setRecipeSize("5xl");
-      setRecipeSizeAction(<MdFullscreenExit />);
-    } else {
-      setRecipeSize("sm");
-      setRecipeSizeAction(<MdFullscreen />);
-    }
-  };
+  // const setRecipeSizeHandler = () => {
+  //   if (recipeSize === "sm") {
+  //     setRecipeSize("5xl");
+  //     setRecipeSizeAction(<MdFullscreenExit />);
+  //   } else {
+  //     setRecipeSize("sm");
+  //     setRecipeSizeAction(<MdFullscreen />);
+  //   }
+  // };
 
   const handleRemoveIngredient = (index: number) => {
     console.log(index);
@@ -218,6 +218,12 @@ export default function RecipeInputModal({
           serving: serving,
         },
       });
+      setRecipeName("");
+      setIngredients([]);
+      setContents([]);
+      setThumbnailUrl("");
+      setPreparationTime(60);
+      setServing(1);
     } catch (error: any) {
       console.error(error.message);
       console.error("error creating recipe", error);
@@ -227,7 +233,6 @@ export default function RecipeInputModal({
   if (!userId) {
     return (
       <Modal
-        size={recipeSize}
         scrollBehavior="inside"
         className="h-auto"
         isOpen={isOpen}
@@ -377,9 +382,12 @@ export default function RecipeInputModal({
               <Editor onChange={setContents} />
             </ModalBody>
             <ModalFooter>
-              <Button onPress={setRecipeSizeHandler}>{recipeSizeAction}</Button>
               <Button onPress={handleSaveRecipe}>Save</Button>
-              {createRecipeData && <p>Recipe created successfully</p>}
+              {createRecipeData && recipeName !== "" ? (
+                <p>Recipe created successfully</p>
+              ) : (
+                ""
+              )}
               {createRecipeError && <p>Error creating recipe</p>}
             </ModalFooter>
           </>
