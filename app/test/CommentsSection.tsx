@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react";
 import { CommentCard } from "../_components/CommentForm";
 import CreateComment from "../_components/CreateComment";
