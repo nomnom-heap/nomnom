@@ -1,11 +1,15 @@
 "use client";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { useState, useEffect } from "react";
 =======
 import { Checkbox, Input } from "@nextui-org/react";
 
 import { useState, useEffect } from "react";
+=======
+import { Checkbox, Input } from "@nextui-org/react";
 
+import { useState, useEffect } from "react";
 import { RecipeCard } from "./_components/RecipeCard";
 import LoadingSkeleton from "./_components/LoadingSkeleton";
 import { SearchIcon } from "./_components/SearchIcon";
@@ -171,21 +175,16 @@ export default function Page() {
       setSearchRecipesCurrentPage(1);
       return;
     }
-  }, [recipeName, ingredientsSelected]);
-
-  const handleSaveRecipe = (recipe) => {
-    // Save logic here (e.g., API call)
-    setIsRecipeFormOpen(false); // Close the modal after saving
-  };
     setSearchRecipesSearchTerm(searchTerm);
   }, [searchTerm]);
 
+  const handleSaveRecipe = (recipe: Recipe) => {
+    setIsRecipeFormOpen(false); // Close the modal after saving
+  };
+
   return (
     <>
-<<<<<<< HEAD
-      <div className="max-w-screen pt-5 px-2 md:px-20 md:pt-5 flex flex-col gap-4">
-        {/* Search recipe name input */}
-=======
+>>>>>>> parent of be02710 (edit and delete done, left id)
       <div className="max-w-screen flex flex-col gap-4">
         <Input
           label="Search"
