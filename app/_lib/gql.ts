@@ -10,6 +10,8 @@ export const CREATE_RECIPE_MUTATION = gql`
     $thumbnail_url: String!
     $userId: ID!
     $serving: Float!
+    $joined_ingredients: String!
+    $cleaned_contents: String!
   ) {
     createRecipes(
       input: {
@@ -21,6 +23,8 @@ export const CREATE_RECIPE_MUTATION = gql`
         thumbnail_url: $thumbnail_url
         owner: { connect: { where: { node: { id: $userId } } } }
         serving: $serving
+        cleaned_contents: $cleaned_contents
+        joined_ingredients: $joined_ingredients
       }
     ) {
       info {

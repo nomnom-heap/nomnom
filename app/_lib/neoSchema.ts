@@ -76,6 +76,8 @@ const typeDefs = /* GraphQL */ `
     contents: String!
     createdAt: DateTime! @timestamp(operations: [CREATE])
     updatedAt: DateTime! @timestamp
+    joined_ingredients: String!
+    cleaned_contents: String!
   }
 
   type Query {
