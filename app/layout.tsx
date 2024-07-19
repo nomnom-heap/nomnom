@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} h-screen`}>
+      <body className={`${inter.className} h-[100.1vh]`}>
         <AuthProvider>
           <ApolloClientProvider>
             <AmplifyProvider>

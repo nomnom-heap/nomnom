@@ -27,12 +27,7 @@ const typeDefs = /* GraphQL */ `
       ]
     )
     @authorization(
-      validate: [
-        {
-          operations: [UPDATE, CREATE_RELATIONSHIP]
-          where: { node: { id: "$jwt.sub" } }
-        }
-      ]
+      validate: [{ operations: [UPDATE], where: { node: { id: "$jwt.sub" } } }]
     ) {
     id: ID! @id
     display_name: String!
@@ -40,14 +35,16 @@ const typeDefs = /* GraphQL */ `
     recipes: [Recipe!]! @relationship(type: "OWNS", direction: OUT)
     favourite_recipes: [Recipe!]!
       @relationship(type: "FAVOURITED", direction: OUT)
+    following: [User!]! @relationship(type: "FOLLOWS", direction: OUT)
+    followers: [User!]! @relationship(type: "FOLLOWS", direction: IN)
     chat_session: [ChatSession!]! @relationship(type: "HAS", direction: OUT)
-    following: [User]!
-    followers: [User]!
   }
 
   type Ingredient {
     id: ID! @id
     name: String!
+    group: String
+    linkedRecipes: [Recipe!]! @relationship(type: "CONTAINS", direction: IN)
   }
 
   type Recipe
@@ -62,10 +59,7 @@ const typeDefs = /* GraphQL */ `
     )
     @authorization(
       validate: [
-        {
-          operations: [CREATE, CREATE_RELATIONSHIP]
-          where: { node: { owner: { id: "$jwt.sub" } } }
-        }
+        { operations: [CREATE], where: { node: { owner: { id: "$jwt.sub" } } } }
       ]
     ) {
     id: ID! @id
@@ -76,6 +70,8 @@ const typeDefs = /* GraphQL */ `
     time_taken_mins: Float!
     owner: User! @relationship(type: "OWNS", direction: IN)
     favouritedByUsers: [User!]! @relationship(type: "FAVOURITED", direction: IN)
+    linkedIngredients: [Ingredient!]!
+      @relationship(type: "CONTAINS", direction: OUT)
     thumbnail_url: String!
     contents: String!
     createdAt: DateTime! @timestamp(operations: [CREATE])
@@ -83,13 +79,33 @@ const typeDefs = /* GraphQL */ `
   }
 
   type Query {
-    searchRecipes(searchTerm: String): [Recipe]
+    searchRecipes(searchTerm: String, skip: Int = 0, limit: Int = 10): [Recipe]
       @cypher(
         statement: """
         CALL db.index.fulltext.queryNodes('searchRecipeIndex', $searchTerm) YIELD node, score
         RETURN node
+        SKIP $skip
+        LIMIT $limit
         """
         columnName: "node"
+      )
+    searchRecipesCount(searchTerm: String): Int
+      @cypher(
+        statement: """
+        CALL db.index.fulltext.queryNodes('searchRecipeIndex', $searchTerm) YIELD node, score
+        RETURN COUNT(node) as num
+        """
+        columnName: "num"
+      )
+    findIngredientsByName(name: String): [Ingredient]
+      @cypher(
+        statement: """
+        MATCH (i: Ingredient)
+        WHERE i.name CONTAINS trim(toLower($name))
+        RETURN i
+        LIMIT 30
+        """
+        columnName: "i"
       )
   }
 

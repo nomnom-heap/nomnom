@@ -10,10 +10,13 @@ import {
   Button,
   Input,
   Link,
-  Autocomplete,
-  AutocompleteItem,
 } from "@nextui-org/react";
 import dynamic from "next/dynamic";
+import { FaPlus } from "react-icons/fa";
+import { IoRemoveOutline } from "react-icons/io5";
+import { MdFullscreen,MdFullscreenExit } from "react-icons/md";
+
+
 const Editor = dynamic(() => import("@/app/_components/BlockNoteEditor"), {
   ssr: false,
 });
@@ -23,19 +26,15 @@ import { useRef, useState } from "react";
 import { Block } from "@blocknote/core";
 import { uploadFileToPublicFolder } from "../_lib/utils";
 import { useAuth } from "../AuthProvider";
-import { SearchIcon } from "./SearchIcon";
-import { useMutation, useQuery } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import { fetchAuthSession } from "aws-amplify/auth";
-import {
-  CREATE_RECIPE_MUTATION,
-  GET_INGREDIENTS_QUERY,
-  type GetIngredientsData,
-} from "@/_lib/gql";
+import { CREATE_RECIPE_MUTATION } from "@/_lib/gql";
+import IngredientDropdown, { IngredientOption } from "./IngredientDropdown";
 
 type RecipeInputModalProps = {
   isOpen: boolean;
   onOpenChange: () => void;
-  recipe?: Recipe; // recipe should be provided if editing, else it should be undefined (for creating recipe)
+  recipe?: any; // recipe should be provided if editing, else it should be undefined (for creating recipe)
 };
 
 export default function RecipeInputModal({
@@ -79,12 +78,13 @@ export default function RecipeInputModal({
   };
 
   const handleIngredientChange = (index: number, value: string) => {
+    const newValue = value ?? "";
     const newIngredients = [...ingredients];
-    newIngredients[index] = value;
+    newIngredients[index] = newValue;
     setIngredients(newIngredients);
   };
 
-  const handleAddIngredients = (index: number, value: string) => {
+  const handleAddIngredientsQty = (index: number, value: string) => {
     const newIngredientsQty = [...ingredientsQty];
     newIngredientsQty[index] = value;
     setIngredientsQty(newIngredientsQty);
@@ -97,20 +97,49 @@ export default function RecipeInputModal({
     }
   };
 
+  const AddIngredientHandler = (index: number) => {
+      setIngredients([...ingredients, ""]);
+      setIngredientsQty([...ingredientsQty, ""]);
+  };
+
+  const RemoveIngredientHandler = (index: number) => {
+    if(ingredients.length!=1){
+      setIngredients(ingredients=>ingredients.filter((_,key)=>key!==index));
+      setIngredientsQty(ingredientsQty=>ingredientsQty.filter((_,key)=>key!==index));
+    }
+
+};
+
+    const [recipeSize,setRecipeSize]=useState<"xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "full" | undefined>("sm");
+    const [recipeSizeAction,setRecipeSizeAction]=useState(<MdFullscreen/>)
+    
+    const setRecipeSizeHandler=()=>{
+      if(recipeSize==="sm"){
+        setRecipeSize("5xl")
+        setRecipeSizeAction(<MdFullscreenExit/>)
+      }else{
+        setRecipeSize("sm")
+        setRecipeSizeAction(<MdFullscreen/>)
+      }
+    };
+
   const handleRemoveIngredient = (index: number) => {
+    console.log(index);
     if (ingredients.length === 1) {
       return;
     }
-    const newIngredients = [...ingredients];
-    newIngredients.splice(index, 1);
-    setIngredients(newIngredients);
-  };
+    setIngredients((prev) => {
+      const newIngredients = [...prev];
+      newIngredients.splice(index, 1);
+      return newIngredients;
+    });
 
-  const {
-    data: ingredientsData,
-    loading: ingredientsLoading,
-    error: ingredientsError,
-  } = useQuery<GetIngredientsData>(GET_INGREDIENTS_QUERY);
+    setIngredientsQty((prev) => {
+      const newIngredientsQty = [...prev];
+      newIngredientsQty.splice(index, 1);
+      return newIngredientsQty;
+    });
+  };
 
   const [
     createRecipe,
@@ -157,6 +186,8 @@ export default function RecipeInputModal({
   if (!userId) {
     return (
       <Modal
+        size={recipeSize}
+        scrollBehavior="inside"
         className="h-auto"
         isOpen={isOpen}
         placement="center"
@@ -184,6 +215,7 @@ export default function RecipeInputModal({
 
   return (
     <Modal
+      scrollBehavior="inside"
       className="h-auto"
       isOpen={isOpen}
       placement="center"
@@ -202,6 +234,9 @@ export default function RecipeInputModal({
                 />
               ) : (
                 <>
+                {/* <Button isIconOnly className='ml-auto' aria-label="Full screen" onClick={setRecipeSizeHandler}>
+                        {windowIcon}
+                </Button> */}
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -228,7 +263,7 @@ export default function RecipeInputModal({
               />
             </ModalHeader>
             <ModalBody>
-              <div className="flex flex-col gap-2 w-auto">
+              <div className="flex flex-col gap-2 w-full">
                 <div className="flex flex-row gap-2 items-center">
                   <p className="text-sm">Preparation Time (mins):</p>
                   <Input
@@ -258,57 +293,30 @@ export default function RecipeInputModal({
               {ingredients.map((ingredient, index) => (
                 <div key={index} className="flex flex-row gap-2 items-center">
                   <Input
+                    className="w-1/6 text-xs"
                     type="text"
-                    placeholder="1 tbsp / 500g"
+                    placeholder="Quantity eg 1 tbsp / 500g"
                     value={ingredientsQty[index]}
                     onChange={(e) =>
-                      handleAddIngredients(index, e.target.value)
+                      handleAddIngredientsQty(index, e.target.value)
                     }
+                    // onFocus={() => handleLastIngredientFocus(index)}
+                  />
+                  <IngredientDropdown
+                    isClearable
+                    className="w-56 mr-2"
+                    placeholder="Search for ingredient"
+                    menuPlacement="top"
+                    // TODO: buggy delete
+                    onChange={(newValue, actionMeta) => {
+                      const ingredient = (newValue as IngredientOption) ?? {
+                        label: "",
+                        value: "",
+                      };
+                      handleIngredientChange(index, ingredient.value);
+                    }}
                     onFocus={() => handleLastIngredientFocus(index)}
                   />
-                  {/* <Input
-                    type="text"
-                    placeholder="Ingredient"
-                    value={ingredient}
-                    onChange={(e) =>
-                      handleIngredientChange(index, e.target.value)
-                    }
-                    onFocus={() => handleLastIngredientFocus(index)}
-                  /> */}
-                  {/* Search recipe by ingredients autocomplete */}
-                  <Autocomplete
-                    label="Ingredients"
-                    className="max-w-screen"
-                    startContent={<SearchIcon />}
-                    onFocus={() => handleLastIngredientFocus(index)}
-                    onSelectionChange={(key) => {
-                      if (!key) return;
-                      const keyString = key.toString();
-                      handleIngredientChange(index, keyString);
-                    }}
-                  >
-                    {ingredientsLoading ? (
-                      <AutocompleteItem
-                        key="loading"
-                        textValue="Loading ingredients..."
-                        className="flex justify-center items-center"
-                      >
-                        <p>Loading ingredients...</p>
-                      </AutocompleteItem>
-                    ) : ingredientsData?.ingredients ? (
-                      ingredientsData.ingredients.map((item) => (
-                        <AutocompleteItem
-                          key={item.name}
-                          value={item.name}
-                          textValue={item.name}
-                        >
-                          {item.name}
-                        </AutocompleteItem>
-                      ))
-                    ) : (
-                      <p>No ingredients found</p>
-                    )}
-                  </Autocomplete>
                   <Button
                     isIconOnly
                     color="danger"
@@ -317,12 +325,18 @@ export default function RecipeInputModal({
                   >
                     <span>-</span>
                   </Button>
+                  {/* <Button isIconOnly aria-label="Add Ingredient" onClick={()=>AddIngredientHandler(index)}>
+                  <FaPlus/>
+                </Button>
+                <Button isIconOnly aria-label="Remove Ingredient"  onClick={()=>RemoveIngredientHandler(index)}>
+                  <IoRemoveOutline/>
+                </Button> */}
                 </div>
               ))}
-
               <Editor onChange={setContents} />
             </ModalBody>
             <ModalFooter>
+            <Button onPress={setRecipeSizeHandler}>{recipeSizeAction}</Button>
               <Button onPress={handleSaveRecipe}>Save</Button>
               {createRecipeData && <p>Recipe created successfully</p>}
               {createRecipeError && <p>Error creating recipe</p>}
