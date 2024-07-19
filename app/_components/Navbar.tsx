@@ -60,15 +60,9 @@ export default function NavBar() {
 
       <NavbarContent className="hidden sm:flex gap-4" justify="end">
         <NavbarItem isActive={pathname === "/nombot" ? true : false}>
-          {userId ? (
-            <Link className="text-white" href="/nombot">
-              Nombot
-            </Link>
-          ) : (
-            <Link className="text-white" href="/login">
-              Nombot
-            </Link>
-          )}
+          <Link className="text-white" href="/nombot">
+            Nombot
+          </Link>
         </NavbarItem>
         <NavbarItem>
           <Link className="text-white" href="#">

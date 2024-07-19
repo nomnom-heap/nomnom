@@ -1,4 +1,4 @@
-import { runWithAmplifyServerContext } from "@aws-amplify/adapter-nextjs";
+import { runWithAmplifyServerContext } from "./utils/server-utils";
 
 // The fetchAuthSession is pulled as the server version from aws-amplify/auth/server
 import { fetchAuthSession } from "aws-amplify/auth/server";
