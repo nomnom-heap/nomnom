@@ -89,32 +89,6 @@ export default function Page() {
     ingredients: [],
   });
 
-<<<<<<< HEAD
-  const [filterByFollowed, setFilterByFollowed] = useState<Boolean>(false);
-  const [filterByFavourited, setFilterByFavourited] = useState<Boolean>(false);
-  const [searchTerm, setSearchTerm] = useState({
-=======
- 
-  const [searchTerm, setSearchTerm] = useState<SearchTerm>({
->>>>>>> parent of be02710 (edit and delete done, left id)
-    recipeName: "",
-    ingredients: [],
-  });
-
-<<<<<<< HEAD
-  const [
-    getPeopleYouFollow,
-    {
-      data: getFollowingData,
-      loading: getFollowingLoading,
-      error: getFollowingError,
-    },
-  ] = useLazyQuery(GET_FOLLOWING_QUERY);
-
-  const { data: ingredientsData, loading: ingredientsLoading } = useQuery(GET_INGREDIENTS_QUERY);
-
-  const { recipes: allRecipes, totalPages: allRecipesTotalPages, currentPage: allRecipesCurrentPage, setCurrentPage: setAllRecipesCurrentPage } = useRecipes(LIMIT);
-=======
   const {
     data: ingredientsData,
     loading: ingredientsLoading,
@@ -323,6 +297,14 @@ export default function Page() {
             </div>
           )}
         </div>
+      )}
+
+      {isRecipeFormOpen && (
+        <RecipeForm
+          initialRecipe={selectedRecipe}
+          onSave={handleSaveRecipe}
+          onClose={() => setIsRecipeFormOpen(false)}
+        />
       )}
     </>
   );
