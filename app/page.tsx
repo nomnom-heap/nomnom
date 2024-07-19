@@ -9,9 +9,6 @@ import { Checkbox, Input } from "@nextui-org/react";
 import { useState, useEffect } from "react";
 =======
 import { Checkbox, Input } from "@nextui-org/react";
-
-=======
->>>>>>> parent of be02710 (edit and delete done, left id)
 import { useState, useEffect } from "react";
 
 import { RecipeCard } from "./_components/RecipeCard";
