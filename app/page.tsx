@@ -5,11 +5,15 @@ import { useState, useEffect } from "react";
 =======
 import { Checkbox, Input } from "@nextui-org/react";
 
+<<<<<<< HEAD
 import { useState, useEffect } from "react";
 =======
 import { Checkbox, Input } from "@nextui-org/react";
 
+=======
+>>>>>>> parent of be02710 (edit and delete done, left id)
 import { useState, useEffect } from "react";
+
 import { RecipeCard } from "./_components/RecipeCard";
 import LoadingSkeleton from "./_components/LoadingSkeleton";
 import { SearchIcon } from "./_components/SearchIcon";
@@ -175,12 +179,14 @@ export default function Page() {
       setSearchRecipesCurrentPage(1);
       return;
     }
-    setSearchRecipesSearchTerm(searchTerm);
-  }, [searchTerm]);
+  }, [recipeName, ingredientsSelected]);
 
-  const handleSaveRecipe = (recipe: Recipe) => {
+  const handleSaveRecipe = (recipe) => {
+    // Save logic here (e.g., API call)
     setIsRecipeFormOpen(false); // Close the modal after saving
   };
+    setSearchRecipesSearchTerm(searchTerm);
+  }, [searchTerm]);
 
   return (
     <>
