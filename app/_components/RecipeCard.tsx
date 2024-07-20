@@ -17,131 +17,34 @@ import { fetchAuthSession } from "aws-amplify/auth";
 import RecipeModal from "./RecipeModal";
 import { useAuth } from "../AuthProvider";
 import RecipeInputModal from "./RecipeInputModal";
+import useFavRecipes from "../_hooks/useFavRecipes";
+import toast from "react-hot-toast";
 
 type RecipeCardProps = {
   recipe: Recipe;
-  peopleYouFollow: Object[];
-  setPeopleYouFollow: React.Dispatch<React.SetStateAction<Object[]>>;
-  setMutatedFavourite: React.Dispatch<React.SetStateAction<object[]>>;
-  mutatedFavourite: object[];
   searchIngredients: string[];
 };
 
-const FAVOURITE_RECIPE_MUTATION = gql`
-  mutation FavouriteRecipe($userId: ID!, $recipeId: ID!) {
-    updateRecipes(
-      where: { id: $recipeId }
-      connect: { favouritedByUsers: { where: { node: { id: $userId } } } }
-    ) {
-      info {
-        relationshipsCreated
-      }
-    }
-  }
-`;
-
-const UNFAVOURITE_RECIPE_MUTATION = gql`
-  mutation UnfavouriteRecipe($userId: ID!, $recipeId: ID!) {
-    updateRecipes(
-      disconnect: { favouritedByUsers: { where: { node: { id: $userId } } } }
-      where: { id: $recipeId }
-    ) {
-      info {
-        relationshipsDeleted
-      }
-    }
-  }
-`;
-
-const FOLLOW_USER_MUTATION = gql`
-  mutation FollowUser($userId: ID!, $userToFollowId: ID!) {
-    updateUsers(
-      where: { id: $userId }
-      connect: { following: { where: { node: { id: $userToFollowId } } } }
-    ) {
-      info {
-        relationshipsCreated
-      }
-    }
-  }
-`;
-
-const UNFOLLOW_USER_MUTATION = gql`
-  mutation UnfollowUser($userId: ID!, $userToUnfollowId: ID!) {
-    updateUsers(
-      where: { id: $userId }
-      disconnect: { following: { where: { node: { id: $userToUnfollowId } } } }
-    ) {
-      info {
-        relationshipsDeleted
-      }
-    }
-  }
-`;
-
-export function RecipeCard({
-  recipe,
-  peopleYouFollow,
-  setPeopleYouFollow,
-  setMutatedFavourite,
-  mutatedFavourite,
-  searchIngredients,
-}: RecipeCardProps) {
-  const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+export function RecipeCard({ recipe, searchIngredients }: RecipeCardProps) {
   const { userId } = useAuth();
 
-  useEffect(() => {
-    if (userId) {
-      setIsLoggedIn(true);
-    }
-  }, [userId]);
+  const [missingIngredients, setMissingIngredients] = useState<string[]>([]);
+  const [isFavourited, setIsFavourited] = useState<boolean>(
+    recipe.favouritedByUsers.some((user) => user.id === userId)
+  );
 
-  // const { token } = useAuth();
-  // followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
-  // console.log(followedInfo);
-  // console.log("test : ${[].some((e) => e === "some");
-
-  const [
+  const {
     favouriteRecipe,
-    { loading: favouriteLoading, error: favouriteError, data: favouriteData },
-  ] = useMutation(FAVOURITE_RECIPE_MUTATION);
-
-  const [
     unfavouriteRecipe,
-    {
-      loading: unfavouriteLoading,
-      error: unfavouriteError,
-      data: unfavouriteData,
-    },
-  ] = useMutation(UNFAVOURITE_RECIPE_MUTATION);
-
-  const [
-    followUser,
-    {
-      loading: followUserLoading,
-      error: followUserError,
-      data: followUserData,
-    },
-  ] = useMutation(FOLLOW_USER_MUTATION);
-
-  const [
-    unfollowUser,
-    {
-      loading: unfollowUserLoading,
-      error: unfollowUserError,
-      data: unfollowUserData,
-    },
-  ] = useMutation(UNFOLLOW_USER_MUTATION);
+    favouriteRecipeError,
+    favouriteRecipeData,
+    unfavouriteRecipeError,
+    unfavouriteRecipeData,
+  } = useFavRecipes();
 
   async function handleFavouriteRecipe(recipeId: string) {
     const session = await fetchAuthSession();
     const userId = session?.tokens?.accessToken.payload.sub;
-
-    setMutatedFavourite([
-      ...mutatedFavourite.filter((recipe) => recipe.id !== recipeId),
-      { id: recipeId, like: true },
-    ]);
 
     await favouriteRecipe({
       variables: { recipeId: recipeId, userId: userId },
@@ -151,62 +54,11 @@ export function RecipeCard({
   async function handleUnfavouriteRecipe(recipeId: string) {
     const session = await fetchAuthSession();
     const userId = session?.tokens?.accessToken.payload.sub;
-    setMutatedFavourite([
-      ...mutatedFavourite.filter((recipe) => recipe.id !== recipeId),
-      { id: recipeId, like: false },
-    ]);
+
     await unfavouriteRecipe({
       variables: { recipeId: recipeId, userId: userId },
     });
   }
-
-  async function handleFollowUser(userToFollowId: string) {
-    try {
-      setPeopleYouFollow((prevsPeopleYouFollow) => [
-        ...prevsPeopleYouFollow,
-        { __typename: "User", id: userToFollowId },
-      ]);
-
-      const session = await fetchAuthSession();
-      const userId = session?.tokens?.accessToken.payload.sub;
-      await followUser({
-        variables: { userToFollowId: userToFollowId, userId: userId },
-      });
-    } catch (error) {
-      console.error("Error occurred: ", error.message);
-    }
-  }
-
-  async function handleUnfollowUser(userToUnfollowId: string) {
-    try {
-      setPeopleYouFollow((prevsPeopleYouFollow) =>
-        prevsPeopleYouFollow.filter((obj) => obj.id !== userToUnfollowId)
-      );
-      const session = await fetchAuthSession();
-      const userId = session?.tokens?.accessToken.payload.sub;
-      await unfollowUser({
-        variables: { userToUnfollowId: userToUnfollowId, userId: userId },
-      });
-    } catch (error) {
-      console.error("Error occurred: ", error.message);
-    }
-  }
-
-  const [favourited, setFavourited] = useState<boolean>(
-    userId
-      ? (!mutatedFavourite.some((obj) => obj.id === recipe.id) &&
-          recipe.favouritedByUsers.some((obj) => obj.id === userId)) ||
-          mutatedFavourite.some(
-            (obj) => obj.id === recipe.id && obj.like === true
-          )
-      : false
-  );
-
-  const [isFollowed, setIsFollowed] = useState<boolean>(
-    peopleYouFollow
-      ? peopleYouFollow.some((obj) => obj.id === recipe.owner.id)
-      : false
-  );
 
   const [openEditModal, setOpenEditModal] = useState(false);
 
@@ -223,13 +75,30 @@ export function RecipeCard({
   };
 
   useEffect(() => {
-    if (peopleYouFollow) {
-      const isUserFollowed = peopleYouFollow.some(
-        (obj) => obj.id === recipe.owner.id
-      );
-      setIsFollowed(isUserFollowed);
+    if (!favouriteRecipeData) return;
+    if (favouriteRecipeData?.updateRecipes.info.relationshipsCreated > 0) {
+      setIsFavourited(true);
     }
-  }, [peopleYouFollow]);
+  }, [favouriteRecipeData]);
+
+  useEffect(() => {
+    if (!unfavouriteRecipeData) return;
+    if (unfavouriteRecipeData?.updateRecipes.info.relationshipsDeleted > 0) {
+      setIsFavourited(false);
+    }
+  }, [unfavouriteRecipeData]);
+
+  useEffect(() => {
+    if (!favouriteRecipeError) return;
+    toast.error("Oops! Error favouriting recipe.");
+    console.error(favouriteRecipeError);
+  }, [favouriteRecipeError]);
+
+  useEffect(() => {
+    if (!unfavouriteRecipeError) return;
+    toast.error("Oops! Error unfavouriting recipe.");
+    console.error(unfavouriteRecipeError);
+  }, [unfavouriteRecipeError]);
 
   useEffect(() => {
     if (!searchIngredients) {
@@ -244,7 +113,7 @@ export function RecipeCard({
       )
     );
     setMissingIngredients(newMissingIngredients);
-  }, [recipe.ingredients, searchIngredients]);
+  }, [searchIngredients]);
 
   return (
     <>
@@ -264,26 +133,6 @@ export function RecipeCard({
                   {recipe.owner.display_name}
                 </h4>
               </div>
-              {!isLoggedIn ? (
-                ""
-              ) : userId === recipe.owner.id ? (
-                ""
-              ) : (
-                <Button
-                  color="primary"
-                  radius="full"
-                  size="sm"
-                  variant={isFollowed ? "bordered" : "solid"}
-                  onPress={() => {
-                    isFollowed
-                      ? handleUnfollowUser(recipe.owner.id)
-                      : handleFollowUser(recipe.owner.id);
-                    setIsFollowed(!isFollowed);
-                  }}
-                >
-                  {isFollowed ? "Unfollow" : "Follow"}
-                </Button>
-              )}
             </div>
 
             <div className="pt-4">
@@ -307,9 +156,8 @@ export function RecipeCard({
           </CardBody>
           <CardFooter className="pt-0 px-3 mb-0 justify-between">
             <div className="grid-flow-row pb-1 space-y-0.5">
-              {searchIngredients?.length === 0 ? (
-                ""
-              ) : missingIngredients?.length === 0 ? (
+              {searchIngredients.length ==
+              0 ? null : missingIngredients.length === 0 ? (
                 <p
                   className="text-sm text-green-500"
                   style={{ alignSelf: "flex-end" }}
@@ -339,22 +187,19 @@ export function RecipeCard({
               </p>
             </div>
 
-            {isLoggedIn ? (
+            {userId && (
               <Button
                 isIconOnly
                 className="bg-white"
                 aria-label="Like"
-                onClick={() => {
-                  setFavourited((value) => !value);
-                  favourited
+                onPress={() => {
+                  isFavourited
                     ? handleUnfavouriteRecipe(recipe.id)
                     : handleFavouriteRecipe(recipe.id);
                 }}
               >
-                <HeartIcon filled={favourited} />
+                <HeartIcon filled={isFavourited} />
               </Button>
-            ) : (
-              ""
             )}
           </CardFooter>
         </Card>
@@ -363,11 +208,7 @@ export function RecipeCard({
         isOpen={isOpen}
         onOpenChange={onOpenChange}
         recipe={recipe}
-        peopleYouFollow={peopleYouFollow}
-        setPeopleYouFollow={setPeopleYouFollow}
-        setMutatedFavourite={setMutatedFavourite}
-        mutatedFavourite={mutatedFavourite}
-        searchIngredients={searchIngredients}
+        missingIngredients={missingIngredients}
         onOpenEditRecipeModal={handleOpenEditRecipeModal}
       />
 

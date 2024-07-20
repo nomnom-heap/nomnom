@@ -15,6 +15,9 @@ const SEARCH_RECIPES_QUERY = gql`
       owner {
         display_name
         id
+        followers {
+          id
+        }
       }
       favouritedByUsers {
         id

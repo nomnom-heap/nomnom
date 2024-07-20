@@ -8,13 +8,16 @@ import {
   ModalFooter,
   Image,
   Button,
+  Avatar,
 } from "@nextui-org/react";
 import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import { RecipeCard } from "./RecipeCard";
 import useSearchRecipes from "../_hooks/useSearchRecipes";
 import { useAuth } from "../AuthProvider";
-import RecipeInputModal from "./RecipeInputModal";
+import useFollowUsers from "../_hooks/useFollowUsers";
+import toast from "react-hot-toast";
+import useDeleteRecipe from "../_hooks/useDeleteRecipe";
 
 const Editor = dynamic(() => import("@/app/_components/BlockNoteEditor"), {
   ssr: false,
@@ -24,11 +27,7 @@ type RecipeModalProps = {
   isOpen: boolean;
   onOpenChange: () => void;
   recipe: Recipe;
-  searchIngredients?: Array<string>;
-  peopleYouFollow: Object[];
-  setPeopleYouFollow: React.Dispatch<React.SetStateAction<Object[]>>;
-  setMutatedFavourite: React.Dispatch<React.SetStateAction<object[]>>;
-  mutatedFavourite: object[];
+  missingIngredients: string[];
   onOpenEditRecipeModal: (open: boolean) => void;
 };
 
@@ -38,38 +37,90 @@ export default function RecipeModal({
   recipe,
   isOpen,
   onOpenChange,
-  searchIngredients,
-  peopleYouFollow,
-  setPeopleYouFollow,
-  setMutatedFavourite,
-  mutatedFavourite,
+  missingIngredients,
   onOpenEditRecipeModal,
 }: RecipeModalProps) {
-  const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
+  const { userId } = useAuth();
+
   const { recipes: recRecipes, setSearchTerm: setRecRecipesIngredients } =
     useSearchRecipes(LIMIT);
   const [isOwner, setIsOwner] = useState(false);
+  const [isFollowing, setIsFollowing] = useState<boolean>(
+    recipe.owner.followers.some((follower) => follower.id === userId)
+  ); // TODO: can be optimized to check if user is following the recipe owner instead
 
-  const { userId } = useAuth();
+  const {
+    followUser,
+    followUserError,
+    followUserData,
+    unfollowUser,
+    unfollowUserError,
+    unfollowUserData,
+  } = useFollowUsers();
 
-  useEffect(() => {
-    if (!searchIngredients) {
-      setMissingIngredients([]);
+  const {
+    deleteRecipe,
+    data: deleteRecipeData,
+    error: deleteRecipeError,
+  } = useDeleteRecipe();
+
+  async function handleFollowUser() {
+    await followUser({
+      variables: { userToFollowId: recipe.owner.id, userId: userId },
+    });
+  }
+
+  async function handleUnfollowUser() {
+    await unfollowUser({
+      variables: { userToUnfollowId: recipe.owner.id, userId: userId },
+    });
+  }
+
+  const handleDeleteRecipe = async () => {
+    if (!recipe) {
       return;
     }
+    await deleteRecipe({
+      variables: {
+        recipeId: recipe.id,
+      },
+    });
+  };
 
-    const newMissingIngredients = recipe.ingredients.filter(
-      (recipeIngredient) => {
-        return (
-          !searchIngredients.some((searchedIngredient) =>
-            recipeIngredient.includes(searchedIngredient.trim())
-          ) && recipeIngredient.trim() !== ""
-        );
-      }
-    );
+  useEffect(() => {
+    if (!followUserData) return;
+    if (followUserData.updateUsers.info.relationshipsCreated > 0) {
+      setIsFollowing(true);
+    }
+  }, [followUserData]);
 
-    setMissingIngredients(newMissingIngredients);
-  }, [recipe.ingredients, searchIngredients]);
+  useEffect(() => {
+    if (followUserError) {
+      toast.error("Oops! An error occured when trying to follow user");
+      console.error("follow user error", followUserError);
+    }
+    if (unfollowUserError) {
+      toast.error("Oops! An error occured when trying to unfollow user");
+      console.error("unfollow user error", unfollowUserError);
+    }
+    if (deleteRecipeError) {
+      toast.error("Oops! An error occured when trying to delete recipe");
+      console.error("delete recipe error", deleteRecipeError);
+    }
+  }, [followUserError, unfollowUserError, deleteRecipeError]);
+
+  useEffect(() => {
+    if (!unfollowUserData) return;
+    if (unfollowUserData.updateUsers.info.relationshipsDeleted > 0) {
+      setIsFollowing(false);
+    }
+  }, [unfollowUserData]);
+
+  useEffect(() => {
+    if (deleteRecipeData) {
+      toast.success("Recipe deleted!", { position: "top-right" });
+    }
+  }, [deleteRecipeData]);
 
   useEffect(() => {
     if (userId === recipe.owner.id) {
@@ -92,8 +143,27 @@ export default function RecipeModal({
       <ModalContent className="bg-white h-auto">
         {(onClose) => (
           <>
-            <ModalHeader className="flex flex-col gap-4">
+            <ModalHeader className="flex flex-row items-center justify-between">
               <p>{recipe.name}</p>
+              {!isOwner && (
+                <div className="flex flex-row items-center gap-4 mr-8">
+                  <Avatar size="md" showFallback />
+                  <span className="text-sm font-semibold leading-none whitespace-nowrap overflow-hidden text-ellipsis">
+                    {recipe.owner.display_name}
+                  </span>
+                  <Button
+                    color="primary"
+                    radius="full"
+                    size="sm"
+                    variant={isFollowing ? "bordered" : "solid"}
+                    onPress={() => {
+                      isFollowing ? handleUnfollowUser() : handleFollowUser();
+                    }}
+                  >
+                    {isFollowing ? "Unfollow" : "Follow"}
+                  </Button>
+                </div>
+              )}
             </ModalHeader>
             <ModalBody>
               <div className="flex items-center justify-center">
@@ -111,9 +181,7 @@ export default function RecipeModal({
 
               <div className="flex flex-col gap-2 w-auto">
                 <div className="flex flex-col gap-2 items-left">
-                  {searchIngredients?.length === 0 ? (
-                    ""
-                  ) : missingIngredients.length > 0 ? (
+                  {missingIngredients.length > 0 ? (
                     <>
                       <p className="text-sm font-bold">Missing Ingredients:</p>
                       <p className="text-sm">{missingIngredients.join(", ")}</p>
@@ -152,7 +220,7 @@ export default function RecipeModal({
               />
               <div>
                 <hr />
-                <p className="font-bold py-3">You Might Like:</p>
+                <p className="font-bold py-3">You might like:</p>
 
                 {recRecipes.length > 0 ? (
                   <div className="grid xs:grid-cols-1 sm:grid-cols-2 gap-4">
@@ -162,10 +230,6 @@ export default function RecipeModal({
                         <RecipeCard
                           recipe={r}
                           key={`${r.id}-${r.name}`}
-                          peopleYouFollow={peopleYouFollow}
-                          setPeopleYouFollow={setPeopleYouFollow}
-                          mutatedFavourite={mutatedFavourite}
-                          setMutatedFavourite={setMutatedFavourite}
                           searchIngredients={recipe.ingredients}
                         />
                       );
@@ -181,19 +245,16 @@ export default function RecipeModal({
             <ModalFooter>
               {/* If user is recipe owner, show edit and delete button */}
               {isOwner && (
-                <Button onPress={() => onOpenEditRecipeModal(true)}>
-                  Edit
-                </Button>
+                <div className="flex flex-row gap-4">
+                  <Button onPress={() => onOpenEditRecipeModal(true)}>
+                    Edit
+                  </Button>
+                  <Button color="danger" onPress={handleDeleteRecipe}>
+                    Delete
+                  </Button>
+                </div>
               )}
             </ModalFooter>
-            {/* {openEditModal && (
-              <RecipeInputModal
-                isOpen={isOpen}
-                // onOpenChange={() => setOpenEditModal(false)}
-                onOpenChange={onOpenChange}
-                recipe={recipe}
-              />
-            )} */}
           </>
         )}
       </ModalContent>

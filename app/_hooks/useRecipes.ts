@@ -24,6 +24,9 @@ const GET_RECIPES_LAZY_QUERY = gql`
       owner {
         id
         display_name
+        followers {
+          id
+        }
       }
       favouritedByUsers {
         id

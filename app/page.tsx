@@ -1,8 +1,8 @@
 "use client";
-import { Checkbox, Input } from "@nextui-org/react";
+import { Input } from "@nextui-org/react";
 
 import { Poppins } from "next/font/google";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 
 import { RecipeCard } from "./_components/RecipeCard";
 import LoadingSkeleton from "./_components/LoadingSkeleton";
@@ -13,43 +13,16 @@ import IngredientDropdown, {
 import useRecipes from "./_hooks/useRecipes";
 import InfiniteScroll from "react-infinite-scroll-component";
 import useSearchRecipes from "./_hooks/useSearchRecipes";
-import { fetchAuthSession } from "aws-amplify/auth";
-import { gql, useLazyQuery } from "@apollo/client";
 
 const LIMIT = 9;
 const poppins = Poppins({ weight: ["600", "400"], subsets: ["latin"] });
-const GET_FOLLOWING_QUERY = gql`
-  query MyQuery($userId: ID!) {
-    users(where: { id: $userId }) {
-      following {
-        id
-      }
-    }
-  }
-`;
 
 export default function Page() {
-  const [userId, setUserId] = useState<string>("");
-
-  const [mutatedFavourite, setMutatedFavourite] = useState<object[]>([]);
-
-  const [peopleYouFollow, setPeopleYouFollow] = useState<Object[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [filterByFollowed, setFilterByFollowed] = useState<Boolean>(false);
-  const [filterByFavourited, setFilterByFavourited] = useState<Boolean>(false);
   const [searchTerm, setSearchTerm] = useState<SearchTerm>({
     recipeName: "",
     ingredients: [],
   });
-
-  const [
-    getPeopleYouFollow,
-    {
-      data: getFollowingData,
-      loading: getFollowingLoading,
-      error: getFollowingError,
-    },
-  ] = useLazyQuery(GET_FOLLOWING_QUERY);
 
   const {
     recipes: allRecipes,
@@ -66,36 +39,25 @@ export default function Page() {
     setSearchTerm: setSearchRecipesSearchTerm,
   } = useSearchRecipes(LIMIT);
 
-  // const {
-  //   recipes: FavouriteRecipes,
-  //   totalPages: FavouriteRecipesTotalPages,
-  //   currentPage: favouriteRecipesCurrentPage,
-  //   setCurrentPage: setFavouriteRecipesCurrentPage,
-  // } = useRecipesFilterFavourites(LIMIT);
-
   useEffect(() => {
     if (
       searchTerm.recipeName.trim() == "" &&
       searchTerm.ingredients.length == 0
     ) {
-      // console.log("set all recipes");
       setRecipes(allRecipes);
     }
   }, [allRecipes]);
 
   useEffect(() => {
-    // console.log("searchRecipes useEffect");
     if (
       searchTerm.recipeName.trim() != "" ||
       searchTerm.ingredients.length > 0
     ) {
-      // console.log("set search recipes");
       setRecipes(searchRecipes);
     }
   }, [searchRecipes]);
 
   useEffect(() => {
-    // console.log("searcTerm useEffect");
     if (
       searchTerm.recipeName.trim() == "" &&
       searchTerm.ingredients.length == 0
@@ -106,37 +68,6 @@ export default function Page() {
     }
     setSearchRecipesSearchTerm(searchTerm);
   }, [searchTerm]);
-
-  useEffect(() => {
-    async function fetchAuth() {
-      const session = await fetchAuthSession();
-      const userId = session?.tokens?.accessToken.payload.sub;
-
-      if (userId) {
-        setUserId(userId);
-        getPeopleYouFollow({ variables: { userId: userId } });
-      }
-    }
-
-    fetchAuth();
-  }, []);
-
-  useEffect(() => {
-    if (getFollowingError) {
-      console.error("getFollowingDataError: ", getFollowingError);
-    }
-
-    if (getFollowingData) {
-      setPeopleYouFollow(getFollowingData.users[0].following);
-      // console.log(JSON.stringify(getFollowingData.users[0].following));
-    }
-  }, [getFollowingError, getFollowingData]);
-
-  // useEffect(() => {
-  //   if (filterByFavourited && mutatedFavourite.length > 0) {
-  //     setRecipes(FavouriteRecipes);
-  //   }
-  // }, [filterByFavourited, mutatedFavourite]);
 
   return (
     <>
@@ -184,26 +115,7 @@ export default function Page() {
         </div>
       </div>
 
-      {/* Sortbar */}
-      {userId !== "" ? (
-        <div className="flex gap-4 pb-0 px-5 md:px-20">
-          <span>Filter by</span>
-          <Checkbox
-            size="md"
-            onValueChange={(value) => setFilterByFollowed(value)}
-          >
-            Followed Users
-          </Checkbox>
-          <Checkbox
-            size="md"
-            onValueChange={(value) => setFilterByFavourited(value)}
-          >
-            Favourited
-          </Checkbox>
-        </div>
-      ) : (
-        ""
-      )}
+      {/* TODO: Sortbar */}
 
       {recipes.length == 0 ? (
         <div className="grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -217,10 +129,8 @@ export default function Page() {
               searchTerm.recipeName.trim() != "" ||
               searchTerm.ingredients.length > 0
             ) {
-              // console.log("searching more recipes based on search term");
               setSearchRecipesCurrentPage(searchRecipesCurrentPage + 1);
             } else {
-              // console.log("searching more recipes");
               setAllRecipesCurrentPage(allRecipesCurrentPage + 1);
             }
           }}
@@ -233,98 +143,13 @@ export default function Page() {
           loader={<LoadingSkeleton />}
           className="pt-5 px-2 grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:px-20 md:pt-5"
         >
-          {filterByFollowed && filterByFavourited
-            ? peopleYouFollow &&
-              recipes
-                .filter((recipe) => {
-                  const followStatus = peopleYouFollow.some(
-                    (person) => person.id === recipe.owner.id
-                  );
-                  if (!mutatedFavourite.some((obj) => obj.id === recipe.id)) {
-                    let favouriteStatus = recipe.favouritedByUsers.some(
-                      (user) => user.id === userId
-                    );
-
-                    return favouriteStatus && followStatus;
-                  } else {
-                    let favouriteStatus = mutatedFavourite.some(
-                      (obj) => obj.id === recipe.id && obj.like === true
-                    );
-                    return favouriteStatus;
-                  }
-                })
-
-                .map((recipe, index) => (
-                  <RecipeCard
-                    recipe={recipe}
-                    key={`${recipe.id}-${index}`}
-                    peopleYouFollow={peopleYouFollow}
-                    setPeopleYouFollow={setPeopleYouFollow}
-                    setMutatedFavourite={setMutatedFavourite}
-                    mutatedFavourite={mutatedFavourite}
-                    searchIngredients={searchTerm.ingredients}
-                  />
-                ))
-            : filterByFollowed || filterByFavourited
-            ? filterByFollowed && !filterByFavourited
-              ? peopleYouFollow &&
-                recipes
-                  .filter((recipe) =>
-                    peopleYouFollow.some(
-                      (person) => person.id === recipe.owner.id
-                    )
-                  )
-                  .map((recipe, index) => (
-                    <RecipeCard
-                      recipe={recipe}
-                      key={`${recipe.id}-${index}`}
-                      peopleYouFollow={peopleYouFollow}
-                      setPeopleYouFollow={setPeopleYouFollow}
-                      setMutatedFavourite={setMutatedFavourite}
-                      mutatedFavourite={mutatedFavourite}
-                      searchIngredients={searchTerm.ingredients}
-                    />
-                  ))
-              : !filterByFollowed &&
-                filterByFavourited &&
-                recipes
-                  .filter((recipe) => {
-                    if (!mutatedFavourite.some((obj) => obj.id === recipe.id)) {
-                      let favouriteStatus = recipe.favouritedByUsers.some(
-                        (user) => user.id === userId
-                      );
-
-                      return favouriteStatus;
-                    } else {
-                      let favouriteStatus = mutatedFavourite.some(
-                        (obj) => obj.id === recipe.id && obj.like === true
-                      );
-                      return favouriteStatus;
-                    }
-                  })
-
-                  .map((recipe, index) => (
-                    <RecipeCard
-                      recipe={recipe}
-                      key={`${recipe.id}-${index}`}
-                      peopleYouFollow={peopleYouFollow}
-                      setPeopleYouFollow={setPeopleYouFollow}
-                      setMutatedFavourite={setMutatedFavourite}
-                      mutatedFavourite={mutatedFavourite}
-                      searchIngredients={searchTerm.ingredients}
-                    />
-                  ))
-            : recipes.map((recipe, index) => (
-                <RecipeCard
-                  recipe={recipe}
-                  key={`${recipe.id}-${index}`}
-                  peopleYouFollow={peopleYouFollow}
-                  setPeopleYouFollow={setPeopleYouFollow}
-                  setMutatedFavourite={setMutatedFavourite}
-                  mutatedFavourite={mutatedFavourite}
-                  searchIngredients={searchTerm.ingredients}
-                />
-              ))}
+          {recipes.map((recipe, index) => (
+            <RecipeCard
+              recipe={recipe}
+              key={`${recipe.id}-${index}`}
+              searchIngredients={searchTerm.ingredients}
+            />
+          ))}
         </InfiniteScroll>
       )}
     </>
