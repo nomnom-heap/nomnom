@@ -10,27 +10,12 @@ import {
   Avatar,
 } from "@nextui-org/react";
 import { HeartIcon } from "./HeartIcon";
-import {
-  MutableRefObject,
-  SetStateAction,
-  useEffect,
-  useState,
-  useRef,
-} from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@apollo/client";
 import { gql } from "@apollo/client/core";
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-} from "@nextui-org/modal";
 import { fetchAuthSession } from "aws-amplify/auth";
 import RecipeModal from "./RecipeModal";
 import { useAuth } from "../AuthProvider";
-import { IoConstructOutline } from "react-icons/io5";
-import { FaGalacticSenate } from "react-icons/fa";
 
 type RecipeCardProps = {
   recipe: Recipe;
@@ -239,16 +224,12 @@ export function RecipeCard({
       return;
     }
 
-    const newMissingIngredients = recipe.ingredients.filter(
-      (recipeIngredient) => {
-        return (
-          !searchIngredients.some((searchedIngredient) =>
-            recipeIngredient.includes(searchedIngredient.trim())
-          ) && recipeIngredient.trim() !== ""
-        );
-      }
+    const searchIngredientsSet = new Set(searchIngredients);
+    const newMissingIngredients = Array.from(
+      [...recipe.ingredients].filter(
+        (ingredient) => !searchIngredientsSet.has(ingredient)
+      )
     );
-
     setMissingIngredients(newMissingIngredients);
   }, [recipe.ingredients, searchIngredients]);
 

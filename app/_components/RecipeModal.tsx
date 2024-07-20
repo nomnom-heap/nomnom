@@ -30,7 +30,7 @@ type RecipeModalProps = {
   mutatedFavourite: object[];
 };
 
-const LIMIT = 6;
+const LIMIT = 7;
 
 export default function RecipeModal({
   recipe,
@@ -148,17 +148,20 @@ export default function RecipeModal({
 
                 {recRecipes.length > 0 ? (
                   <div className="grid xs:grid-cols-1 sm:grid-cols-2 gap-4">
-                    {recRecipes.map((recipe) => (
-                      <RecipeCard
-                        recipe={recipe}
-                        key={`${recRecipes.length}-${recipe.id}-${recipe.name}`}
-                        peopleYouFollow={peopleYouFollow}
-                        setPeopleYouFollow={setPeopleYouFollow}
-                        mutatedFavourite={mutatedFavourite}
-                        setMutatedFavourite={setMutatedFavourite}
-                        searchIngredients={recipe.ingredients}
-                      />
-                    ))}
+                    {recRecipes.map((r) => {
+                      if (r.id === recipe.id) return;
+                      return (
+                        <RecipeCard
+                          recipe={r}
+                          key={`${r.id}-${r.name}`}
+                          peopleYouFollow={peopleYouFollow}
+                          setPeopleYouFollow={setPeopleYouFollow}
+                          mutatedFavourite={mutatedFavourite}
+                          setMutatedFavourite={setMutatedFavourite}
+                          searchIngredients={recipe.ingredients}
+                        />
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="flex flex-col gap-4">
@@ -169,9 +172,6 @@ export default function RecipeModal({
             </ModalBody>
             <ModalFooter>
               {/* If user is recipe owner, show edit and delete button */}
-              {/* {recipe?.ow === user.id && ( */}
-              <Button onPress={onClose}>Save</Button>
-              {/* )} */}
             </ModalFooter>
           </>
         )}
