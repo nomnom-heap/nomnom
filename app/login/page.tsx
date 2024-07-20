@@ -139,14 +139,14 @@ export default function Page() {
             onSelectionChange={setSelected}
           >
             <Tab key="login" title="Login">
-              <form
+              {/* <form
                 className="flex flex-col gap-4"
                 onSubmit={handleLoginWithGoogle}
               >
                 <Button className="mb-4" color="secondary" type="submit">
                   Login with Google
                 </Button>
-              </form>
+              </form> */}
 
               <form className="flex flex-col gap-4" onSubmit={handleLogin}>
                 <Input
