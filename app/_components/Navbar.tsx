@@ -16,6 +16,7 @@ import { usePathname } from "next/navigation";
 
 export default function NavBar() {
   const { userId, setUserId } = useAuth();
+
   const pathname = usePathname();
 
   const handleLogout = async () => {

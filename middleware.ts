@@ -3,6 +3,7 @@ import { runWithAmplifyServerContext } from "./utils/server-utils";
 // The fetchAuthSession is pulled as the server version from aws-amplify/auth/server
 import { fetchAuthSession } from "aws-amplify/auth/server";
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
