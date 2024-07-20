@@ -18,10 +18,15 @@ import {
 } from "@nextui-org/react";
 // console.log(process.env.OPENAI_API_KEY);
 import { useClassicEffect } from "./useClassicEffect";
+<<<<<<< HEAD
+=======
+import { permanentRedirect } from "next/navigation";
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
 
 const poppins = Poppins({ weight: ["600"], subsets: ["latin"] });
 
 const CREATE_CHAT_SESSION_MUTATION = gql`
+<<<<<<< HEAD
   mutation createChatSession($userId: ID!) {
     createChatSessions(
       input: { owner: { connect: { where: { node: { id: $userId } } } } }
@@ -29,6 +34,11 @@ const CREATE_CHAT_SESSION_MUTATION = gql`
       chatSessions {
         id
       }
+=======
+  mutation CreateChatSessionMutation {
+    createChatSessionMutation {
+      id
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
     }
   }
 `;
@@ -236,6 +246,7 @@ export default function Page() {
   //custom hook to avoid react strict mode for Effect
   useClassicEffect(() => {
     const createSession = async () => {
+<<<<<<< HEAD
       try {
         const session = await fetchAuthSession();
         const userId = session?.tokens?.accessToken.payload.sub;
@@ -249,6 +260,33 @@ export default function Page() {
         console.error(error.message);
         console.error("Error creating chat session:", error);
       }
+=======
+      const session = await fetchAuthSession();
+      const userId = session?.tokens?.accessToken.payload.sub;
+      await createChatSession({
+        variables: {
+          userId: userId,
+        },
+      });
+
+      // try {
+      //   const session = await fetchAuthSession();
+      //   const userId = session?.tokens?.accessToken.payload.sub;
+
+      //   await createChatSession({
+      //     variables: {
+      //       userId: userId,
+      //     },
+      //   });
+      // } catch (error) {
+      //   console.error(error.message);
+      //   console.error("Error creating chat session:", error);
+      // }
+      // finally {
+
+      //
+      // }
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
     };
 
     return () => {
@@ -258,7 +296,11 @@ export default function Page() {
 
   useEffect(() => {
     if (ChatSessionData) {
+<<<<<<< HEAD
       setSessionId(ChatSessionData.createChatSessions.chatSessions[0].id);
+=======
+      setSessionId(ChatSessionData.createChatSessionMutation.id);
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
     }
   }, [ChatSessionData]);
 

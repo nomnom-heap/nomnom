@@ -1,6 +1,10 @@
 "use client";
 import { Checkbox, Input } from "@nextui-org/react";
 
+<<<<<<< HEAD
+=======
+import { Poppins } from "next/font/google";
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
 import { useState, useEffect, useRef, useCallback } from "react";
 
 import { RecipeCard } from "./_components/RecipeCard";
@@ -14,10 +18,16 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import useSearchRecipes from "./_hooks/useSearchRecipes";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { gql, useLazyQuery } from "@apollo/client";
+<<<<<<< HEAD
 import { filter } from "graphql-yoga";
 
 const LIMIT = 9;
 
+=======
+
+const LIMIT = 9;
+const poppins = Poppins({ weight: ["600", "400"], subsets: ["latin"] });
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
 const GET_FOLLOWING_QUERY = gql`
   query MyQuery($userId: ID!) {
     users(where: { id: $userId }) {
@@ -128,7 +138,11 @@ export default function Page() {
 
     if (getFollowingData) {
       setPeopleYouFollow(getFollowingData.users[0].following);
+<<<<<<< HEAD
       console.log(JSON.stringify(getFollowingData.users[0].following));
+=======
+      // console.log(JSON.stringify(getFollowingData.users[0].following));
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
     }
   }, [getFollowingError, getFollowingData]);
 
@@ -142,6 +156,7 @@ export default function Page() {
     <>
       <div className="max-w-screen pt-5 px-2 md:px-20 md:pt-5 flex flex-col gap-4">
         {/* Search recipe name input */}
+<<<<<<< HEAD
         <Input
           label="Search"
           isClearable
@@ -156,6 +171,22 @@ export default function Page() {
             innerWrapper: "",
             inputWrapper: [],
           }}
+=======
+        <h4
+          className={`${poppins.className} text-4xl font-bold pt-10 px-10 pb-0 text-center`}
+        >
+          Search with NomNom! 😋
+        </h4>
+        <p className={`${poppins.className} pb-4 text-lg px-10 text-center`}>
+          Search by recipe name, or search by what you have in your kitchen, and
+          NomNom will do the rest!
+        </p>
+        <Input
+          variant="bordered"
+          label="Search"
+          isClearable
+          radius="lg"
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
           placeholder="Search for recipe name"
           startContent={
             <SearchIcon className="text-black/50 mb-0.5 dark:text-white/90 text-slate-400 pointer-events-none flex-shrink-0" />

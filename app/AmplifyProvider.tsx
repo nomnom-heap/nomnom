@@ -3,7 +3,11 @@ import { Amplify } from "aws-amplify";
 import config from "../amplify_outputs.json"; // uncomment for sandbox development
 
 export function AmplifyProvider({ children }: { children: React.ReactNode }) {
+<<<<<<< HEAD
   Amplify.configure(config); // uncomment for sandbox development
+=======
+  Amplify.configure(config, { ssr: true }); // uncomment for sandbox development
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
   // Amplify.configure({
   //   Storage: {
   //     S3: {

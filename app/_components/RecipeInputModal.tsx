@@ -14,29 +14,63 @@ import {
 import dynamic from "next/dynamic";
 import { FaPlus } from "react-icons/fa";
 import { IoRemoveOutline } from "react-icons/io5";
+<<<<<<< HEAD
 import { MdFullscreen,MdFullscreenExit } from "react-icons/md";
 
+=======
+import { MdFullscreen, MdFullscreenExit } from "react-icons/md";
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
 
 const Editor = dynamic(() => import("@/app/_components/BlockNoteEditor"), {
   ssr: false,
 });
 
 import { ImageIcon } from "./ImageIcon";
+<<<<<<< HEAD
 import { useRef, useState } from "react";
+=======
+import { useEffect, useRef, useState } from "react";
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
 import { Block } from "@blocknote/core";
 import { uploadFileToPublicFolder } from "../_lib/utils";
 import { useAuth } from "../AuthProvider";
 import { useMutation } from "@apollo/client";
 import { fetchAuthSession } from "aws-amplify/auth";
+<<<<<<< HEAD
 import { CREATE_RECIPE_MUTATION } from "@/_lib/gql";
 import IngredientDropdown, { IngredientOption } from "./IngredientDropdown";
+=======
+import {
+  CREATE_RECIPE_MUTATION,
+  UPDATE_RECIPE_MUTATION,
+  UpdateRecipeMutationData,
+} from "@/_lib/gql";
+import IngredientDropdown, { IngredientOption } from "./IngredientDropdown";
+import toast from "react-hot-toast";
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
 
 type RecipeInputModalProps = {
   isOpen: boolean;
   onOpenChange: () => void;
+<<<<<<< HEAD
   recipe?: any; // recipe should be provided if editing, else it should be undefined (for creating recipe)
 };
 
+=======
+  recipe?: Recipe; // recipe should be provided if editing, else it should be undefined (for creating recipe)
+};
+
+const createSuccessToast = (message: string) =>
+  toast.success(message, {
+    position: "top-right",
+  });
+
+const createErrorToast = (message: string) =>
+  toast.error(message, {
+    position: "top-right",
+  });
+
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
 export default function RecipeInputModal({
   recipe,
   isOpen,
@@ -52,7 +86,11 @@ export default function RecipeInputModal({
     recipe?.ingredients || [""]
   );
   const [contents, setContents] = useState<Block[]>(
+<<<<<<< HEAD
     recipe?.contents ? JSON.parse(recipe.contents) : []
+=======
+    recipe?.contents ? JSON.parse(recipe.contents) : undefined
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
   );
   const [thumbnailUrl, setThumbnailUrl] = useState<string>(
     recipe?.thumbnail_url || ""
@@ -64,6 +102,11 @@ export default function RecipeInputModal({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+<<<<<<< HEAD
+=======
+  const [fullScreen, setFullScreen] = useState(false);
+
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -98,6 +141,7 @@ export default function RecipeInputModal({
   };
 
   const AddIngredientHandler = (index: number) => {
+<<<<<<< HEAD
       setIngredients([...ingredients, ""]);
       setIngredientsQty([...ingredientsQty, ""]);
   };
@@ -122,6 +166,22 @@ export default function RecipeInputModal({
         setRecipeSizeAction(<MdFullscreen/>)
       }
     };
+=======
+    setIngredients([...ingredients, ""]);
+    setIngredientsQty([...ingredientsQty, ""]);
+  };
+
+  const RemoveIngredientHandler = (index: number) => {
+    if (ingredients.length != 1) {
+      setIngredients((ingredients) =>
+        ingredients.filter((_, key) => key !== index)
+      );
+      setIngredientsQty((ingredientsQty) =>
+        ingredientsQty.filter((_, key) => key !== index)
+      );
+    }
+  };
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
 
   const handleRemoveIngredient = (index: number) => {
     console.log(index);
@@ -150,6 +210,7 @@ export default function RecipeInputModal({
     },
   ] = useMutation(CREATE_RECIPE_MUTATION);
 
+<<<<<<< HEAD
   const handleSaveRecipe = async () => {
     // Ensure all required fields are provided
     if (
@@ -163,6 +224,43 @@ export default function RecipeInputModal({
     }
 
     try {
+=======
+  const [
+    updateRecipe,
+    {
+      data: updateRecipeData,
+      loading: updateRecipeLoading,
+      error: updateRecipeError,
+    },
+  ] = useMutation<UpdateRecipeMutationData>(UPDATE_RECIPE_MUTATION);
+
+  function extractText(data: object[]) {
+    let texts: string[] = [];
+
+    function traverse(node) {
+      if (node.type === "text") {
+        texts.push(node.text);
+      }
+      if (node.children) {
+        node.children.forEach((child) => traverse(child));
+      }
+      if (node.content) {
+        node.content.forEach((contentItem) => traverse(contentItem));
+      }
+    }
+
+    data.forEach((item) => traverse(item));
+    return texts.join(" ");
+  }
+
+  const handleCreateRecipe = async () => {
+    try {
+      const combinedList = ingredientsQty
+        .map((q, index) => `${q} ${ingredients[index]}`)
+        .join(", ");
+      const joined_ingredients = combinedList;
+      const cleaned_contents = extractText(contents);
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
       const session = await fetchAuthSession();
       const userId = session?.tokens?.accessToken.payload.sub;
       await createRecipe({
@@ -170,8 +268,53 @@ export default function RecipeInputModal({
           name: recipeName,
           userId: userId,
           contents: JSON.stringify(contents),
+<<<<<<< HEAD
           time_taken_mins: preparationTime,
           ingredients: ingredients,
+=======
+          cleaned_contents: cleaned_contents,
+          time_taken_mins: preparationTime,
+          ingredients: ingredients,
+          joined_ingredients: joined_ingredients,
+          ingredients_qty: ingredientsQty,
+          thumbnail_url: thumbnailUrl,
+          serving: serving,
+        },
+      });
+      setRecipeName("");
+      setIngredients([]);
+      setContents([]);
+      setThumbnailUrl("");
+      setPreparationTime(60);
+      setServing(1);
+    } catch (error: any) {
+      console.error(error.message);
+      console.error("error creating recipe", error);
+      createErrorToast("Oops! Error creating recipe.");
+    }
+  };
+
+  const handleUpdateRecipe = async () => {
+    if (!recipe) {
+      return;
+    }
+    try {
+      const combinedList = ingredientsQty
+        .map((q, index) => `${q} ${ingredients[index]}`)
+        .join(", ");
+      const joined_ingredients = combinedList;
+      const cleaned_contents = extractText(contents);
+
+      await updateRecipe({
+        variables: {
+          id: recipe.id,
+          recipeName: recipeName,
+          contents: JSON.stringify(contents),
+          cleaned_contents: cleaned_contents,
+          time_taken_mins: preparationTime,
+          ingredients: ingredients,
+          joined_ingredients: joined_ingredients,
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
           ingredients_qty: ingredientsQty,
           thumbnail_url: thumbnailUrl,
           serving: serving,
@@ -179,6 +322,7 @@ export default function RecipeInputModal({
       });
     } catch (error: any) {
       console.error(error.message);
+<<<<<<< HEAD
       console.error("error creating recipe", error);
     }
   };
@@ -187,6 +331,55 @@ export default function RecipeInputModal({
     return (
       <Modal
         size={recipeSize}
+=======
+      console.error("error updating recipe", error);
+      createErrorToast("Oops! Error updating recipe.");
+    }
+  };
+
+  const handleSaveRecipe = async () => {
+    if (
+      !recipeName ||
+      !contents.length ||
+      !ingredients.length ||
+      !ingredientsQty.length
+    ) {
+      createErrorToast(
+        "Please fill in all required fields (recipe name, ingredients, ingredients quantity)."
+      );
+      return;
+    }
+
+    if (recipe) {
+      handleUpdateRecipe();
+    } else {
+      handleCreateRecipe();
+    }
+  };
+
+  useEffect(() => {
+    if (createRecipeData) {
+      createSuccessToast("Nicely done! Recipe created!");
+    }
+  }, [createRecipeData]);
+
+  useEffect(() => {
+    if (updateRecipeData) {
+      createSuccessToast("Recipe updated!");
+    }
+  }, [updateRecipeData]);
+
+  useEffect(() => {
+    if (createRecipeError) {
+      console.error("Error creating recipe", createRecipeError.message);
+      createErrorToast("Oops! Error creating recipe.");
+    }
+  }, [createRecipeError]);
+
+  if (!userId) {
+    return (
+      <Modal
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
         scrollBehavior="inside"
         className="h-auto"
         isOpen={isOpen}
@@ -216,11 +409,16 @@ export default function RecipeInputModal({
   return (
     <Modal
       scrollBehavior="inside"
+<<<<<<< HEAD
       className="h-auto"
+=======
+      className={`size-full ${fullScreen ? "min-w-full min-h-full" : ""}`}
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
       isOpen={isOpen}
       placement="center"
       onOpenChange={onOpenChange}
     >
+<<<<<<< HEAD
       <ModalContent className="bg-white h-auto">
         {(onClose) => (
           <>
@@ -263,6 +461,50 @@ export default function RecipeInputModal({
               />
             </ModalHeader>
             <ModalBody>
+=======
+      <ModalContent className="bg-white h-auto overflow-y-auto overflow-x-hidden">
+        {(onClose) => (
+          <>
+            <ModalBody>
+              <div className="flex-col pt-5 space-y-2">
+                {thumbnailUrl ? (
+                  <Image
+                    className="rounded-xl"
+                    src={thumbnailUrl}
+                    alt={`Thumbnail image for ${recipeName}`}
+                    style={{ width: "400px", height: "300px" }}
+                  />
+                ) : (
+                  <>
+                    {/* <Button isIconOnly className='ml-auto' aria-label="Full screen" onClick={setRecipeSizeHandler}>
+                        {windowIcon}
+                </Button> */}
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      style={{ display: "none" }}
+                      onChange={handleImageChange}
+                    />
+                    <Button
+                      startContent={<ImageIcon />}
+                      fullWidth={true}
+                      type="button"
+                      onPress={handleButtonClick}
+                    >
+                      <span className="text-sm">Upload image</span>
+                    </Button>
+                  </>
+                )}
+
+                <Input
+                  type="text"
+                  placeholder="Type your recipe name"
+                  value={recipeName}
+                  onChange={(e) => setRecipeName(e.target.value)}
+                />
+              </div>
+
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
               <div className="flex flex-col gap-2 w-full">
                 <div className="flex flex-row gap-2 items-center">
                   <p className="text-sm">Preparation Time (mins):</p>
@@ -273,7 +515,10 @@ export default function RecipeInputModal({
                       setPreparationTime(parseFloat(e.target.value))
                     }
                     className="w-1/4"
+<<<<<<< HEAD
                     readOnly={recipe ? true : false}
+=======
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
                   />
                 </div>
 
@@ -284,14 +529,21 @@ export default function RecipeInputModal({
                     value={serving.toString()}
                     onChange={(e) => setServing(parseFloat(e.target.value))}
                     className="w-1/4"
+<<<<<<< HEAD
                     readOnly={recipe ? true : false}
+=======
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
                   />
                 </div>
               </div>
 
               <p className="text-sm">Ingredients:</p>
               {ingredients.map((ingredient, index) => (
+<<<<<<< HEAD
                 <div key={index} className="flex flex-row gap-2 items-center">
+=======
+                <div key={index} className="flex flex-row gap-2">
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
                   <Input
                     className="w-1/6 text-xs"
                     type="text"
@@ -300,6 +552,7 @@ export default function RecipeInputModal({
                     onChange={(e) =>
                       handleAddIngredientsQty(index, e.target.value)
                     }
+<<<<<<< HEAD
                     // onFocus={() => handleLastIngredientFocus(index)}
                   />
                   <IngredientDropdown
@@ -309,6 +562,36 @@ export default function RecipeInputModal({
                     menuPlacement="top"
                     // TODO: buggy delete
                     onChange={(newValue, actionMeta) => {
+=======
+                    onFocus={() => handleLastIngredientFocus(index)}
+                  />
+                  <IngredientDropdown
+                    key={`ingredient-dropdown-${ingredients.length}-${index}`}
+                    isClearable
+                    className="min-w-60 w-auto mr-2"
+                    placeholder="Search for ingredient"
+                    menuPlacement="auto"
+                    createOptionPosition="first"
+                    blurInputOnSelect
+                    allowCreateWhileLoading
+                    defaultInputValue={ingredients[index]}
+                    onInputChange={(newValue, actionMeta) => {
+                      if (
+                        actionMeta.action !== "input-change" &&
+                        actionMeta.action !== "set-value"
+                      )
+                        return;
+                      handleIngredientChange(index, newValue);
+                    }}
+                    onChange={(newValue, actionMeta) => {
+                      if (
+                        actionMeta.action !== "create-option" &&
+                        actionMeta.action !== "select-option" &&
+                        actionMeta.action !== "clear"
+                      )
+                        return;
+
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
                       const ingredient = (newValue as IngredientOption) ?? {
                         label: "",
                         value: "",
@@ -319,12 +602,17 @@ export default function RecipeInputModal({
                   />
                   <Button
                     isIconOnly
+<<<<<<< HEAD
                     color="danger"
+=======
+                    color="default"
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
                     aria-label="Remove ingredient"
                     onPress={() => handleRemoveIngredient(index)}
                   >
                     <span>-</span>
                   </Button>
+<<<<<<< HEAD
                   {/* <Button isIconOnly aria-label="Add Ingredient" onClick={()=>AddIngredientHandler(index)}>
                   <FaPlus/>
                 </Button>
@@ -337,6 +625,13 @@ export default function RecipeInputModal({
             </ModalBody>
             <ModalFooter>
             <Button onPress={setRecipeSizeHandler}>{recipeSizeAction}</Button>
+=======
+                </div>
+              ))}
+              <Editor initialContent={contents} onChange={setContents} />
+            </ModalBody>
+            <ModalFooter>
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
               <Button onPress={handleSaveRecipe}>Save</Button>
               {createRecipeData && <p>Recipe created successfully</p>}
               {createRecipeError && <p>Error creating recipe</p>}
