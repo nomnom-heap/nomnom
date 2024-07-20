@@ -34,13 +34,11 @@ import { FaGalacticSenate } from "react-icons/fa";
 
 type RecipeCardProps = {
   recipe: Recipe;
-  onPress?: () => void;
   peopleYouFollow: Object[];
   setPeopleYouFollow: React.Dispatch<React.SetStateAction<Object[]>>;
   setMutatedFavourite: React.Dispatch<React.SetStateAction<object[]>>;
   mutatedFavourite: object[];
   searchIngredients: string[];
-  // setPeopleYouFollow:
 };
 
 const FAVOURITE_RECIPE_MUTATION = gql`
@@ -68,11 +66,6 @@ const UNFAVOURITE_RECIPE_MUTATION = gql`
     }
   }
 `;
-
-// const { token } = useAuth();
-// followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
-// console.log(followedInfo);
-// console.log("test : ${[].some((e) => e === "some");
 
 const FOLLOW_USER_MUTATION = gql`
   mutation FollowUser($userId: ID!, $userToFollowId: ID!) {
@@ -102,21 +95,15 @@ const UNFOLLOW_USER_MUTATION = gql`
 
 export function RecipeCard({
   recipe,
-  onPress,
   peopleYouFollow,
   setPeopleYouFollow,
   setMutatedFavourite,
   mutatedFavourite,
   searchIngredients,
 }: RecipeCardProps) {
-  // const { token } = useAuth();
-  // followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
-  // console.log(followedInfo);
-  // console.log("test : ${[].some((e) => e === "some");
   const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const userId = useAuth().userId;
-  // console.log(userId);
+  const { userId } = useAuth();
 
   useEffect(() => {
     if (userId) {
@@ -316,7 +303,11 @@ export function RecipeCard({
               width="100%"
               alt="Card background"
               className="object-cover rounded-xl h-[200px] w-full"
-              src={recipe.thumbnail_url}
+              src={
+                recipe.thumbnail_url
+                  ? recipe.thumbnail_url
+                  : "/image_placeholder.png"
+              }
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </CardBody>

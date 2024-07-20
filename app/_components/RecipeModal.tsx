@@ -1,8 +1,5 @@
 "use client";
 
-import { useDisclosure } from "@nextui-org/react";
-import { gql } from "@apollo/client/core";
-import { useQuery, useLazyQuery } from "@apollo/client";
 import {
   Modal,
   ModalBody,
@@ -11,32 +8,16 @@ import {
   ModalFooter,
   Image,
   Button,
-  Card,
-  CardBody,
-  CardHeader,
 } from "@nextui-org/react";
 import dynamic from "next/dynamic";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { MdFullscreen, MdFullscreenExit } from "react-icons/md";
-import { AddIngredient } from "./AddIngredient";
-import { RecommendedRecipeCard } from "./RecommendedRecipeCard";
 import { RecipeCard } from "./RecipeCard";
+import useSearchRecipes from "../_hooks/useSearchRecipes";
 
 const Editor = dynamic(() => import("@/app/_components/BlockNoteEditor"), {
   ssr: false,
 });
-
-interface RecRecipesData {
-  recRecipes: Recipe[];
-}
-
-const REC_RECIPE_QUERY = gql`
-  query GetRecRecipe($ingredientName: String!) {
-    recRecipes(where: { ingredients_INCLUDES: $ingredientName }) {
-      id
-    }
-  }
-`;
 
 type RecipeModalProps = {
   isOpen: boolean;
@@ -49,6 +30,8 @@ type RecipeModalProps = {
   mutatedFavourite: object[];
 };
 
+const LIMIT = 6;
+
 export default function RecipeModal({
   recipe,
   isOpen,
@@ -59,69 +42,10 @@ export default function RecipeModal({
   setMutatedFavourite,
   mutatedFavourite,
 }: RecipeModalProps) {
-  const [recipeSizeAction, setRecipeSizeAction] = useState(<MdFullscreen />);
-
-  const setRecipeSizeHandler = () => {
-    if (recipeSize === "sm") {
-      setRecipeSize("5xl");
-      setRecipeSizeAction(<MdFullscreenExit />);
-    } else {
-      setRecipeSize("sm");
-      setRecipeSizeAction(<MdFullscreen />);
-    }
-  };
-  const [recipeSize, setRecipeSize] = useState<
-    | "xs"
-    | "sm"
-    | "md"
-    | "lg"
-    | "xl"
-    | "2xl"
-    | "3xl"
-    | "4xl"
-    | "5xl"
-    | "full"
-    | undefined
-  >("sm");
-
-  const [recRecipes, setRecRecipes] = useState<Recipe[]>([]);
-  const [recipeIngredients, setRecipeIngredients] = useState<Recipe[]>([]);
   const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
 
-  const {
-    loading: recRecipesLoading,
-    error: recRecipesError,
-    data: recRecipesData,
-    refetch: recRecipesRefetch,
-  } = useQuery<RecRecipesData>(REC_RECIPE_QUERY);
-
-  // useEffect(() => {
-  //   const ingredientName = recipe.ingredients;
-  //   if (ingredientName) {
-  //     searchRecipes({
-  //       variables: { searchTerm: ingredientName },
-  //     });
-  //   } else {
-  //     setRecipeIngredients(recRecipesData?.recRecipes || []);
-  //   }
-  // }, [recipe.ingredients]);
-
-  const { onClose, onOpen } = useDisclosure();
-
-  useEffect(() => {
-    if (recRecipesData) {
-      setRecRecipes(recRecipes);
-    }
-  }, [recipe.ingredients]);
-
-  const modalState = useRef(isOpen);
-  console.log(modalState.current);
-
-  const closePrevModal = () => {
-    console.log("Opening new modal");
-    console.log("Closing the previous modal");
-    modalState.current;
-  };
+  const { recipes: recRecipes, setSearchTerm: setRecRecipesIngredients } =
+    useSearchRecipes(LIMIT);
 
   useEffect(() => {
     if (!searchIngredients) {
@@ -142,11 +66,17 @@ export default function RecipeModal({
     setMissingIngredients(newMissingIngredients);
   }, [recipe.ingredients, searchIngredients]);
 
+  useEffect(() => {
+    setRecRecipesIngredients({
+      recipeName: "",
+      ingredients: recipe.ingredients,
+    });
+  }, []);
+
   return (
     <Modal
-      size={recipeSize}
       scrollBehavior="inside"
-      className="h-auto"
+      className="h-auto xs:min-w-full sm:min-w-fit"
       isOpen={isOpen}
       placement="center"
       onOpenChange={onOpenChange}
@@ -164,7 +94,7 @@ export default function RecipeModal({
                   src={
                     recipe.thumbnail_url
                       ? recipe.thumbnail_url
-                      : "/image_placeholder.jpeg"
+                      : "/image_placeholder.png"
                   }
                   alt="Recipe thumbnail image"
                   style={{ width: "400px", height: "300px" }}
@@ -212,37 +142,34 @@ export default function RecipeModal({
                 initialContent={JSON.parse(recipe.contents)}
                 editable={false}
               />
-
-              {/* {recRecipes.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                {recRecipes.map((recipe) => (
-                  <RecipeCard recipe={recipe} key={recipe.id} />
-                ))}
-              </div>
-              ) : (
-                <div className="flex flex-col gap-4">
-                  <span>No recipes found 😅 Consider creating one!</span>
-                </div>
-              )} */}
               <div>
-                <hr></hr>
+                <hr />
                 <p className="font-bold py-3">You Might Like:</p>
-                <RecipeCard
-                  recipe={recipe}
-                  key={recipe.id}
-                  onPress={closePrevModal}
-                  peopleYouFollow={peopleYouFollow}
-                  setPeopleYouFollow={setPeopleYouFollow}
-                  mutatedFavourite={mutatedFavourite}
-                  setMutatedFavourite={setMutatedFavourite}
-                />
-                {/* <Button onClick={closePrevModal}>Close Prev Modal</Button> */}
+
+                {recRecipes.length > 0 ? (
+                  <div className="grid xs:grid-cols-1 sm:grid-cols-2 gap-4">
+                    {recRecipes.map((recipe) => (
+                      <RecipeCard
+                        recipe={recipe}
+                        key={`${recRecipes.length}-${recipe.id}-${recipe.name}`}
+                        peopleYouFollow={peopleYouFollow}
+                        setPeopleYouFollow={setPeopleYouFollow}
+                        mutatedFavourite={mutatedFavourite}
+                        setMutatedFavourite={setMutatedFavourite}
+                        searchIngredients={recipe.ingredients}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    <span>No recipes found 😅 Consider creating one!</span>
+                  </div>
+                )}
               </div>
             </ModalBody>
             <ModalFooter>
               {/* If user is recipe owner, show edit and delete button */}
               {/* {recipe?.ow === user.id && ( */}
-              <Button onPress={setRecipeSizeHandler}>{recipeSizeAction}</Button>
               <Button onPress={onClose}>Save</Button>
               {/* )} */}
             </ModalFooter>
