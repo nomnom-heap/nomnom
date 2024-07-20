@@ -11,9 +11,10 @@ import {
 } from "@nextui-org/react";
 import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
-import { MdFullscreen, MdFullscreenExit } from "react-icons/md";
 import { RecipeCard } from "./RecipeCard";
 import useSearchRecipes from "../_hooks/useSearchRecipes";
+import { useAuth } from "../AuthProvider";
+import RecipeInputModal from "./RecipeInputModal";
 
 const Editor = dynamic(() => import("@/app/_components/BlockNoteEditor"), {
   ssr: false,
@@ -28,6 +29,7 @@ type RecipeModalProps = {
   setPeopleYouFollow: React.Dispatch<React.SetStateAction<Object[]>>;
   setMutatedFavourite: React.Dispatch<React.SetStateAction<object[]>>;
   mutatedFavourite: object[];
+  onOpenEditRecipeModal: (open: boolean) => void;
 };
 
 const LIMIT = 7;
@@ -41,11 +43,14 @@ export default function RecipeModal({
   setPeopleYouFollow,
   setMutatedFavourite,
   mutatedFavourite,
+  onOpenEditRecipeModal,
 }: RecipeModalProps) {
   const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
-
   const { recipes: recRecipes, setSearchTerm: setRecRecipesIngredients } =
     useSearchRecipes(LIMIT);
+  const [isOwner, setIsOwner] = useState(false);
+
+  const { userId } = useAuth();
 
   useEffect(() => {
     if (!searchIngredients) {
@@ -67,6 +72,9 @@ export default function RecipeModal({
   }, [recipe.ingredients, searchIngredients]);
 
   useEffect(() => {
+    if (userId === recipe.owner.id) {
+      setIsOwner(true);
+    }
     setRecRecipesIngredients({
       recipeName: "",
       ingredients: recipe.ingredients,
@@ -172,7 +180,20 @@ export default function RecipeModal({
             </ModalBody>
             <ModalFooter>
               {/* If user is recipe owner, show edit and delete button */}
+              {isOwner && (
+                <Button onPress={() => onOpenEditRecipeModal(true)}>
+                  Edit
+                </Button>
+              )}
             </ModalFooter>
+            {/* {openEditModal && (
+              <RecipeInputModal
+                isOpen={isOpen}
+                // onOpenChange={() => setOpenEditModal(false)}
+                onOpenChange={onOpenChange}
+                recipe={recipe}
+              />
+            )} */}
           </>
         )}
       </ModalContent>

@@ -25,7 +25,11 @@ import { uploadFileToPublicFolder } from "../_lib/utils";
 import { useAuth } from "../AuthProvider";
 import { useMutation } from "@apollo/client";
 import { fetchAuthSession } from "aws-amplify/auth";
-import { CREATE_RECIPE_MUTATION } from "@/_lib/gql";
+import {
+  CREATE_RECIPE_MUTATION,
+  UPDATE_RECIPE_MUTATION,
+  UpdateRecipeMutationData,
+} from "@/_lib/gql";
 import IngredientDropdown, { IngredientOption } from "./IngredientDropdown";
 import toast from "react-hot-toast";
 
@@ -35,8 +39,8 @@ type RecipeInputModalProps = {
   recipe?: Recipe; // recipe should be provided if editing, else it should be undefined (for creating recipe)
 };
 
-const createRecipeSuccessToast = () =>
-  toast.success("Nicely done! Recipe created successfully.", {
+const createSuccessToast = (message: string) =>
+  toast.success(message, {
     position: "top-right",
   });
 
@@ -60,7 +64,7 @@ export default function RecipeInputModal({
     recipe?.ingredients || [""]
   );
   const [contents, setContents] = useState<Block[]>(
-    recipe?.contents ? JSON.parse(recipe.contents) : []
+    recipe?.contents ? JSON.parse(recipe.contents) : undefined
   );
   const [thumbnailUrl, setThumbnailUrl] = useState<string>(
     recipe?.thumbnail_url || ""
@@ -134,19 +138,16 @@ export default function RecipeInputModal({
     },
   ] = useMutation(CREATE_RECIPE_MUTATION);
 
-  const handleSaveRecipe = async () => {
-    if (
-      !recipeName ||
-      !contents.length ||
-      !ingredients.length ||
-      !ingredientsQty.length
-    ) {
-      createErrorToast(
-        "Please fill in all required fields (recipe name, ingredients, ingredients quantity)."
-      );
-      throw new Error("Missing required fields");
-    }
+  const [
+    updateRecipe,
+    {
+      data: updateRecipeData,
+      loading: updateRecipeLoading,
+      error: updateRecipeError,
+    },
+  ] = useMutation<UpdateRecipeMutationData>(UPDATE_RECIPE_MUTATION);
 
+  const handleCreateRecipe = async () => {
     try {
       const session = await fetchAuthSession();
       const userId = session?.tokens?.accessToken.payload.sub;
@@ -169,11 +170,61 @@ export default function RecipeInputModal({
     }
   };
 
+  const handleUpdateRecipe = async () => {
+    if (!recipe) {
+      return;
+    }
+    try {
+      await updateRecipe({
+        variables: {
+          id: recipe.id,
+          recipeName: recipeName,
+          contents: JSON.stringify(contents),
+          time_taken_mins: preparationTime,
+          ingredients: ingredients,
+          ingredients_qty: ingredientsQty,
+          thumbnail_url: thumbnailUrl,
+          serving: serving,
+        },
+      });
+    } catch (error: any) {
+      console.error(error.message);
+      console.error("error updating recipe", error);
+      createErrorToast("Oops! Error updating recipe.");
+    }
+  };
+
+  const handleSaveRecipe = async () => {
+    if (
+      !recipeName ||
+      !contents.length ||
+      !ingredients.length ||
+      !ingredientsQty.length
+    ) {
+      createErrorToast(
+        "Please fill in all required fields (recipe name, ingredients, ingredients quantity)."
+      );
+      return;
+    }
+
+    if (recipe) {
+      handleUpdateRecipe();
+    } else {
+      handleCreateRecipe();
+    }
+  };
+
   useEffect(() => {
     if (createRecipeData) {
-      createRecipeSuccessToast();
+      createSuccessToast("Nicely done! Recipe created!");
     }
   }, [createRecipeData]);
+
+  useEffect(() => {
+    if (updateRecipeData) {
+      createSuccessToast("Recipe updated!");
+    }
+  }, [updateRecipeData]);
 
   useEffect(() => {
     if (createRecipeError) {
@@ -254,7 +305,6 @@ export default function RecipeInputModal({
                 placeholder="Type your recipe name"
                 value={recipeName}
                 onChange={(e) => setRecipeName(e.target.value)}
-                readOnly={recipe ? true : false}
               />
             </ModalHeader>
             <ModalBody>
@@ -268,7 +318,6 @@ export default function RecipeInputModal({
                       setPreparationTime(parseFloat(e.target.value))
                     }
                     className="w-1/4"
-                    readOnly={recipe ? true : false}
                   />
                 </div>
 
@@ -279,7 +328,6 @@ export default function RecipeInputModal({
                     value={serving.toString()}
                     onChange={(e) => setServing(parseFloat(e.target.value))}
                     className="w-1/4"
-                    readOnly={recipe ? true : false}
                   />
                 </div>
               </div>
@@ -341,7 +389,7 @@ export default function RecipeInputModal({
                   </Button>
                 </div>
               ))}
-              <Editor onChange={setContents} />
+              <Editor initialContent={contents} onChange={setContents} />
             </ModalBody>
             <ModalFooter>
               <Button onPress={() => setFullScreen(!fullScreen)}>

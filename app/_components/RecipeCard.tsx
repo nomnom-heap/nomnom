@@ -16,6 +16,7 @@ import { gql } from "@apollo/client/core";
 import { fetchAuthSession } from "aws-amplify/auth";
 import RecipeModal from "./RecipeModal";
 import { useAuth } from "../AuthProvider";
+import RecipeInputModal from "./RecipeInputModal";
 
 type RecipeCardProps = {
   recipe: Recipe;
@@ -207,6 +208,20 @@ export function RecipeCard({
       : false
   );
 
+  const [openEditModal, setOpenEditModal] = useState(false);
+
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const {
+    isOpen: isEditModalOpen,
+    onOpen: onOpenEditModal,
+    onOpenChange: onOpenEditModalChange,
+  } = useDisclosure();
+
+  const handleOpenEditRecipeModal = (open: boolean) => {
+    onOpenChange();
+    onOpenEditModal();
+  };
+
   useEffect(() => {
     if (peopleYouFollow) {
       const isUserFollowed = peopleYouFollow.some(
@@ -215,8 +230,6 @@ export function RecipeCard({
       setIsFollowed(isUserFollowed);
     }
   }, [peopleYouFollow]);
-
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   useEffect(() => {
     if (!searchIngredients) {
@@ -355,39 +368,15 @@ export function RecipeCard({
         setMutatedFavourite={setMutatedFavourite}
         mutatedFavourite={mutatedFavourite}
         searchIngredients={searchIngredients}
+        onOpenEditRecipeModal={handleOpenEditRecipeModal}
       />
-      {/* <Modal isOpen={isOpen} placement="center" onOpenChange={onOpenChange}>
-        <ModalContent className="bg-gray-300">
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-4">
-                <Image
-                  className="rounded-xl"
-                  src={recipe.thumbnail_url}
-                  alt={recipe.name}
-                  style={{ width: "400px", height: "300px" }}
-                />
-                {recipe.name}
-              </ModalHeader>
-              <ModalBody>
-                <p>Preparation Time 🕛: {recipe.time_taken_mins} mins</p>
-                <p>Ingredients:</p>
-                <ul>
-                  {recipe.ingredients.map((ingredient, index) => (
-                    <li key={index}>
-                      {recipe.ingredients_qty[index]} {ingredient}
-                    </li>
-                  ))}
-                </ul>
-                <p>Steps:</p>
-                <Editor />
-                <p>{recipe.contents}</p>
-              </ModalBody>
-              <ModalFooter></ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal> */}
+
+      {/* Opened when owner wants to edit the recipe */}
+      <RecipeInputModal
+        isOpen={isEditModalOpen}
+        onOpenChange={onOpenEditModalChange}
+        recipe={recipe}
+      />
     </>
   );
 }

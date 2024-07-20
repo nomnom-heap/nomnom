@@ -127,7 +127,7 @@ export default function Page() {
 
     if (getFollowingData) {
       setPeopleYouFollow(getFollowingData.users[0].following);
-      console.log(JSON.stringify(getFollowingData.users[0].following));
+      // console.log(JSON.stringify(getFollowingData.users[0].following));
     }
   }, [getFollowingError, getFollowingData]);
 
