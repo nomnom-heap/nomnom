@@ -260,7 +260,7 @@ export function RecipeCard({
                   showFallback
                   src=""
                 />
-                <h4 className="text-sm font-semibold leading-none text-default-600">
+                <h4 className="text-sm font-semibold leading-none text-default-600 overflow-ellipsis">
                   {recipe.owner.display_name}
                 </h4>
               </div>
