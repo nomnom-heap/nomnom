@@ -1,3 +1,4 @@
+import { Client } from "langsmith";
 import { NextRequest, NextResponse } from "next/server";
 import { Neo4jVectorStore } from "@langchain/community/vectorstores/neo4j_vector";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
@@ -7,13 +8,14 @@ import {
 } from "@langchain/core/runnables";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
+import { LangChainTracer } from "@langchain/core/tracers/tracer_langchain";
 
 const SYSTEM_TEMPLATE = `
   You are NOMNOM, a friendly and knowledgeable recipe recommender. Your job is to help users find delicious recipes 
   based on their preferences, dietary restrictions, and available ingredients. You provide detailed instructions, 
   ingredient lists, and useful tips for cooking. Your responses are engaging, helpful, and tailored to the user's needs.
 
-  ONLY use the following pieces of context to answer the question at the end.
+  ONLY use the context below to answer the question at the end.
   Utilise the chat history provided to understand what the user is trying to ask.
   Provide a new recipe for a new question, unless the user specifically ask for the same recipe or a similar recipe.
   
@@ -27,8 +29,7 @@ const SYSTEM_TEMPLATE = `
   Only answer questions related to cooking or recipes, if the question do no fit into the criteria reply with "I do not have the relevant information".
   You need to be engaging in your responses.
   Format your responses in HTML. 
-  Only use <strong> for the headers which are the name of the dish, Ingredients: , Steps: , Comments: .
-  Have a </br> after each section and after each recipe
+
 
   Example of a recipe response: ###
   I have something I can recommend</br> 
@@ -61,8 +62,12 @@ const SYSTEM_TEMPLATE = `
 
   Pancakes are a great recipe for the family! Let me know if you have other queries!
   ###
+
+  ONLY use the context below to answer the question.
   ----------------
+  CONTEXT HERE: """
   {context}
+  """
 `;
 
 export async function POST(req: NextRequest) {
@@ -146,10 +151,17 @@ export async function POST(req: NextRequest) {
       llm,
       new StringOutputParser(),
     ]);
-
+    const client = new Client({
+      apiKey: process.env.LANGSMITH_API_KEY,
+      apiUrl: "https://api.smith.langchain.com",
+    });
+    const tracer = new LangChainTracer({ client, projectName: "Nombot" });
     //const result = await chain.stream(query);
     //return NextResponse.json({ result });
-    const data = await chain.stream(query);
+    const data = await chain.stream(query, {
+      callbacks: [tracer],
+      runName: "Vector Retriever Chain",
+    });
     return new Response(data);
   } catch (error) {
     console.error("Error executing vector retriever:", error);

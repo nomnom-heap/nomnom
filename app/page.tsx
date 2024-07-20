@@ -15,6 +15,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import useSearchRecipes from "./_hooks/useSearchRecipes";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { gql, useLazyQuery } from "@apollo/client";
+import { Router, useRouter } from "next/router";
 
 const LIMIT = 9;
 const poppins = Poppins({ weight: ["600", "400"], subsets: ["latin"] });
@@ -37,6 +38,7 @@ export default function Page() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [filterByFollowed, setFilterByFollowed] = useState<Boolean>(false);
   const [filterByFavourited, setFilterByFavourited] = useState<Boolean>(false);
+
   const [searchTerm, setSearchTerm] = useState<SearchTerm>({
     recipeName: "",
     ingredients: [],

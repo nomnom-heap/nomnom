@@ -78,7 +78,8 @@ export default function Page() {
         password: loginPassword,
       });
       if (isSignedIn) {
-        router.push("/");
+        // router.push("/");
+        window.location.replace("/");
       } else if (nextStep.signInStep === "CONFIRM_SIGN_UP") {
         const email = encodeURIComponent(loginEmail);
         router.push(`/confirm-sign-up?email=${email}`);
