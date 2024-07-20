@@ -23,11 +23,10 @@ import { permanentRedirect } from "next/navigation";
 const poppins = Poppins({ weight: ["600"], subsets: ["latin"] });
 
 const CREATE_CHAT_SESSION_MUTATION = gql`
-  mutation createChatSession($userId: ID!) {
-    createChatSessions(
-      input: { owner: { connect: { where: { node: { id: $userId } } } } }
-    ) {
-      chatSessions {
+  mutation createChatSessions() {
+   {
+      chatSessions(        
+      ) {
         id
       }
     }

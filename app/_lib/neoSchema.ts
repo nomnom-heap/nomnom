@@ -111,28 +111,10 @@ const typeDefs = /* GraphQL */ `
       )
   }
 
-  type ChatSession
-    @authentication(
-      operations: [
-        CREATE
-        UPDATE
-        DELETE
-        CREATE_RELATIONSHIP
-        DELETE_RELATIONSHIP
-      ]
-    )
-    @authorization(
-      validate: [
-        {
-          operations: [CREATE, CREATE_RELATIONSHIP]
-          where: { node: { owner: { id: "$jwt.sub" } } }
-        }
-      ]
-    ) {
+  type ChatSession {
     id: ID! @id
-    owner: User! @relationship(type: "HAS", direction: IN)
     createdAt: DateTime! @timestamp(operations: [CREATE])
-    messages: [ChatMessage!]! @relationship(type: "HAS_MESSAGE", direction: OUT)
+    messages: [ChatMessage!] @relationship(type: "HAS_MESSAGE", direction: OUT)
   }
 
   type ChatMessage {
