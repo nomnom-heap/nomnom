@@ -70,7 +70,7 @@ export default function NavBar() {
           </Link>
         </NavbarItem>
         <NavbarItem>
-          <Link className="text-white" href="#">
+          <Link className="text-white" href="/recipes">
             My Recipes
           </Link>
         </NavbarItem>
