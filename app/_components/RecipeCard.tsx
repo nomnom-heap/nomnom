@@ -9,6 +9,7 @@ import {
   Button,
 } from "@nextui-org/react";
 import { HeartIcon } from "./HeartIcon";
+<<<<<<< HEAD
 import { useEffect, useState } from "react";
 import { useMutation } from "@apollo/client";
 import { gql } from "@apollo/client/core";
@@ -26,6 +27,27 @@ import { useAuth } from "../AuthProvider";
 type RecipeCardProps = {
   recipe: Recipe;
   onPress?: () => void;
+=======
+import { useEffect, useState } from "react";
+import { useMutation } from "@apollo/client";
+import { gql } from "@apollo/client/core";
+import { fetchAuthSession } from "aws-amplify/auth";
+import RecipeModal from "./RecipeModal";
+import { useAuth } from "../AuthProvider";
+import RecipeInputModal from "./RecipeInputModal";
+
+type RecipeCardProps = {
+  recipe: Recipe;
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
+  peopleYouFollow: Object[];
+  setPeopleYouFollow: React.Dispatch<React.SetStateAction<Object[]>>;
+  setMutatedFavourite: React.Dispatch<React.SetStateAction<object[]>>;
+  mutatedFavourite: object[];
+  searchIngredients: string[];
+<<<<<<< HEAD
+  // setPeopleYouFollow:
+=======
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
 };
 
 const FAVOURITE_RECIPE_MUTATION = gql`
@@ -54,8 +76,77 @@ const UNFAVOURITE_RECIPE_MUTATION = gql`
   }
 `;
 
-export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
+<<<<<<< HEAD
+// const { token } = useAuth();
+// followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
+// console.log(followedInfo);
+// console.log("test : ${[].some((e) => e === "some");
+
+=======
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
+const FOLLOW_USER_MUTATION = gql`
+  mutation FollowUser($userId: ID!, $userToFollowId: ID!) {
+    updateUsers(
+      where: { id: $userId }
+      connect: { following: { where: { node: { id: $userToFollowId } } } }
+    ) {
+      info {
+        relationshipsCreated
+      }
+    }
+  }
+`;
+
+const UNFOLLOW_USER_MUTATION = gql`
+  mutation UnfollowUser($userId: ID!, $userToUnfollowId: ID!) {
+    updateUsers(
+      where: { id: $userId }
+      disconnect: { following: { where: { node: { id: $userToUnfollowId } } } }
+    ) {
+      info {
+        relationshipsDeleted
+      }
+    }
+  }
+`;
+
+export function RecipeCard({
+  recipe,
+<<<<<<< HEAD
+  onPress,
+=======
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
+  peopleYouFollow,
+  setPeopleYouFollow,
+  setMutatedFavourite,
+  mutatedFavourite,
+  searchIngredients,
+}: RecipeCardProps) {
+<<<<<<< HEAD
+  // const { token } = useAuth();
+  // followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
+  // console.log(followedInfo);
+  // console.log("test : ${[].some((e) => e === "some");
+  const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const userId = useAuth().userId;
+  // console.log(userId);
+=======
+  const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const { userId } = useAuth();
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
+
+  useEffect(() => {
+    if (userId) {
+      setIsLoggedIn(true);
+    }
+  }, [userId]);
+
+  // const { token } = useAuth();
+  // followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
+  // console.log(followedInfo);
+  // console.log("test : ${[].some((e) => e === "some");
 
   const [
     favouriteRecipe,
@@ -91,14 +182,118 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
     userId ? recipe.favouritedByUsers.some((obj) => obj.id === userId) : false
   );
 
+  const [isFollowed, setIsFollowed] = useState<boolean>(
+    peopleYouFollow
+      ? peopleYouFollow.some((obj) => obj.id === recipe.owner.id)
+      : false
+  );
+
+<<<<<<< HEAD
+=======
+  const [openEditModal, setOpenEditModal] = useState(false);
+
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const {
+    isOpen: isEditModalOpen,
+    onOpen: onOpenEditModal,
+    onOpenChange: onOpenEditModalChange,
+  } = useDisclosure();
+
+  const handleOpenEditRecipeModal = (open: boolean) => {
+    onOpenChange();
+    onOpenEditModal();
+  };
+
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
+  useEffect(() => {
+    if (peopleYouFollow) {
+      const isUserFollowed = peopleYouFollow.some(
+        (obj) => obj.id === recipe.owner.id
+      );
+      setIsFollowed(isUserFollowed);
+    }
+  }, [peopleYouFollow]);
+
+<<<<<<< HEAD
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
+=======
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
+  useEffect(() => {
+    if (!searchIngredients) {
+      setMissingIngredients([]);
+      return;
+    }
+
+<<<<<<< HEAD
+    const newMissingIngredients = recipe.ingredients.filter(
+      (recipeIngredient) => {
+        return (
+          !searchIngredients.some((searchedIngredient) =>
+            recipeIngredient.includes(searchedIngredient.trim())
+          ) && recipeIngredient.trim() !== ""
+        );
+      }
+    );
+
+=======
+    const searchIngredientsSet = new Set(searchIngredients);
+    const newMissingIngredients = Array.from(
+      [...recipe.ingredients].filter(
+        (ingredient) => !searchIngredientsSet.has(ingredient)
+      )
+    );
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
+    setMissingIngredients(newMissingIngredients);
+  }, [recipe.ingredients, searchIngredients]);
 
   return (
     <>
       <div className="cursor-pointer" onClick={onOpen} key={recipe.id}>
         <Card className="relative group">
           <CardHeader className="pb-0 pt-3 px-3 m-2 flex-col items-start">
-            <h4 className="font-bold text-lg">{recipe.name}</h4>
+            <div className="flex place-items-center justify-between w-full pr-2 pl-0">
+              <div className="flex gap-3 place-items-center">
+                <Avatar
+                  isBordered
+                  radius="full"
+                  size="md"
+                  showFallback
+                  src=""
+                />
+<<<<<<< HEAD
+                <h4 className="text-sm font-semibold leading-none text-default-600">
+=======
+                <h4 className="text-sm font-semibold leading-none text-default-600 overflow-ellipsis">
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
+                  {recipe.owner.display_name}
+                </h4>
+              </div>
+              {!isLoggedIn ? (
+                ""
+              ) : userId === recipe.owner.id ? (
+                ""
+              ) : (
+                <Button
+                  color="primary"
+                  radius="full"
+                  size="sm"
+                  variant={isFollowed ? "bordered" : "solid"}
+                  onPress={() => {
+                    isFollowed
+                      ? handleUnfollowUser(recipe.owner.id)
+                      : handleFollowUser(recipe.owner.id);
+                    setIsFollowed(!isFollowed);
+                  }}
+                >
+                  {isFollowed ? "Unfollow" : "Follow"}
+                </Button>
+              )}
+            </div>
+
+            <div className="pt-4">
+              <h4 className="font-bold text-md">{recipe.name}</h4>
+            </div>
           </CardHeader>
           <CardBody className="p-3 justify-end position: static object-fit: cover">
             <Image
@@ -107,7 +302,15 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
               width="100%"
               alt="Card background"
               className="object-cover rounded-xl h-[200px] w-full"
+<<<<<<< HEAD
               src={recipe.thumbnail_url}
+=======
+              src={
+                recipe.thumbnail_url
+                  ? recipe.thumbnail_url
+                  : "/image_placeholder.png"
+              }
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </CardBody>
@@ -148,7 +351,56 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
         isOpen={isOpen}
         onOpenChange={onOpenChange}
         recipe={recipe}
+        peopleYouFollow={peopleYouFollow}
+        setPeopleYouFollow={setPeopleYouFollow}
+        setMutatedFavourite={setMutatedFavourite}
+        mutatedFavourite={mutatedFavourite}
+        searchIngredients={searchIngredients}
+<<<<<<< HEAD
       />
+      {/* <Modal isOpen={isOpen} placement="center" onOpenChange={onOpenChange}>
+        <ModalContent className="bg-gray-300">
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-4">
+                <Image
+                  className="rounded-xl"
+                  src={recipe.thumbnail_url}
+                  alt={recipe.name}
+                  style={{ width: "400px", height: "300px" }}
+                />
+                {recipe.name}
+              </ModalHeader>
+              <ModalBody>
+                <p>Preparation Time 🕛: {recipe.time_taken_mins} mins</p>
+                <p>Ingredients:</p>
+                <ul>
+                  {recipe.ingredients.map((ingredient, index) => (
+                    <li key={index}>
+                      {recipe.ingredients_qty[index]} {ingredient}
+                    </li>
+                  ))}
+                </ul>
+                <p>Steps:</p>
+                <Editor />
+                <p>{recipe.contents}</p>
+              </ModalBody>
+              <ModalFooter></ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal> */}
+=======
+        onOpenEditRecipeModal={handleOpenEditRecipeModal}
+      />
+
+      {/* Opened when owner wants to edit the recipe */}
+      <RecipeInputModal
+        isOpen={isEditModalOpen}
+        onOpenChange={onOpenEditModalChange}
+        recipe={recipe}
+      />
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
     </>
   );
 }

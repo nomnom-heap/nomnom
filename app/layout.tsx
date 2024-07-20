@@ -7,6 +7,10 @@ import { AuthProvider } from "./AuthProvider";
 import { ApolloClientProvider } from "./ApolloClientProvider";
 import { NextUiWrapperProvider } from "./NextUiWrapperProvider";
 import { AmplifyProvider } from "./AmplifyProvider";
+<<<<<<< HEAD
+=======
+import { Toaster } from "react-hot-toast";
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,6 +33,10 @@ export default function RootLayout({
             <AmplifyProvider>
               <Navbar />
               <NextUiWrapperProvider>{children}</NextUiWrapperProvider>
+<<<<<<< HEAD
+=======
+              <Toaster />
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
             </AmplifyProvider>
           </ApolloClientProvider>
         </AuthProvider>

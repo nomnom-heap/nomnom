@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { NextRequest, NextResponse } from 'next/server';
+=======
+import { NextRequest, NextResponse } from "next/server";
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
 import { Neo4jVectorStore } from "@langchain/community/vectorstores/neo4j_vector";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import {
@@ -67,8 +71,16 @@ const SYSTEM_TEMPLATE = `
 
 export async function POST(req: NextRequest) {
   try {
+<<<<<<< HEAD
     if (req.method !== 'POST') {
       return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
+=======
+    if (req.method !== "POST") {
+      return NextResponse.json(
+        { error: "Method not allowed" },
+        { status: 405 }
+      );
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
     }
 
     const { query, chatHistory } = await req.json();
@@ -80,11 +92,19 @@ export async function POST(req: NextRequest) {
       openAIApiKey: apiKey,
     });
 
+<<<<<<< HEAD
     const url = process.env.NEXT_PUBLIC_NEO4J_URI;
     const username = process.env.NEXT_PUBLIC_NEO4J_USER;
     const password = process.env.NEXT_PUBLIC_NEO4J_PASSWORD;
     const vector_name = "vectorIndexForRecipes";
     
+=======
+    const url = process.env.NEO4J_URI;
+    const username = process.env.NEO4J_USER;
+    const password = process.env.NEO4J_PASSWORD;
+    const vector_name = "vectorIndexForRecipes";
+
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
     const config = {
       url: url,
       username: username,
@@ -149,7 +169,17 @@ export async function POST(req: NextRequest) {
     const data = await chain.stream(query);
     return new Response(data);
   } catch (error) {
+<<<<<<< HEAD
     console.error('Error executing vector retriever:', error);
     return NextResponse.json({ error: 'Failed to execute vector retriever' }, { status: 500 });
   }
 }
+=======
+    console.error("Error executing vector retriever:", error);
+    return NextResponse.json(
+      { error: "Failed to execute vector retriever" },
+      { status: 500 }
+    );
+  }
+}
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5

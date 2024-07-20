@@ -72,6 +72,11 @@ export const CREATE_RECIPE_MUTATION = gql`
     $thumbnail_url: String!
     $userId: ID!
     $serving: Float!
+<<<<<<< HEAD
+=======
+    $joined_ingredients: String!
+    $cleaned_contents: String!
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
   ) {
     createRecipes(
       input: {
@@ -83,6 +88,11 @@ export const CREATE_RECIPE_MUTATION = gql`
         thumbnail_url: $thumbnail_url
         owner: { connect: { where: { node: { id: $userId } } } }
         serving: $serving
+<<<<<<< HEAD
+=======
+        cleaned_contents: $cleaned_contents
+        joined_ingredients: $joined_ingredients
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
       }
     ) {
       info {
@@ -101,56 +111,19 @@ export const CREATE_RECIPE_MUTATION = gql`
   }
 `;
 
-export const UPDATE_RECIPE_MUTATION = gql`
-  mutation updateRecipe(
-    $id: ID!
-    $name: String!
-    $contents: String!
-    $time_taken_mins: Float!
-    $ingredients: [String!]!
-    $ingredients_qty: [String!]!
-    $thumbnail_url: String!
-    $serving: Float!
-  ) {
-    updateRecipes(
-      where: { id: $id }
-      update: {
-        name: $name
-        contents: $contents
-        time_taken_mins: $time_taken_mins
-        ingredients: $ingredients
-        ingredients_qty: $ingredients_qty
-        thumbnail_url: $thumbnail_url
-        serving: $serving
-      }
-    ) {
-      recipes {
-        id
-        name
-        owner {
-          id
-          display_name
-        }
-      }
+export const FIND_INGREDIENTS_BY_NAME_QUERY = gql`
+  query findIngredientsByNameQuery($name: String!) {
+    findIngredientsByName(name: $name) {
+      id
+      name
+      group
     }
   }
 `;
 
-export const DELETE_RECIPE_MUTATION = gql`
-  mutation deleteRecipe($id: ID!) {
-    deleteRecipes(where: { id: $id }) {
-      nodesDeleted
-    }
-  }
-`;
-
-
-export interface GetIngredientsData {
-  ingredients: Ingredient[];
+export interface UpdateRecipeMutationData {
+  updateRecipes: {
+    recipes: Recipe[];
+  };
 }
-
-export interface Ingredient {
-  id: string;
-  name: string;
-  group?: string;
-}
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5

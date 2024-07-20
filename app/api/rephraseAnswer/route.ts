@@ -16,7 +16,11 @@ export async function POST(req: NextRequest) {
     });
 
     const client = new Client({
+<<<<<<< HEAD
       apiKey: "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",
+=======
+      apiKey: process.env.LANGSMITH_API_KEY,
+>>>>>>> 7508aa79b6d717adc650e834e8e23d9a79a549b5
       apiUrl: "https://api.smith.langchain.com",
     });
     const tracer = new LangChainTracer({ client, projectName: "Nombot" });
