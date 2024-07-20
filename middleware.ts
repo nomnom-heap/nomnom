@@ -1,4 +1,4 @@
-import { runWithAmplifyServerContext } from "./utils/server-utils";
+// import { runWithAmplifyServerContext } from "./utils/server-utils";
 
 // The fetchAuthSession is pulled as the server version from aws-amplify/auth/server
 import { fetchAuthSession } from "aws-amplify/auth/server";
@@ -10,23 +10,23 @@ export async function middleware(request: NextRequest) {
 
   // The runWithAmplifyServerContext will run the operation below
   // in an isolated matter.
-  const authenticated = await runWithAmplifyServerContext({
-    nextServerContext: { request, response },
-    operation: async (contextSpec) => {
-      try {
-        // The fetch will grab the session cookies
-        const session = await fetchAuthSession(contextSpec, {});
-        return session.tokens !== undefined;
-      } catch (error) {
-        console.log(error);
-        return false;
-      }
-    },
-  });
+  // const authenticated = await runWithAmplifyServerContext({
+  //   nextServerContext: { request, response },
+  //   operation: async (contextSpec) => {
+  //     try {
+  //       // The fetch will grab the session cookies
+  //       const session = await fetchAuthSession(contextSpec, {});
+  //       return session.tokens !== undefined;
+  //     } catch (error) {
+  //       console.log(error);
+  //       return false;
+  //     }
+  //   },
+  // });
 
   // If user is authenticated then the route request will continue on
   if (
-    authenticated ||
+    // authenticated ||
     request.nextUrl.pathname === "/" ||
     request.nextUrl.pathname === "/nombot"
   ) {
