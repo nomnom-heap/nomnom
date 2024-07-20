@@ -40,8 +40,8 @@ const createRecipeSuccessToast = () =>
     position: "top-right",
   });
 
-const createRecipeErrorToast = () =>
-  toast.error("Oops! Error creating recipe.", {
+const createErrorToast = (message: string) =>
+  toast.error(message, {
     position: "top-right",
   });
 
@@ -135,14 +135,15 @@ export default function RecipeInputModal({
   ] = useMutation(CREATE_RECIPE_MUTATION);
 
   const handleSaveRecipe = async () => {
-    // Ensure all required fields are provided
     if (
       !recipeName ||
-      !userId ||
       !contents.length ||
       !ingredients.length ||
       !ingredientsQty.length
     ) {
+      createErrorToast(
+        "Please fill in all required fields (recipe name, ingredients, ingredients quantity)."
+      );
       throw new Error("Missing required fields");
     }
 
@@ -164,6 +165,7 @@ export default function RecipeInputModal({
     } catch (error: any) {
       console.error(error.message);
       console.error("error creating recipe", error);
+      createErrorToast("Oops! Error creating recipe.");
     }
   };
 
@@ -176,7 +178,7 @@ export default function RecipeInputModal({
   useEffect(() => {
     if (createRecipeError) {
       console.error("Error creating recipe", createRecipeError.message);
-      createRecipeErrorToast();
+      createErrorToast("Oops! Error creating recipe.");
     }
   }, [createRecipeError]);
 
@@ -230,9 +232,6 @@ export default function RecipeInputModal({
                 />
               ) : (
                 <>
-                  {/* <Button isIconOnly className='ml-auto' aria-label="Full screen" onClick={setRecipeSizeHandler}>
-                        {windowIcon}
-                </Button> */}
                   <input
                     type="file"
                     ref={fileInputRef}

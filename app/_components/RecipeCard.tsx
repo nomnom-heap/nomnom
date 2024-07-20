@@ -10,37 +10,20 @@ import {
   Avatar,
 } from "@nextui-org/react";
 import { HeartIcon } from "./HeartIcon";
-import {
-  MutableRefObject,
-  SetStateAction,
-  useEffect,
-  useState,
-  useRef,
-} from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@apollo/client";
 import { gql } from "@apollo/client/core";
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-} from "@nextui-org/modal";
 import { fetchAuthSession } from "aws-amplify/auth";
 import RecipeModal from "./RecipeModal";
 import { useAuth } from "../AuthProvider";
-import { IoConstructOutline } from "react-icons/io5";
-import { FaGalacticSenate } from "react-icons/fa";
 
 type RecipeCardProps = {
   recipe: Recipe;
-  onPress?: () => void;
   peopleYouFollow: Object[];
   setPeopleYouFollow: React.Dispatch<React.SetStateAction<Object[]>>;
   setMutatedFavourite: React.Dispatch<React.SetStateAction<object[]>>;
   mutatedFavourite: object[];
   searchIngredients: string[];
-  // setPeopleYouFollow:
 };
 
 const FAVOURITE_RECIPE_MUTATION = gql`
@@ -68,11 +51,6 @@ const UNFAVOURITE_RECIPE_MUTATION = gql`
     }
   }
 `;
-
-// const { token } = useAuth();
-// followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
-// console.log(followedInfo);
-// console.log("test : ${[].some((e) => e === "some");
 
 const FOLLOW_USER_MUTATION = gql`
   mutation FollowUser($userId: ID!, $userToFollowId: ID!) {
@@ -102,21 +80,15 @@ const UNFOLLOW_USER_MUTATION = gql`
 
 export function RecipeCard({
   recipe,
-  onPress,
   peopleYouFollow,
   setPeopleYouFollow,
   setMutatedFavourite,
   mutatedFavourite,
   searchIngredients,
 }: RecipeCardProps) {
-  // const { token } = useAuth();
-  // followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
-  // console.log(followedInfo);
-  // console.log("test : ${[].some((e) => e === "some");
   const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const userId = useAuth().userId;
-  // console.log(userId);
+  const { userId } = useAuth();
 
   useEffect(() => {
     if (userId) {
@@ -252,16 +224,12 @@ export function RecipeCard({
       return;
     }
 
-    const newMissingIngredients = recipe.ingredients.filter(
-      (recipeIngredient) => {
-        return (
-          !searchIngredients.some((searchedIngredient) =>
-            recipeIngredient.includes(searchedIngredient.trim())
-          ) && recipeIngredient.trim() !== ""
-        );
-      }
+    const searchIngredientsSet = new Set(searchIngredients);
+    const newMissingIngredients = Array.from(
+      [...recipe.ingredients].filter(
+        (ingredient) => !searchIngredientsSet.has(ingredient)
+      )
     );
-
     setMissingIngredients(newMissingIngredients);
   }, [recipe.ingredients, searchIngredients]);
 
@@ -316,7 +284,11 @@ export function RecipeCard({
               width="100%"
               alt="Card background"
               className="object-cover rounded-xl h-[200px] w-full"
-              src={recipe.thumbnail_url}
+              src={
+                recipe.thumbnail_url
+                  ? recipe.thumbnail_url
+                  : "/image_placeholder.png"
+              }
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </CardBody>
