@@ -23,12 +23,9 @@ import { permanentRedirect } from "next/navigation";
 const poppins = Poppins({ weight: ["600"], subsets: ["latin"] });
 
 const CREATE_CHAT_SESSION_MUTATION = gql`
-  mutation createChatSessions() {
-   {
-      chatSessions(        
-      ) {
-        id
-      }
+  mutation CreateChatSessionMutation {
+    createChatSessionMutation {
+      id
     }
   }
 `;
@@ -270,7 +267,7 @@ export default function Page() {
 
   useEffect(() => {
     if (ChatSessionData) {
-      setSessionId(ChatSessionData.createChatSessions.chatSessions[0].id);
+      setSessionId(ChatSessionData.createChatSessionMutation.id);
     }
   }, [ChatSessionData]);
 
