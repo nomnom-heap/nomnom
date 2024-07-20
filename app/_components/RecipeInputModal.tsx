@@ -34,6 +34,7 @@ import {
 } from "@/_lib/gql";
 import IngredientDropdown, { IngredientOption } from "./IngredientDropdown";
 import toast from "react-hot-toast";
+import useDeleteRecipe from "../_hooks/useDeleteRecipe";
 
 type RecipeInputModalProps = {
   isOpen: boolean;
@@ -113,22 +114,6 @@ export default function RecipeInputModal({
     }
   };
 
-  const AddIngredientHandler = (index: number) => {
-    setIngredients([...ingredients, ""]);
-    setIngredientsQty([...ingredientsQty, ""]);
-  };
-
-  const RemoveIngredientHandler = (index: number) => {
-    if (ingredients.length != 1) {
-      setIngredients((ingredients) =>
-        ingredients.filter((_, key) => key !== index)
-      );
-      setIngredientsQty((ingredientsQty) =>
-        ingredientsQty.filter((_, key) => key !== index)
-      );
-    }
-  };
-
   const handleRemoveIngredient = (index: number) => {
     console.log(index);
     if (ingredients.length === 1) {
@@ -165,22 +150,28 @@ export default function RecipeInputModal({
     },
   ] = useMutation<UpdateRecipeMutationData>(UPDATE_RECIPE_MUTATION);
 
-  function extractText(data: object[]) {
+  const {
+    deleteRecipe,
+    data: deleteRecipeData,
+    error: deleteRecipeError,
+  } = useDeleteRecipe();
+
+  function extractText(contents: Block[]) {
     let texts: string[] = [];
 
-    function traverse(node) {
+    function traverse(node: any) {
       if (node.type === "text") {
         texts.push(node.text);
       }
       if (node.children) {
-        node.children.forEach((child) => traverse(child));
+        node.children.forEach((child: any) => traverse(child));
       }
       if (node.content) {
-        node.content.forEach((contentItem) => traverse(contentItem));
+        node.content.forEach((contentItem: any) => traverse(contentItem));
       }
     }
 
-    data.forEach((item) => traverse(item));
+    contents.forEach((item) => traverse(item));
     return texts.join(" ");
   }
 
@@ -290,6 +281,18 @@ export default function RecipeInputModal({
       createErrorToast("Oops! Error creating recipe.");
     }
   }, [createRecipeError]);
+
+  useEffect(() => {
+    if (!deleteRecipeData) return;
+    createSuccessToast("Recipe deleted!");
+  }, [deleteRecipeData]);
+
+  useEffect(() => {
+    if (deleteRecipeError) {
+      console.error("Error deleting recipe", deleteRecipeError.message);
+      createErrorToast("Oops! Error deleting recipe.");
+    }
+  }, [deleteRecipeError]);
 
   if (!userId) {
     return (
@@ -455,8 +458,6 @@ export default function RecipeInputModal({
             </ModalBody>
             <ModalFooter>
               <Button onPress={handleSaveRecipe}>Save</Button>
-              {createRecipeData && <p>Recipe created successfully</p>}
-              {createRecipeError && <p>Error creating recipe</p>}
             </ModalFooter>
           </>
         )}

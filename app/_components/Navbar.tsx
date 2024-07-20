@@ -16,7 +16,6 @@ import { usePathname } from "next/navigation";
 
 export default function NavBar() {
   const { userId, setUserId } = useAuth();
-  console.log(userId);
 
   const pathname = usePathname();
 
@@ -67,12 +66,12 @@ export default function NavBar() {
           </Link>
         </NavbarItem>
         <NavbarItem>
-          <Link className="text-white" href="/Favourites">
+          <Link className="text-white" href="/favourites">
             My Favourites
           </Link>
         </NavbarItem>
         <NavbarItem>
-          <Link className="text-white" href="#">
+          <Link className="text-white" href="/recipes">
             My Recipes
           </Link>
         </NavbarItem>
