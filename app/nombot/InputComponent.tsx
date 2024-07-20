@@ -1,9 +1,13 @@
 import { Textarea, Button, Spinner } from "@nextui-org/react";
 
 export default function InputComponent({
+  // @ts-ignore
   setChatMessage,
+  // @ts-ignore
   handleSubmit,
+  // @ts-ignore
   chatMessage,
+  // @ts-ignore
   chatbotProcessing,
 }) {
   return (

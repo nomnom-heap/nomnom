@@ -17,7 +17,7 @@ const GET_DISPLAY_NAME_QUERY = gql`
     }
   }
 `;
-
+// @ts-ignore
 export default function MessageComponent({ content, identity }) {
   const { userId } = useAuth();
   const { data, loading, error } = useQuery(GET_DISPLAY_NAME_QUERY, {

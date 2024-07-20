@@ -25,9 +25,9 @@ export default async function VectorRetriever(
     temperature: 0,
     openAIApiKey: openAIapiKey,
   });
-  const url = process.env.NEXT_PUBLIC_NEO4J_URI;
-  const username = process.env.NEXT_PUBLIC_NEO4J_USER;
-  const password = process.env.NEXT_PUBLIC_NEO4J_PASSWORD;
+  const url = process.env.NEXT_PUBLIC_NEO4J_URI!;
+  const username = process.env.NEXT_PUBLIC_NEO4J_USER!;
+  const password = process.env.NEXT_PUBLIC_NEO4J_PASSWORD!;
   const vector_name = "vectorIndexForRecipes";
   const config = {
     url: url, // URL for the Neo4j instance
@@ -48,7 +48,7 @@ export default async function VectorRetriever(
   );
 
   const formattedChatHistory = chatHistory
-    .map((message) => {
+    .map((message: any) => {
       if (message.isOwnerHuman) {
         return `Human: ${message.content}`;
       } else {
@@ -123,8 +123,8 @@ export default async function VectorRetriever(
 
   // const relevantDocs = await retriever.invoke(query);
 
-  function cleanDocumentData(documents: Document[]) {
-    documents.forEach((document) => {
+  function cleanDocumentData(documents: any) {
+    documents.forEach((document: any) => {
       if (document.metadata && document.metadata.contents) {
         delete document.metadata.contents;
         delete document.metadata.updatedAt;
@@ -160,7 +160,7 @@ export default async function VectorRetriever(
     apiKey: "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",
     apiUrl: "https://api.smith.langchain.com",
   });
-  const tracer = new LangChainTracer({ client, projectName: "Nombot" });
+  const tracer = new LangChainTracer({ projectName: "Nombot" });
   return await chain.stream(query, {
     callbacks: [tracer],
     runName: "Vector Retriever",

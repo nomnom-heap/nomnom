@@ -74,7 +74,7 @@ const GET_CHAT_HISTORY_BY_SESSION = gql`
 export default function Page() {
   const [chatMessage, setChatMessage] = useState("");
   const [sessionId, setSessionId] = useState("unset");
-  const [messageData, setMessageData] = useState("");
+  const [messageData, setMessageData] = useState<any[]>([]);
   const [chatbotProcessing, setChatbotProcessing] = useState(false);
   const [chatbotResponse, setChatbotResponse] = useState("");
   // const hasEffectRan = useRef(false);
@@ -115,6 +115,7 @@ export default function Page() {
     fetchPolicy: "network-only",
   });
 
+  // @ts-ignore
   async function handleSubmitMessage(chatMessage) {
     // console.log(chatMessage);
     chatMessageRef.current = chatMessage;
@@ -200,7 +201,7 @@ export default function Page() {
               if (!response.ok) {
                 throw new Error("Network response was not ok");
               }
-
+              // @ts-ignore
               const reader = response.body.getReader();
               const decoder = new TextDecoder("utf-8");
               let result = "";

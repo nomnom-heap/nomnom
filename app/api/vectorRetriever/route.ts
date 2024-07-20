@@ -88,9 +88,9 @@ export async function POST(req: NextRequest) {
       openAIApiKey: apiKey,
     });
 
-    const url = process.env.NEO4J_URI;
-    const username = process.env.NEO4J_USER;
-    const password = process.env.NEO4J_PASSWORD;
+    const url = process.env.NEO4J_URI!;
+    const username = process.env.NEO4J_USER!;
+    const password = process.env.NEO4J_PASSWORD!;
     const vector_name = "vectorIndexForRecipes";
 
     const config = {
@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
       apiKey: process.env.LANGSMITH_API_KEY,
       apiUrl: "https://api.smith.langchain.com",
     });
-    const tracer = new LangChainTracer({ client, projectName: "Nombot" });
+    const tracer = new LangChainTracer({ projectName: "Nombot" });
     //const result = await chain.stream(query);
     //return NextResponse.json({ result });
     const data = await chain.stream(query, {

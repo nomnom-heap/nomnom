@@ -35,7 +35,7 @@ export default function Page() {
     return (
       <div className="pt-5 px-2 grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:px-20 md:pt-5">
         {Array(6).map(() => (
-          <LoadingSkeleton />
+          <LoadingSkeleton key={Math.random()} />
         ))}
       </div>
     );

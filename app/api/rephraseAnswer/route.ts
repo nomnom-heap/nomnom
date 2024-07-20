@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       apiKey: process.env.LANGSMITH_API_KEY,
       apiUrl: "https://api.smith.langchain.com",
     });
-    const tracer = new LangChainTracer({ client, projectName: "Nombot" });
+    const tracer = new LangChainTracer({ projectName: "Nombot" });
 
     const rephraseAnswerChain = initRephraseChain(llm);
     const output = await rephraseAnswerChain.invoke(

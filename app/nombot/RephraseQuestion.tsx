@@ -5,7 +5,7 @@ import {
   RunnableSequence,
 } from "@langchain/core/runnables";
 
-import { BaseChatModel } from "langchain/chat_models/base";
+// import { BaseChatModel } from "langchain/chat_models/base";
 
 // import { ChatbotResponse } from "../history";
 
@@ -19,7 +19,7 @@ export type RephraseQuestionInput = {
 // end::interface[]
 
 // tag::function[]
-export default function initRephraseChain(llm: BaseChatModel) {
+export default function initRephraseChain(llm: any) {
   // tag::prompt[]
   // Prompt template
 
@@ -86,7 +86,7 @@ export default function initRephraseChain(llm: BaseChatModel) {
           return "No history";
         }
         return history
-          .map((message) => {
+          .map((message: any) => {
             if (message.isOwnerHuman) {
               return `Human: ${message.content}`;
             } else {

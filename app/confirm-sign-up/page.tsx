@@ -1,17 +1,16 @@
 "use client";
 import { Button, Card, CardBody, CardHeader, Input } from "@nextui-org/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { confirmSignUp } from "aws-amplify/auth";
 
-export default function Page() {
+function ConfirmSignUpForm() {
   const searchParams = useSearchParams();
   const email = decodeURIComponent(searchParams.get("email") ?? "");
   const [errorMsg, setErrorMsg] = useState("");
-
   const [confirmationCode, setConfirmationCode] = useState("");
-
   const router = useRouter();
+
   const handleConfirmSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     try {
       e.preventDefault();
@@ -24,7 +23,6 @@ export default function Page() {
         router.push("/login");
       }
     } catch (error: any) {
-      // console.error(error);
       switch (error.name) {
         case "CodeMismatchException":
           setErrorMsg("Invalid verification code provided, please try again.");
@@ -57,7 +55,7 @@ export default function Page() {
               onChange={(e) => setConfirmationCode(e.target.value)}
             />
             <Button className="w-auto" color="primary" type="submit">
-              Let's get this started 🔥
+              Lets get this started 🔥
             </Button>
           </CardBody>
           {errorMsg && (
@@ -66,5 +64,13 @@ export default function Page() {
         </Card>
       </form>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ConfirmSignUpForm />
+    </Suspense>
   );
 }

@@ -29,7 +29,7 @@ type IngredientData = {
 
 type Props = AsyncCreatableProps<IngredientOption, boolean, IngredientGroup>;
 
-export default (props: Props) => {
+export default function IngredientDropdown(props: Props) {
   const [findIngredientsByName] = useLazyQuery<IngredientData>(
     FIND_INGREDIENTS_BY_NAME_QUERY
   );
@@ -93,4 +93,4 @@ export default (props: Props) => {
       />
     </>
   );
-};
+}
