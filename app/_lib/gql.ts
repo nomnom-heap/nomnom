@@ -63,6 +63,8 @@ export const UPDATE_RECIPE_MUTATION = gql`
     $ingredients_qty: [String!]!
     $thumbnail_url: String!
     $serving: Float!
+    $joined_ingredients: String!
+    $cleaned_contents: String!
   ) {
     updateRecipes(
       where: { id: $id }
@@ -74,6 +76,8 @@ export const UPDATE_RECIPE_MUTATION = gql`
         ingredients_qty: $ingredients_qty
         thumbnail_url: $thumbnail_url
         serving: $serving
+        joined_ingredients: $joined_ingredients
+        cleaned_contents: $cleaned_contents
       }
     ) {
       recipes {
