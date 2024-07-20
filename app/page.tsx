@@ -14,7 +14,6 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import useSearchRecipes from "./_hooks/useSearchRecipes";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { gql, useLazyQuery } from "@apollo/client";
-import { filter } from "graphql-yoga";
 
 const LIMIT = 9;
 
@@ -128,7 +127,7 @@ export default function Page() {
 
     if (getFollowingData) {
       setPeopleYouFollow(getFollowingData.users[0].following);
-      console.log(JSON.stringify(getFollowingData.users[0].following));
+      // console.log(JSON.stringify(getFollowingData.users[0].following));
     }
   }, [getFollowingError, getFollowingData]);
 

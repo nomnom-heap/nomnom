@@ -10,37 +10,21 @@ import {
   Avatar,
 } from "@nextui-org/react";
 import { HeartIcon } from "./HeartIcon";
-import {
-  MutableRefObject,
-  SetStateAction,
-  useEffect,
-  useState,
-  useRef,
-} from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@apollo/client";
 import { gql } from "@apollo/client/core";
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-} from "@nextui-org/modal";
 import { fetchAuthSession } from "aws-amplify/auth";
 import RecipeModal from "./RecipeModal";
 import { useAuth } from "../AuthProvider";
-import { IoConstructOutline } from "react-icons/io5";
-import { FaGalacticSenate } from "react-icons/fa";
+import RecipeInputModal from "./RecipeInputModal";
 
 type RecipeCardProps = {
   recipe: Recipe;
-  onPress?: () => void;
   peopleYouFollow: Object[];
   setPeopleYouFollow: React.Dispatch<React.SetStateAction<Object[]>>;
   setMutatedFavourite: React.Dispatch<React.SetStateAction<object[]>>;
   mutatedFavourite: object[];
   searchIngredients: string[];
-  // setPeopleYouFollow:
 };
 
 const FAVOURITE_RECIPE_MUTATION = gql`
@@ -68,11 +52,6 @@ const UNFAVOURITE_RECIPE_MUTATION = gql`
     }
   }
 `;
-
-// const { token } = useAuth();
-// followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
-// console.log(followedInfo);
-// console.log("test : ${[].some((e) => e === "some");
 
 const FOLLOW_USER_MUTATION = gql`
   mutation FollowUser($userId: ID!, $userToFollowId: ID!) {
@@ -102,21 +81,15 @@ const UNFOLLOW_USER_MUTATION = gql`
 
 export function RecipeCard({
   recipe,
-  onPress,
   peopleYouFollow,
   setPeopleYouFollow,
   setMutatedFavourite,
   mutatedFavourite,
   searchIngredients,
 }: RecipeCardProps) {
-  // const { token } = useAuth();
-  // followedInfo.forEach((item) => console.log(`followedInfo: ${item}`));
-  // console.log(followedInfo);
-  // console.log("test : ${[].some((e) => e === "some");
   const [missingIngredients, setMissingIngredients] = useState<String[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const userId = useAuth().userId;
-  // console.log(userId);
+  const { userId } = useAuth();
 
   useEffect(() => {
     if (userId) {
@@ -235,6 +208,20 @@ export function RecipeCard({
       : false
   );
 
+  const [openEditModal, setOpenEditModal] = useState(false);
+
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const {
+    isOpen: isEditModalOpen,
+    onOpen: onOpenEditModal,
+    onOpenChange: onOpenEditModalChange,
+  } = useDisclosure();
+
+  const handleOpenEditRecipeModal = (open: boolean) => {
+    onOpenChange();
+    onOpenEditModal();
+  };
+
   useEffect(() => {
     if (peopleYouFollow) {
       const isUserFollowed = peopleYouFollow.some(
@@ -244,24 +231,18 @@ export function RecipeCard({
     }
   }, [peopleYouFollow]);
 
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
-
   useEffect(() => {
     if (!searchIngredients) {
       setMissingIngredients([]);
       return;
     }
 
-    const newMissingIngredients = recipe.ingredients.filter(
-      (recipeIngredient) => {
-        return (
-          !searchIngredients.some((searchedIngredient) =>
-            recipeIngredient.includes(searchedIngredient.trim())
-          ) && recipeIngredient.trim() !== ""
-        );
-      }
+    const searchIngredientsSet = new Set(searchIngredients);
+    const newMissingIngredients = Array.from(
+      [...recipe.ingredients].filter(
+        (ingredient) => !searchIngredientsSet.has(ingredient)
+      )
     );
-
     setMissingIngredients(newMissingIngredients);
   }, [recipe.ingredients, searchIngredients]);
 
@@ -316,7 +297,11 @@ export function RecipeCard({
               width="100%"
               alt="Card background"
               className="object-cover rounded-xl h-[200px] w-full"
-              src={recipe.thumbnail_url}
+              src={
+                recipe.thumbnail_url
+                  ? recipe.thumbnail_url
+                  : "/image_placeholder.png"
+              }
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </CardBody>
@@ -383,39 +368,15 @@ export function RecipeCard({
         setMutatedFavourite={setMutatedFavourite}
         mutatedFavourite={mutatedFavourite}
         searchIngredients={searchIngredients}
+        onOpenEditRecipeModal={handleOpenEditRecipeModal}
       />
-      {/* <Modal isOpen={isOpen} placement="center" onOpenChange={onOpenChange}>
-        <ModalContent className="bg-gray-300">
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-4">
-                <Image
-                  className="rounded-xl"
-                  src={recipe.thumbnail_url}
-                  alt={recipe.name}
-                  style={{ width: "400px", height: "300px" }}
-                />
-                {recipe.name}
-              </ModalHeader>
-              <ModalBody>
-                <p>Preparation Time 🕛: {recipe.time_taken_mins} mins</p>
-                <p>Ingredients:</p>
-                <ul>
-                  {recipe.ingredients.map((ingredient, index) => (
-                    <li key={index}>
-                      {recipe.ingredients_qty[index]} {ingredient}
-                    </li>
-                  ))}
-                </ul>
-                <p>Steps:</p>
-                <Editor />
-                <p>{recipe.contents}</p>
-              </ModalBody>
-              <ModalFooter></ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal> */}
+
+      {/* Opened when owner wants to edit the recipe */}
+      <RecipeInputModal
+        isOpen={isEditModalOpen}
+        onOpenChange={onOpenEditModalChange}
+        recipe={recipe}
+      />
     </>
   );
 }
