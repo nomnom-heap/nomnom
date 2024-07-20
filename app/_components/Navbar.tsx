@@ -65,7 +65,7 @@ export default function NavBar() {
           </Link>
         </NavbarItem>
         <NavbarItem>
-          <Link className="text-white" href="#">
+          <Link className="text-white" href="/Favourites">
             My Favourites
           </Link>
         </NavbarItem>
