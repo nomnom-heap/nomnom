@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import { Neo4jVectorStore } from "@langchain/community/vectorstores/neo4j_vector";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import {
@@ -67,8 +67,11 @@ const SYSTEM_TEMPLATE = `
 
 export async function POST(req: NextRequest) {
   try {
-    if (req.method !== 'POST') {
-      return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
+    if (req.method !== "POST") {
+      return NextResponse.json(
+        { error: "Method not allowed" },
+        { status: 405 }
+      );
     }
 
     const { query, chatHistory } = await req.json();
@@ -80,11 +83,11 @@ export async function POST(req: NextRequest) {
       openAIApiKey: apiKey,
     });
 
-    const url = process.env.NEXT_PUBLIC_NEO4J_URI;
-    const username = process.env.NEXT_PUBLIC_NEO4J_USER;
-    const password = process.env.NEXT_PUBLIC_NEO4J_PASSWORD;
+    const url = process.env.NEO4J_URI;
+    const username = process.env.NEO4J_USER;
+    const password = process.env.NEO4J_PASSWORD;
     const vector_name = "vectorIndexForRecipes";
-    
+
     const config = {
       url: url,
       username: username,
@@ -149,7 +152,10 @@ export async function POST(req: NextRequest) {
     const data = await chain.stream(query);
     return new Response(data);
   } catch (error) {
-    console.error('Error executing vector retriever:', error);
-    return NextResponse.json({ error: 'Failed to execute vector retriever' }, { status: 500 });
+    console.error("Error executing vector retriever:", error);
+    return NextResponse.json(
+      { error: "Failed to execute vector retriever" },
+      { status: 500 }
+    );
   }
 }
