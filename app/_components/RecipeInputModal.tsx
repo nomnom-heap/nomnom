@@ -129,31 +129,6 @@ export default function RecipeInputModal({
     }
   };
 
-  const [recipeSize, setRecipeSize] = useState<
-    | "xs"
-    | "sm"
-    | "md"
-    | "lg"
-    | "xl"
-    | "2xl"
-    | "3xl"
-    | "4xl"
-    | "5xl"
-    | "full"
-    | undefined
-  >("sm");
-  const [recipeSizeAction, setRecipeSizeAction] = useState(<MdFullscreen />);
-
-  const setRecipeSizeHandler = () => {
-    if (recipeSize === "sm") {
-      setRecipeSize("5xl");
-      setRecipeSizeAction(<MdFullscreenExit />);
-    } else {
-      setRecipeSize("sm");
-      setRecipeSizeAction(<MdFullscreen />);
-    }
-  };
-
   const handleRemoveIngredient = (index: number) => {
     console.log(index);
     if (ingredients.length === 1) {
@@ -190,26 +165,26 @@ export default function RecipeInputModal({
     },
   ] = useMutation<UpdateRecipeMutationData>(UPDATE_RECIPE_MUTATION);
 
-  const handleCreateRecipe = async () => {
-    function extractText(data: object[]) {
-      let texts: string[] = [];
+  function extractText(data: object[]) {
+    let texts: string[] = [];
 
-      function traverse(node) {
-        if (node.type === "text") {
-          texts.push(node.text);
-        }
-        if (node.children) {
-          node.children.forEach((child) => traverse(child));
-        }
-        if (node.content) {
-          node.content.forEach((contentItem) => traverse(contentItem));
-        }
+    function traverse(node) {
+      if (node.type === "text") {
+        texts.push(node.text);
       }
-
-      data.forEach((item) => traverse(item));
-      return texts.join(" ");
+      if (node.children) {
+        node.children.forEach((child) => traverse(child));
+      }
+      if (node.content) {
+        node.content.forEach((contentItem) => traverse(contentItem));
+      }
     }
 
+    data.forEach((item) => traverse(item));
+    return texts.join(" ");
+  }
+
+  const handleCreateRecipe = async () => {
     try {
       const combinedList = ingredientsQty
         .map((q, index) => `${q} ${ingredients[index]}`)
@@ -250,13 +225,21 @@ export default function RecipeInputModal({
       return;
     }
     try {
+      const combinedList = ingredientsQty
+        .map((q, index) => `${q} ${ingredients[index]}`)
+        .join(", ");
+      const joined_ingredients = combinedList;
+      const cleaned_contents = extractText(contents);
+
       await updateRecipe({
         variables: {
           id: recipe.id,
           recipeName: recipeName,
           contents: JSON.stringify(contents),
+          cleaned_contents: cleaned_contents,
           time_taken_mins: preparationTime,
           ingredients: ingredients,
+          joined_ingredients: joined_ingredients,
           ingredients_qty: ingredientsQty,
           thumbnail_url: thumbnailUrl,
           serving: serving,
@@ -348,44 +331,45 @@ export default function RecipeInputModal({
       <ModalContent className="bg-white h-auto overflow-y-auto overflow-x-hidden">
         {(onClose) => (
           <>
-            <ModalHeader className="flex flex-col gap-4">
-              {thumbnailUrl ? (
-                <Image
-                  className="rounded-xl"
-                  src={thumbnailUrl}
-                  alt={`Thumbnail image for ${recipeName}`}
-                  style={{ width: "400px", height: "300px" }}
-                />
-              ) : (
-                <>
-                  {/* <Button isIconOnly className='ml-auto' aria-label="Full screen" onClick={setRecipeSizeHandler}>
+            <ModalBody>
+              <div className="flex-col pt-5 space-y-2">
+                {thumbnailUrl ? (
+                  <Image
+                    className="rounded-xl"
+                    src={thumbnailUrl}
+                    alt={`Thumbnail image for ${recipeName}`}
+                    style={{ width: "400px", height: "300px" }}
+                  />
+                ) : (
+                  <>
+                    {/* <Button isIconOnly className='ml-auto' aria-label="Full screen" onClick={setRecipeSizeHandler}>
                         {windowIcon}
                 </Button> */}
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    style={{ display: "none" }}
-                    onChange={handleImageChange}
-                  />
-                  <Button
-                    startContent={<ImageIcon />}
-                    className="w-auto"
-                    type="button"
-                    onPress={handleButtonClick}
-                  >
-                    <span className="text-sm">Upload image</span>
-                  </Button>
-                </>
-              )}
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      style={{ display: "none" }}
+                      onChange={handleImageChange}
+                    />
+                    <Button
+                      startContent={<ImageIcon />}
+                      fullWidth={true}
+                      type="button"
+                      onPress={handleButtonClick}
+                    >
+                      <span className="text-sm">Upload image</span>
+                    </Button>
+                  </>
+                )}
 
-              <Input
-                type="text"
-                placeholder="Type your recipe name"
-                value={recipeName}
-                onChange={(e) => setRecipeName(e.target.value)}
-              />
-            </ModalHeader>
-            <ModalBody>
+                <Input
+                  type="text"
+                  placeholder="Type your recipe name"
+                  value={recipeName}
+                  onChange={(e) => setRecipeName(e.target.value)}
+                />
+              </div>
+
               <div className="flex flex-col gap-2 w-full">
                 <div className="flex flex-row gap-2 items-center">
                   <p className="text-sm">Preparation Time (mins):</p>
@@ -470,7 +454,6 @@ export default function RecipeInputModal({
               <Editor initialContent={contents} onChange={setContents} />
             </ModalBody>
             <ModalFooter>
-              <Button onPress={setRecipeSizeHandler}>{recipeSizeAction}</Button>
               <Button onPress={handleSaveRecipe}>Save</Button>
               {createRecipeData && <p>Recipe created successfully</p>}
               {createRecipeError && <p>Error creating recipe</p>}
