@@ -1,18 +1,11 @@
 "use client";
-import { Checkbox, Input } from "@nextui-org/react";
-
 import { useState, useEffect } from "react";
-
-import { RecipeCard } from "./_components/RecipeCard";
-import LoadingSkeleton from "./_components/LoadingSkeleton";
-import { SearchIcon } from "./_components/SearchIcon";
 import IngredientDropdown, {
   IngredientOption,
 } from "./_components/IngredientDropdown";
 import useRecipes from "./_hooks/useRecipes";
 import InfiniteScroll from "react-infinite-scroll-component";
 import useSearchRecipes from "./_hooks/useSearchRecipes";
-import React, { useState, useEffect } from 'react';
 import {
   Autocomplete,
   AutocompleteItem,
@@ -27,8 +20,6 @@ import { RecipeCard } from './_components/RecipeCard';
 import LoadingSkeleton from './_components/LoadingSkeleton';
 import { SearchIcon } from './_components/SearchIcon';
 import RecipeForm from './_components/RecipeForm'; 
-
-
 
 const GET_ALL_RECIPES_QUERY = gql`
   query GetAllRecipes {
@@ -66,54 +57,38 @@ const SEARCH_RECIPES_QUERY = gql`
   }
 `;
 
+const GET_INGREDIENTS_QUERY = gql`
+  query FindAllIngredients {
+    ingredients {
+      id
+      name
+    }
+  }
+`;
+
 const LIMIT = 9;
 
 export default function Page() {
-  const [userId, setUserId] = useState<string>("");
-
-  const [mutatedFavourite, setMutatedFavourite] = useState<object[]>([]);
-
-  const [peopleYouFollow, setPeopleYouFollow] = useState<Object[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [recipeName, setRecipeName] = useState<string>('');
   const [ingredientsSelected, setIngredientsSelected] = useState<string[]>([]);
   const [isRecipeFormOpen, setIsRecipeFormOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
- 
-  const [searchTerm, setSearchTerm] = useState<SearchTerm>({
+  const [searchTerm, setSearchTerm] = useState({
     recipeName: "",
     ingredients: [],
   });
 
-  const {
-    data: ingredientsData,
-    loading: ingredientsLoading,
-  } = useQuery(GET_INGREDIENTS_QUERY);
-    recipes: allRecipes,
-    totalPages: allRecipesTotalPages,
-    currentPage: allRecipesCurrentPage,
-    setCurrentPage: setAllRecipesCurrentPage,
-  } = useRecipes(LIMIT);
+  const { data: ingredientsData, loading: ingredientsLoading } = useQuery(GET_INGREDIENTS_QUERY);
 
-  const {
-    loading: allRecipesLoading,
-    data: allRecipesData,
-  } = useQuery(GET_ALL_RECIPES_QUERY);
+  const { recipes: allRecipes, totalPages: allRecipesTotalPages, currentPage: allRecipesCurrentPage, setCurrentPage: setAllRecipesCurrentPage } = useRecipes(LIMIT);
 
-  const [
-    searchRecipes,
-    {
-      loading: searchRecipesLoading,
-      data: searchRecipesData,
-    },
-  ] = useLazyQuery(SEARCH_RECIPES_QUERY);
-    recipes: searchRecipes,
-    currentPage: searchRecipesCurrentPage,
-    totalPages: searchRecipesTotalPages,
-    setCurrentPage: setSearchRecipesCurrentPage,
-    setSearchTerm: setSearchRecipesSearchTerm,
-  } = useSearchRecipes(LIMIT);
+  const { loading: allRecipesLoading, data: allRecipesData } = useQuery(GET_ALL_RECIPES_QUERY);
+
+  const [executeSearchRecipes, { loading: searchRecipesLoading, data: searchRecipesData }] = useLazyQuery(SEARCH_RECIPES_QUERY);
+
+  const { recipes: searchRecipes, currentPage: searchRecipesCurrentPage, totalPages: searchRecipesTotalPages, setCurrentPage: setSearchRecipesCurrentPage, setSearchTerm: setSearchRecipesSearchTerm } = useSearchRecipes(LIMIT);
 
   useEffect(() => {
     if (allRecipesData && allRecipesData.recipes) {
@@ -124,39 +99,27 @@ export default function Page() {
     }
   }, [allRecipesData, searchRecipesData]);
 
-    if (
-      searchTerm.recipeName.trim() == "" &&
-      searchTerm.ingredients.length == 0
-    ) {
-      // console.log("set all recipes");
+  useEffect(() => {
+    if (searchTerm.recipeName.trim() === "" && searchTerm.ingredients.length === 0) {
       setRecipes(allRecipes);
     }
   }, [allRecipes]);
 
   useEffect(() => {
-    // console.log("searchRecipes useEffect");
-    if (
-      searchTerm.recipeName.trim() != "" ||
-      searchTerm.ingredients.length > 0
-    ) {
-      // console.log("set search recipes");
+    if (searchTerm.recipeName.trim() !== "" || searchTerm.ingredients.length > 0) {
       setRecipes(searchRecipes);
     }
   }, [searchRecipes]);
 
   useEffect(() => {
-    const searchTerm = recipeName + ingredientsSelected.join(', ');
-    if (searchTerm) {
-      searchRecipes({
-        variables: { searchTerm: searchTerm },
-      });
+    const searchTermString = recipeName + ingredientsSelected.join(', ');
+    if (searchTermString) {
+      executeSearchRecipes({ variables: { searchTerm: searchTermString } });
     } else {
       setRecipes(allRecipesData?.recipes || []);
-    // console.log("searcTerm useEffect");
-    if (
-      searchTerm.recipeName.trim() == "" &&
-      searchTerm.ingredients.length == 0
-    ) {
+    }
+
+    if (searchTerm.recipeName.trim() === "" && searchTerm.ingredients.length === 0) {
       setRecipes(allRecipes);
       setSearchRecipesCurrentPage(1);
       return;
@@ -164,15 +127,11 @@ export default function Page() {
   }, [recipeName, ingredientsSelected]);
 
   const handleSaveRecipe = (recipe) => {
-    // Save logic here (e.g., API call)
-    setIsRecipeFormOpen(false); // Close the modal after saving
+    setIsRecipeFormOpen(false);
   };
-    setSearchRecipesSearchTerm(searchTerm);
-  }, [searchTerm]);
 
   return (
     <>
->>>>>>> parent of be02710 (edit and delete done, left id)
       <div className="max-w-screen flex flex-col gap-4">
         <Input
           label="Search"
@@ -235,25 +194,6 @@ export default function Page() {
             ))}
           </div>
         )}
-          onChange={(e) => {
-            // if (e.target.value.trim() === "") return; // use search all recipes instead of search recipes by name
-            setSearchTerm({ ...searchTerm, recipeName: e.target.value });
-          }}
-        />
-
-        {/* Search recipe by ingredients */}
-        <IngredientDropdown
-          isMulti
-          isClearable
-          placeholder="Search for ingredient(s)"
-          onChange={(newValue, actionMeta) => {
-            newValue = newValue as IngredientOption[];
-            setSearchTerm({
-              ...searchTerm,
-              ingredients: newValue.map((item) => item.value),
-            });
-          }}
-        />
       </div>
 
       <div className="flex gap-4">
@@ -261,11 +201,10 @@ export default function Page() {
         <Checkbox size="md">Time Taken</Checkbox>
         <Checkbox size="md">Preparation Time</Checkbox>
       </div>
->>>>>>> parent of be02710 (edit and delete done, left id)
 
-      {recipes.length == 0 ? (
+      {recipes.length === 0 ? (
         <div className="grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 p-4">
-          {...Array(LIMIT).map(() => <LoadingSkeleton />)}
+          {[...Array(LIMIT)].map((_, index) => <LoadingSkeleton key={index} />)}
         </div>
       ) : (
         <div>
