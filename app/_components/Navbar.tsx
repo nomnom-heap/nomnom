@@ -7,15 +7,20 @@ import {
   Button,
   Link,
   useDisclosure,
+  NavbarMenuItem,
+  NavbarMenuToggle,
+  NavbarMenu,
 } from "@nextui-org/react";
 import { useAuth } from "../AuthProvider";
 import { signOut } from "aws-amplify/auth";
 import { useRouter } from "next/navigation";
 import RecipeInputModal from "./RecipeInputModal";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export default function NavBar() {
   const { userId, setUserId } = useAuth();
+  const [viewportWidth, setViewportWidth] = useState(0);
 
   const pathname = usePathname();
 
@@ -25,9 +30,20 @@ export default function NavBar() {
     window.location.reload();
   };
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuItems = [
+    { name: "My Recipes", value: "/recipes" },
+    { name: "My Favourites", value: "/favourites" },
+    { name: "Nombot", value: "/nombot" },
+  ];
+
+  useEffect(() => {
+    setViewportWidth(window.innerWidth);
+  }, [viewportWidth]);
 
   return (
     <Navbar
+      onMenuOpenChange={setIsMenuOpen}
       position="static"
       isBordered
       className="bg-slate-500"
@@ -50,6 +66,10 @@ export default function NavBar() {
         ],
       }}
     >
+      <NavbarMenuToggle
+        aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+        className="sm:hidden text-white"
+      />
       <NavbarBrand>
         <p className="text-2xl">😋</p>
         <p className="font-bold text-white text-xl">
@@ -75,28 +95,49 @@ export default function NavBar() {
             My Recipes
           </Link>
         </NavbarItem>
-
         <NavbarItem>
           <p className="text-white">Not seeing what you like?</p>
         </NavbarItem>
+      </NavbarContent>
+
+      <NavbarContent justify="center">
         <NavbarItem>
-          <Button className="white" onPress={onOpen}>
+          <Button className="white text-xs md:text-sm" onPress={onOpen}>
             Create Recipe
           </Button>
           <RecipeInputModal isOpen={isOpen} onOpenChange={onOpenChange} />
         </NavbarItem>
         <NavbarItem>
           {userId ? (
-            <Button color="primary" onPress={handleLogout}>
+            <Button
+              color="primary"
+              className="text-xs md:text-sm"
+              onPress={handleLogout}
+            >
               Logout
             </Button>
           ) : (
-            <Button as={Link} color="primary" href="/login">
+            <Button
+              as={Link}
+              className="text-xs md:text-sm"
+              color="primary"
+              href="/login"
+            >
               Login
             </Button>
           )}
         </NavbarItem>
       </NavbarContent>
+
+      <NavbarMenu>
+        {menuItems.map((item, index) => (
+          <NavbarMenuItem key={`${item.name}-${index}`}>
+            <Link className="w-full" href={`${item.name}`} size="lg">
+              {item.name}
+            </Link>
+          </NavbarMenuItem>
+        ))}
+      </NavbarMenu>
     </Navbar>
   );
 }
