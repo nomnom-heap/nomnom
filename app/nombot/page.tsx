@@ -258,9 +258,7 @@ export default function Page() {
       // }
     };
 
-    return () => {
-      createSession();
-    };
+    createSession();
   }, []); // Usage of this custom hook due to how React calls effects with empty dependencies twice in strict mode
 
   useEffect(() => {
