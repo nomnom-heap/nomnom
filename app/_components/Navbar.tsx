@@ -65,12 +65,12 @@ export default function NavBar() {
             Nombot
           </Link>
         </NavbarItem>
-        <NavbarItem>
+        <NavbarItem isActive={pathname === "/favourites" ? true : false}>
           <Link className="text-white" href="/favourites">
             My Favourites
           </Link>
         </NavbarItem>
-        <NavbarItem>
+        <NavbarItem isActive={pathname === "/recipes" ? true : false}>
           <Link className="text-white" href="/recipes">
             My Recipes
           </Link>
