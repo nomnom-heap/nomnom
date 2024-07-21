@@ -17,7 +17,7 @@ import {
   Divider,
 } from "@nextui-org/react";
 // console.log(process.env.OPENAI_API_KEY);
-import { useClassicEffect } from "./useClassicEffect";
+// import { useClassicEffect } from "./useClassicEffect";
 import { permanentRedirect } from "next/navigation";
 import { useAuth } from "../AuthProvider";
 
@@ -74,7 +74,7 @@ const GET_CHAT_HISTORY_BY_SESSION = gql`
 
 export default function Page() {
   const [chatMessage, setChatMessage] = useState("");
-  const [sessionId, setSessionId] = useState("unset");
+  const [sessionId, setSessionId] = useState("");
   const [messageData, setMessageData] = useState<any[]>([]);
   const [chatbotProcessing, setChatbotProcessing] = useState(false);
   const [chatbotResponse, setChatbotResponse] = useState("");
@@ -233,7 +233,7 @@ export default function Page() {
     }
   }, [chatHistoryData]);
   //custom hook to avoid react strict mode for Effect
-  useClassicEffect(() => {
+  useEffect(() => {
     const createSession = async () => {
       // const session = await fetchAuthSession();
 
