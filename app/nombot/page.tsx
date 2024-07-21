@@ -115,7 +115,21 @@ export default function Page() {
   ] = useLazyQuery(GET_CHAT_HISTORY_BY_SESSION, {
     fetchPolicy: "network-only",
   });
+  
+    useEffect(() => {
+    const createSession = async () => {
+      // const session = await fetchAuthSession();
 
+      await createChatSession({});
+
+     
+
+     
+    };
+
+    createSession();
+  }, []); 
+  
   // @ts-ignore
   async function handleSubmitMessage(chatMessage) {
     // console.log(chatMessage);
@@ -232,34 +246,8 @@ export default function Page() {
         });
     }
   }, [chatHistoryData]);
-  //custom hook to avoid react strict mode for Effect
-  useEffect(() => {
-    const createSession = async () => {
-      // const session = await fetchAuthSession();
+  
 
-      await createChatSession({});
-
-      // try {
-      //   const session = await fetchAuthSession();
-      //   const userId = session?.tokens?.accessToken.payload.sub;
-
-      //   await createChatSession({
-      //     variables: {
-      //       userId: userId,
-      //     },
-      //   });
-      // } catch (error) {
-      //   console.error(error.message);
-      //   console.error("Error creating chat session:", error);
-      // }
-      // finally {
-
-      //
-      // }
-    };
-
-    createSession();
-  }, []); // Usage of this custom hook due to how React calls effects with empty dependencies twice in strict mode
 
   useEffect(() => {
     if (ChatSessionData) {
