@@ -19,6 +19,7 @@ import {
 // console.log(process.env.OPENAI_API_KEY);
 import { useClassicEffect } from "./useClassicEffect";
 import { permanentRedirect } from "next/navigation";
+import { useAuth } from "../AuthProvider";
 
 const poppins = Poppins({ weight: ["600"], subsets: ["latin"] });
 
@@ -234,13 +235,9 @@ export default function Page() {
   //custom hook to avoid react strict mode for Effect
   useClassicEffect(() => {
     const createSession = async () => {
-      const session = await fetchAuthSession();
-      const userId = session?.tokens?.accessToken.payload.sub;
-      await createChatSession({
-        variables: {
-          userId: userId,
-        },
-      });
+      // const session = await fetchAuthSession();
+
+      await createChatSession({});
 
       // try {
       //   const session = await fetchAuthSession();

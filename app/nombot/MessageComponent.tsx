@@ -20,6 +20,7 @@ const GET_DISPLAY_NAME_QUERY = gql`
 // @ts-ignore
 export default function MessageComponent({ content, identity }) {
   const { userId } = useAuth();
+
   const { data, loading, error } = useQuery(GET_DISPLAY_NAME_QUERY, {
     variables: { userId: userId },
   });
@@ -31,7 +32,7 @@ export default function MessageComponent({ content, identity }) {
           <Card className="shadow-none border-none bg-white p-5 rounded-none md:px-40">
             <CardHeader className="flex gap-4">
               <Avatar isBordered color="default" src="" showFallback />
-              <h4>{data ? data.users[0].display_name : "User"}</h4>
+              <h4>{data && data.users.length > 0 ? data.users[0] : "User"}</h4>
             </CardHeader>
             <CardBody className="justify-between">
               <div className="flex gap-5">
