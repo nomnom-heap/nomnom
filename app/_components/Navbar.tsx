@@ -130,13 +130,21 @@ export default function NavBar() {
       </NavbarContent>
 
       <NavbarMenu>
-        {menuItems.map((item, index) => (
-          <NavbarMenuItem key={`${item.name}-${index}`}>
-            <Link className="w-full" href={`/${item.value}`} size="lg">
-              {item.name}
-            </Link>
-          </NavbarMenuItem>
-        ))}
+        <NavbarMenuItem key="My Recipes">
+          <Link className="w-full" href={menuItems[0].value} size="lg">
+            {menuItems[0].name}
+          </Link>
+        </NavbarMenuItem>
+        <NavbarMenuItem key="My Favourites">
+          <Link className="w-full" href={menuItems[1].value} size="lg">
+            {menuItems[1].name}
+          </Link>
+        </NavbarMenuItem>
+        <NavbarMenuItem key="Nombot">
+          <Link className="w-full" href={menuItems[2].value} size="lg">
+            {menuItems[2].name}
+          </Link>
+        </NavbarMenuItem>
       </NavbarMenu>
     </Navbar>
   );
