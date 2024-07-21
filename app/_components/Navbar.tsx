@@ -132,7 +132,7 @@ export default function NavBar() {
       <NavbarMenu>
         {menuItems.map((item, index) => (
           <NavbarMenuItem key={`${item.name}-${index}`}>
-            <Link className="w-full" href={`/${item.name}`} size="lg">
+            <Link className="w-full" href={`/${item.value}`} size="lg">
               {item.name}
             </Link>
           </NavbarMenuItem>
