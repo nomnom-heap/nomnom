@@ -60,11 +60,24 @@ export default function Page() {
 
   return (
     <>
-      <div className="pt-5 px-2 grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:px-20 md:pt-5">
-        {recipes.map((recipe) => (
-          <RecipeCard recipe={recipe} key={recipe.id} searchIngredients={[]} />
-        ))}
-      </div>
+      {data && recipes.length > 0 ? (
+        <div className="pt-5 px-2 grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:px-20 md:pt-5">
+          {recipes.map((recipe) => (
+            <RecipeCard
+              recipe={recipe}
+              key={recipe.id}
+              searchIngredients={[]}
+              onDeleteRecipe={(deletedRecipeId) => {
+                setRecipes(recipes.filter((r) => r.id !== deletedRecipeId));
+              }}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center h-screen">
+          <span>No recipes found 😅 Consider favouriting one!</span>
+        </div>
+      )}
     </>
   );
 }

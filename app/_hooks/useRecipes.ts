@@ -43,6 +43,9 @@ export default function useRecipes(limit: number = 9) {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [uniqueRecipeIds, setUniqueRecipeIds] = useState<Set<string>>(
+    new Set()
+  ); // fix to avoid duplicate recipes when new recipe is added for infinie scroll (using offset and limit pagination)
 
   const [
     getRecipes,
@@ -54,15 +57,23 @@ export default function useRecipes(limit: number = 9) {
   ] = useLazyQuery<GetRecipesLazyData>(GET_RECIPES_LAZY_QUERY);
 
   useEffect(() => {
-    // console.log("getRecipesData: ", getRecipesData);
     if (getRecipesData) {
       const totalPages = Math.ceil(
         getRecipesData.recipesAggregate.count / limit
       );
       setTotalPages(totalPages);
-      // console.log("existing recipes: ", recipes);
-      // console.log("getRecipesData.recipes", getRecipesData.recipes);
-      setRecipes([...recipes, ...getRecipesData.recipes]);
+      setRecipes((prevRecipes) => {
+        const newRecipes = getRecipesData.recipes.filter(
+          (recipe) => !uniqueRecipeIds.has(recipe.id)
+        );
+        return [...prevRecipes, ...newRecipes];
+      });
+      setUniqueRecipeIds((prevUniqueRecipeIds) => {
+        const newUniqueRecipeIds = new Set(
+          getRecipesData.recipes.map((recipe) => recipe.id)
+        );
+        return new Set([...prevUniqueRecipeIds, ...newUniqueRecipeIds]);
+      });
     }
   }, [getRecipesData]);
 

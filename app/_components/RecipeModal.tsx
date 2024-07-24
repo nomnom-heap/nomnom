@@ -30,6 +30,7 @@ type RecipeModalProps = {
   recipe: Recipe;
   missingIngredients: string[];
   onOpenEditRecipeModal: (open: boolean) => void;
+  onDeleteRecipe: (recipeId: string) => void;
 };
 
 const LIMIT = 7;
@@ -40,14 +41,25 @@ export default function RecipeModal({
   onOpenChange,
   missingIngredients,
   onOpenEditRecipeModal,
+  onDeleteRecipe,
 }: RecipeModalProps) {
   const { userId } = useAuth();
   const { postDetails, setPostDetails } = useContext(PostContext);
 
-  const { recipes: recRecipes, setSearchTerm: setRecRecipesIngredients } =
-    useSearchRecipes(LIMIT);
+  const {
+    recipes: recRecipesByIngredients,
+    setSearchTerm: setRecRecipesIngredients,
+  } = useSearchRecipes(LIMIT);
+
+  const [recRecipes, setRecRecipes] = useState<Recipe[]>(
+    recRecipesByIngredients
+  );
   const [isOwner, setIsOwner] = useState(false);
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
+
+  useEffect(() => {
+    setRecRecipes(recRecipesByIngredients);
+  }, [recRecipesByIngredients]);
 
   useEffect(() => {
     // Calculate the new value for `isFollowing`
@@ -162,6 +174,7 @@ export default function RecipeModal({
   useEffect(() => {
     if (deleteRecipeData) {
       toast.success("Recipe deleted!", { position: "top-right" });
+      onDeleteRecipe(recipe.id);
     }
   }, [deleteRecipeData]);
 
@@ -274,6 +287,11 @@ export default function RecipeModal({
                           recipe={r}
                           key={`${r.id}-${r.name}`}
                           searchIngredients={recipe.ingredients}
+                          onDeleteRecipe={(deletedRecipeId) => {
+                            setRecRecipes(
+                              recRecipes.filter((r) => r.id !== deletedRecipeId)
+                            );
+                          }}
                         />
                       );
                     })}
