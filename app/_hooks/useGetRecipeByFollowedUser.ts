@@ -10,6 +10,11 @@ const GET_RECIPE_BY_FOLLOWED_USER_QUERY = gql`
       serving
       contents
       name
+      owner
+      createdAt
+      updatedAt
+      favouritedByUsers
+      thumbnail_url
     }
   }
 `;
