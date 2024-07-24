@@ -34,6 +34,7 @@ export default function NavBar() {
   const menuItems = [
     { name: "My Recipes", value: "/recipes" },
     { name: "My Favourites", value: "/favourites" },
+    { name: "Following", value: "/following" },
     { name: "Nombot", value: "/nombot" },
   ];
 
@@ -83,6 +84,11 @@ export default function NavBar() {
         <NavbarItem isActive={pathname === "/nombot" ? true : false}>
           <Link className="text-white" href="/nombot">
             Nombot
+          </Link>
+        </NavbarItem>
+        <NavbarItem isActive={pathname === "/following" ? true : false}>
+          <Link className="text-white" href="/following">
+            Following
           </Link>
         </NavbarItem>
         <NavbarItem isActive={pathname === "/favourites" ? true : false}>
@@ -143,6 +149,11 @@ export default function NavBar() {
         <NavbarMenuItem key="Nombot">
           <Link className="w-full" href={menuItems[2].value} size="lg">
             {menuItems[2].name}
+          </Link>
+        </NavbarMenuItem>
+        <NavbarMenuItem key="Nombot">
+          <Link className="w-full" href={menuItems[3].value} size="lg">
+            {menuItems[3].name}
           </Link>
         </NavbarMenuItem>
       </NavbarMenu>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-
+import { useState, useEffect, useContext } from "react";
+import { PostContext, PostDetails, PostContextType } from "../PostProvider";
 import { RecipeCard } from "../_components/RecipeCard";
 import LoadingSkeleton from "../_components/LoadingSkeleton";
 import { fetchAuthSession } from "aws-amplify/auth";
@@ -9,15 +9,29 @@ import useGetRecipeByFollowedUser from "../_hooks/useGetRecipeByFollowedUser";
 
 export default function Page() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
-
+  const { postDetails, setPostDetails } = useContext(PostContext);
   const { getRecipeByFollowedUser, data, loading, error } =
     useGetRecipeByFollowedUser();
 
   useEffect(() => {
     if (data) {
-      setRecipes(data.recipes);
+      const recipeData = data.getRecipeByFollowedUser;
+      if (postDetails.changedFollow.length > 0) {
+        setRecipes((prevsData) =>
+          prevsData.filter(
+            (recipe) =>
+              !postDetails.changedFollow.some(
+                (followDetails) =>
+                  followDetails.id === recipe.owner.id &&
+                  followDetails.follow === false
+              )
+          )
+        );
+      } else {
+        setRecipes(recipeData);
+      }
     }
-  }, [data]);
+  }, [data, postDetails]);
 
   useEffect(() => {
     async function fetchRecipes() {

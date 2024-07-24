@@ -10,12 +10,23 @@ const GET_RECIPE_BY_FOLLOWED_USER_QUERY = gql`
       serving
       contents
       name
+      thumbnail_url
+      owner {
+        id
+        display_name
+        followers {
+          id
+        }
+      }
+      favouritedByUsers {
+        id
+      }
     }
   }
 `;
 
 interface getRecipeByFollowedUser {
-  recipes: Recipe[];
+  getRecipeByFollowedUser: Recipe[];
 }
 
 export default function useGetRecipeByFollowedUser() {

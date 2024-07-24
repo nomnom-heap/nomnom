@@ -10,7 +10,7 @@ import {
   Avatar,
 } from "@nextui-org/react";
 import { HeartIcon } from "./HeartIcon";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useMutation } from "@apollo/client";
 import { gql } from "@apollo/client/core";
 import { fetchAuthSession } from "aws-amplify/auth";
@@ -19,6 +19,7 @@ import { useAuth } from "../AuthProvider";
 import RecipeInputModal from "./RecipeInputModal";
 import useFavRecipes from "../_hooks/useFavRecipes";
 import toast from "react-hot-toast";
+import { PostContext, PostDetails, PostContextType } from "../PostProvider";
 
 type RecipeCardProps = {
   recipe: Recipe;
@@ -26,6 +27,7 @@ type RecipeCardProps = {
 };
 
 export function RecipeCard({ recipe, searchIngredients }: RecipeCardProps) {
+  const { postDetails, setPostDetails } = useContext(PostContext);
   const { userId } = useAuth();
 
   const [missingIngredients, setMissingIngredients] = useState<string[]>([]);
@@ -45,6 +47,13 @@ export function RecipeCard({ recipe, searchIngredients }: RecipeCardProps) {
   async function handleFavouriteRecipe(recipeId: string) {
     const session = await fetchAuthSession();
     const userId = session?.tokens?.accessToken.payload.sub;
+    setPostDetails((prevDetails) => ({
+      ...prevDetails,
+      changedFav: [
+        ...prevDetails.changedFav.filter((post) => post.id !== recipeId),
+        { id: recipeId, like: true },
+      ],
+    }));
 
     await favouriteRecipe({
       variables: { recipeId: recipeId, userId: userId },
@@ -54,7 +63,13 @@ export function RecipeCard({ recipe, searchIngredients }: RecipeCardProps) {
   async function handleUnfavouriteRecipe(recipeId: string) {
     const session = await fetchAuthSession();
     const userId = session?.tokens?.accessToken.payload.sub;
-
+    setPostDetails((prevDetails) => ({
+      ...prevDetails,
+      changedFav: [
+        ...prevDetails.changedFav.filter((post) => post.id !== recipeId),
+        { id: recipeId, like: false },
+      ],
+    }));
     await unfavouriteRecipe({
       variables: { recipeId: recipeId, userId: userId },
     });

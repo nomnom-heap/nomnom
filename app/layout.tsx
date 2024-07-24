@@ -8,6 +8,7 @@ import { ApolloClientProvider } from "./ApolloClientProvider";
 import { NextUiWrapperProvider } from "./NextUiWrapperProvider";
 import { AmplifyProvider } from "./AmplifyProvider";
 import { Toaster } from "react-hot-toast";
+import { PostProvider } from "./PostProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,7 +30,9 @@ export default function RootLayout({
           <ApolloClientProvider>
             <AmplifyProvider>
               <Navbar />
-              <NextUiWrapperProvider>{children}</NextUiWrapperProvider>
+              <NextUiWrapperProvider>
+                <PostProvider>{children}</PostProvider>
+              </NextUiWrapperProvider>
               <Toaster />
             </AmplifyProvider>
           </ApolloClientProvider>
