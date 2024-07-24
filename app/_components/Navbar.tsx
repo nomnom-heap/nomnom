@@ -6,15 +6,12 @@ import {
   NavbarItem,
   Button,
   Link,
-  useDisclosure,
   NavbarMenuItem,
   NavbarMenuToggle,
   NavbarMenu,
 } from "@nextui-org/react";
 import { useAuth } from "../AuthProvider";
 import { signOut } from "aws-amplify/auth";
-import { useRouter } from "next/navigation";
-import RecipeInputModal from "./RecipeInputModal";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -29,7 +26,6 @@ export default function NavBar() {
     setUserId(null);
     window.location.reload();
   };
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuItems = [
     { name: "My Recipes", value: "/recipes" },
@@ -101,18 +97,9 @@ export default function NavBar() {
             My Recipes
           </Link>
         </NavbarItem>
-        <NavbarItem>
-          <p className="text-white">Not seeing what you like?</p>
-        </NavbarItem>
       </NavbarContent>
 
       <NavbarContent justify="center">
-        <NavbarItem>
-          <Button className="white text-xs md:text-sm" onPress={onOpen}>
-            Create Recipe
-          </Button>
-          <RecipeInputModal isOpen={isOpen} onOpenChange={onOpenChange} />
-        </NavbarItem>
         <NavbarItem>
           {userId ? (
             <Button

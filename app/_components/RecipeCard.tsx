@@ -24,9 +24,15 @@ import { PostContext, PostDetails, PostContextType } from "../PostProvider";
 type RecipeCardProps = {
   recipe: Recipe;
   searchIngredients: string[];
+  onDeleteRecipe: (recipeId: string) => void;
 };
 
-export function RecipeCard({ recipe, searchIngredients }: RecipeCardProps) {
+export function RecipeCard({
+  recipe,
+  searchIngredients,
+  onDeleteRecipe,
+}: RecipeCardProps) {
+  const [updatedRecipe, setUpdatedRecipe] = useState<Recipe>(recipe);
   // @ts-ignore
   const { postDetails, setPostDetails } = useContext(PostContext);
   const { userId } = useAuth();
@@ -76,8 +82,6 @@ export function RecipeCard({ recipe, searchIngredients }: RecipeCardProps) {
     });
   }
 
-  const [openEditModal, setOpenEditModal] = useState(false);
-
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const {
     isOpen: isEditModalOpen,
@@ -88,6 +92,11 @@ export function RecipeCard({ recipe, searchIngredients }: RecipeCardProps) {
   const handleOpenEditRecipeModal = (open: boolean) => {
     onOpenChange();
     onOpenEditModal();
+  };
+
+  const handleDeleteRecipe = (recipeId: string) => {
+    onOpenChange(); // closes the modal
+    onDeleteRecipe(recipeId);
   };
 
   useEffect(() => {
@@ -133,7 +142,7 @@ export function RecipeCard({ recipe, searchIngredients }: RecipeCardProps) {
 
   return (
     <>
-      <div className="cursor-pointer" onClick={onOpen} key={recipe.id}>
+      <div className="cursor-pointer" onClick={onOpen} key={updatedRecipe.id}>
         <Card className="relative group" shadow="sm">
           <CardHeader className="pb-0 pt-3 px-3 m-2 flex-col items-start">
             <div className="flex place-items-center justify-between w-full pr-2 pl-0">
@@ -146,13 +155,13 @@ export function RecipeCard({ recipe, searchIngredients }: RecipeCardProps) {
                   src=""
                 />
                 <h4 className="text-sm font-semibold leading-none text-default-600 overflow-ellipsis">
-                  {recipe.owner.display_name}
+                  {updatedRecipe.owner.display_name}
                 </h4>
               </div>
             </div>
 
             <div className="pt-4">
-              <h4 className="font-bold text-md">{recipe.name}</h4>
+              <h4 className="font-bold text-md">{updatedRecipe.name}</h4>
             </div>
           </CardHeader>
           <CardBody className="p-3 justify-end position: static object-fit: cover">
@@ -163,8 +172,8 @@ export function RecipeCard({ recipe, searchIngredients }: RecipeCardProps) {
               alt="Card background"
               className="object-cover rounded-xl h-[200px] w-full"
               src={
-                recipe.thumbnail_url
-                  ? recipe.thumbnail_url
+                updatedRecipe.thumbnail_url
+                  ? updatedRecipe.thumbnail_url
                   : "/image_placeholder.png"
               }
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -192,14 +201,14 @@ export function RecipeCard({ recipe, searchIngredients }: RecipeCardProps) {
                 className="mt-2 text-sm text-gray-500"
                 style={{ alignSelf: "flex-end" }}
               >
-                🕛 {recipe.time_taken_mins} mins
+                🕛 {updatedRecipe.time_taken_mins} mins
               </p>
 
               <p
                 className="mt-2 text-sm text-gray-500"
                 style={{ alignSelf: "flex-end" }}
               >
-                🍽️ {recipe.serving} servings
+                🍽️ {updatedRecipe.serving} servings
               </p>
             </div>
 
@@ -210,8 +219,8 @@ export function RecipeCard({ recipe, searchIngredients }: RecipeCardProps) {
                 aria-label="Like"
                 onPress={() => {
                   isFavourited
-                    ? handleUnfavouriteRecipe(recipe.id)
-                    : handleFavouriteRecipe(recipe.id);
+                    ? handleUnfavouriteRecipe(updatedRecipe.id)
+                    : handleFavouriteRecipe(updatedRecipe.id);
                 }}
               >
                 <HeartIcon filled={isFavourited} />
@@ -223,16 +232,18 @@ export function RecipeCard({ recipe, searchIngredients }: RecipeCardProps) {
       <RecipeModal
         isOpen={isOpen}
         onOpenChange={onOpenChange}
-        recipe={recipe}
+        recipe={updatedRecipe}
         missingIngredients={missingIngredients}
         onOpenEditRecipeModal={handleOpenEditRecipeModal}
+        onDeleteRecipe={handleDeleteRecipe}
       />
 
       {/* Opened when owner wants to edit the recipe */}
       <RecipeInputModal
         isOpen={isEditModalOpen}
         onOpenChange={onOpenEditModalChange}
-        recipe={recipe}
+        recipe={updatedRecipe}
+        onRecipeUpdate={setUpdatedRecipe}
       />
     </>
   );

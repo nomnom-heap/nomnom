@@ -34,14 +34,36 @@ export const CREATE_RECIPE_MUTATION = gql`
       recipes {
         id
         name
+        contents
+        ingredients
+        ingredients_qty
+        thumbnail_url
+        time_taken_mins
+        serving
         owner {
           id
           display_name
+          followers {
+            id
+          }
+        }
+        favouritedByUsers {
+          id
         }
       }
     }
   }
 `;
+
+export interface CreateRecipeMutationData {
+  createRecipes: {
+    info: {
+      nodesCreated: number;
+      relationshipsCreated: number;
+    };
+    recipes: Recipe[];
+  };
+}
 
 export const FIND_INGREDIENTS_BY_NAME_QUERY = gql`
   query findIngredientsByNameQuery($name: String!) {
@@ -84,11 +106,21 @@ export const UPDATE_RECIPE_MUTATION = gql`
         id
         name
         contents
-        time_taken_mins
         ingredients
         ingredients_qty
         thumbnail_url
+        time_taken_mins
         serving
+        owner {
+          id
+          display_name
+          followers {
+            id
+          }
+        }
+        favouritedByUsers {
+          id
+        }
       }
     }
   }
@@ -96,6 +128,6 @@ export const UPDATE_RECIPE_MUTATION = gql`
 
 export interface UpdateRecipeMutationData {
   updateRecipes: {
-    recipes: Recipe[];
+    recipes: Recipe;
   };
 }

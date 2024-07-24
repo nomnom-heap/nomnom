@@ -1,5 +1,5 @@
 "use client";
-import { Input } from "@nextui-org/react";
+import { Button, Divider, Input, useDisclosure } from "@nextui-org/react";
 
 import { Poppins } from "next/font/google";
 import { useState, useEffect } from "react";
@@ -13,6 +13,7 @@ import IngredientDropdown, {
 import useRecipes from "./_hooks/useRecipes";
 import InfiniteScroll from "react-infinite-scroll-component";
 import useSearchRecipes from "./_hooks/useSearchRecipes";
+import RecipeInputModal from "./_components/RecipeInputModal";
 
 const LIMIT = 9;
 const poppins = Poppins({ weight: ["600", "400"], subsets: ["latin"] });
@@ -38,6 +39,8 @@ export default function Page() {
     setCurrentPage: setSearchRecipesCurrentPage,
     setSearchTerm: setSearchRecipesSearchTerm,
   } = useSearchRecipes(LIMIT);
+
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   useEffect(() => {
     if (
@@ -82,6 +85,24 @@ export default function Page() {
           Search by recipe name, or search by what you have in your kitchen, and
           NomNom will do the rest!
         </p>
+        <div className="flex flex-row items-center justify-center gap-2">
+          <Divider className="w-1/3" />
+          <p className="text-lg">or</p>
+          <Divider className="w-1/3" />
+        </div>
+        <div className="flex flex-row items-center justify-center gap-2">
+          <Button className="w-auto p-4" color="primary" onPress={onOpen}>
+            Create My Own Recipe! 😋
+          </Button>
+          <RecipeInputModal
+            isOpen={isOpen}
+            onOpenChange={onOpenChange}
+            onRecipeCreate={(createdRecipe: Recipe) => {
+              setRecipes([createdRecipe, ...recipes]);
+            }}
+          />
+        </div>
+
         <Input
           variant="bordered"
           label="Search"
@@ -143,11 +164,14 @@ export default function Page() {
           loader={<LoadingSkeleton />}
           className="pt-5 px-2 grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:px-20 md:pt-5"
         >
-          {recipes.map((recipe, index) => (
+          {recipes.map((recipe) => (
             <RecipeCard
               recipe={recipe}
-              key={`${recipe.id}-${index}`}
+              key={`${recipe.id}`}
               searchIngredients={searchTerm.ingredients}
+              onDeleteRecipe={(deletedRecipeId) => {
+                setRecipes(recipes.filter((r) => r.id !== deletedRecipeId));
+              }}
             />
           ))}
         </InfiniteScroll>

@@ -29,6 +29,7 @@ import { useMutation } from "@apollo/client";
 import { fetchAuthSession } from "aws-amplify/auth";
 import {
   CREATE_RECIPE_MUTATION,
+  CreateRecipeMutationData,
   UPDATE_RECIPE_MUTATION,
   UpdateRecipeMutationData,
 } from "@/_lib/gql";
@@ -40,6 +41,8 @@ type RecipeInputModalProps = {
   isOpen: boolean;
   onOpenChange: () => void;
   recipe?: Recipe; // recipe should be provided if editing, else it should be undefined (for creating recipe)
+  onRecipeCreate?: (createdRecipe: Recipe) => void;
+  onRecipeUpdate?: (updatedRecipe: Recipe) => void;
 };
 
 const createSuccessToast = (message: string) =>
@@ -56,6 +59,8 @@ export default function RecipeInputModal({
   recipe,
   isOpen,
   onOpenChange,
+  onRecipeCreate,
+  onRecipeUpdate,
 }: RecipeInputModalProps) {
   const { userId, setUserId } = useAuth();
 
@@ -66,7 +71,7 @@ export default function RecipeInputModal({
   const [ingredients, setIngredients] = useState<string[]>(
     recipe?.ingredients || [""]
   );
-  const [contents, setContents] = useState<Block[]>(
+  const [contents, setContents] = useState<Block[] | undefined>(
     recipe?.contents ? JSON.parse(recipe.contents) : undefined
   );
   const [thumbnailUrl, setThumbnailUrl] = useState<string>(
@@ -115,7 +120,6 @@ export default function RecipeInputModal({
   };
 
   const handleRemoveIngredient = (index: number) => {
-    console.log(index);
     if (ingredients.length === 1) {
       return;
     }
@@ -139,7 +143,7 @@ export default function RecipeInputModal({
       loading: createRecipeLoading,
       error: createRecipeError,
     },
-  ] = useMutation(CREATE_RECIPE_MUTATION);
+  ] = useMutation<CreateRecipeMutationData>(CREATE_RECIPE_MUTATION);
 
   const [
     updateRecipe,
@@ -181,10 +185,10 @@ export default function RecipeInputModal({
         .map((q, index) => `${q} ${ingredients[index]}`)
         .join(", ");
       const joined_ingredients = combinedList;
-      const cleaned_contents = extractText(contents);
+      const cleaned_contents = contents ? extractText(contents) : "";
       const session = await fetchAuthSession();
       const userId = session?.tokens?.accessToken.payload.sub;
-      await createRecipe({
+      const { data } = await createRecipe({
         variables: {
           name: recipeName,
           userId: userId,
@@ -198,9 +202,13 @@ export default function RecipeInputModal({
           serving: serving,
         },
       });
+      if (data?.createRecipes.recipes && onRecipeCreate) {
+        onRecipeCreate(data?.createRecipes.recipes[0]);
+      }
       setRecipeName("");
-      setIngredients([]);
-      setContents([]);
+      setIngredients([""]);
+      setIngredientsQty([""]);
+      setContents(undefined);
       setThumbnailUrl("");
       setPreparationTime(60);
       setServing(1);
@@ -220,9 +228,9 @@ export default function RecipeInputModal({
         .map((q, index) => `${q} ${ingredients[index]}`)
         .join(", ");
       const joined_ingredients = combinedList;
-      const cleaned_contents = extractText(contents);
+      const cleaned_contents = contents ? extractText(contents) : "";
 
-      await updateRecipe({
+      const { data } = await updateRecipe({
         variables: {
           id: recipe.id,
           recipeName: recipeName,
@@ -236,6 +244,9 @@ export default function RecipeInputModal({
           serving: serving,
         },
       });
+      if (data?.updateRecipes.recipes && onRecipeUpdate) {
+        onRecipeUpdate(data?.updateRecipes.recipes[0]);
+      }
     } catch (error: any) {
       console.error(error.message);
       console.error("error updating recipe", error);
@@ -246,7 +257,7 @@ export default function RecipeInputModal({
   const handleSaveRecipe = async () => {
     if (
       !recipeName ||
-      !contents.length ||
+      !contents ||
       !ingredients.length ||
       !ingredientsQty.length
     ) {

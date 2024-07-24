@@ -66,6 +66,9 @@ export default function Page() {
               recipe={recipe}
               key={recipe.id}
               searchIngredients={[]}
+              onDeleteRecipe={(deletedRecipeId) => {
+                setRecipes(recipes.filter((r) => r.id !== deletedRecipeId));
+              }}
             />
           ))}
         </div>
