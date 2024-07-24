@@ -9,6 +9,7 @@ import useGetRecipeByFollowedUser from "../_hooks/useGetRecipeByFollowedUser";
 
 export default function Page() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  // @ts-ignore
   const { postDetails, setPostDetails } = useContext(PostContext);
   const { getRecipeByFollowedUser, data, loading, error } =
     useGetRecipeByFollowedUser();

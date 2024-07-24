@@ -27,6 +27,7 @@ type RecipeCardProps = {
 };
 
 export function RecipeCard({ recipe, searchIngredients }: RecipeCardProps) {
+  // @ts-ignore
   const { postDetails, setPostDetails } = useContext(PostContext);
   const { userId } = useAuth();
 

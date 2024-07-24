@@ -2,8 +2,8 @@
 import { createContext, useContext, useState } from "react";
 
 export interface PostDetails {
-  changedFav: object[];
-  changedFollow: object[];
+  changedFav: { id: string; like: boolean }[];
+  changedFollow: { id: string; follow: boolean }[];
 }
 
 export interface PostContextType {
@@ -11,7 +11,8 @@ export interface PostContextType {
   setPostDetails: React.Dispatch<React.SetStateAction<PostDetails>>;
 }
 
-const PostContext = createContext<PostContextType | null>(null);
+// @ts-ignore
+const PostContext = createContext<PostContextType>(null);
 
 function PostProvider({ children }: { children: React.ReactNode }) {
   const [postDetails, setPostDetails] = useState<PostDetails>({

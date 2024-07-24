@@ -9,6 +9,7 @@ import useGetFavRecipes from "../_hooks/useGetFavRecipes";
 
 export default function Page() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  // @ts-ignore
   const { postDetails, setPostDetails } = useContext(PostContext);
   const [buttonPress, setButtonPress] = useState<boolean>(false);
 
