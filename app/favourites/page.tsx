@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-
+import { useState, useEffect, useContext } from "react";
+import { PostContext, PostDetails, PostContextType } from "../PostProvider";
 import { RecipeCard } from "../_components/RecipeCard";
 import LoadingSkeleton from "../_components/LoadingSkeleton";
 import { fetchAuthSession } from "aws-amplify/auth";
@@ -9,14 +9,31 @@ import useGetFavRecipes from "../_hooks/useGetFavRecipes";
 
 export default function Page() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  // @ts-ignore
+  const { postDetails, setPostDetails } = useContext(PostContext);
+  const [buttonPress, setButtonPress] = useState<boolean>(false);
 
   const { getFavRecipes, data, loading, error } = useGetFavRecipes();
 
   useEffect(() => {
     if (data) {
-      setRecipes(data.users[0].favourite_recipes);
+      const recipeData = data.users[0].favourite_recipes;
+
+      if (postDetails.changedFav.length > 0) {
+        setRecipes((prevsData) =>
+          prevsData.filter(
+            (recipe) =>
+              !postDetails.changedFav.some(
+                (favDetails) =>
+                  favDetails.id === recipe.id && favDetails.like === false
+              )
+          )
+        );
+      } else {
+        setRecipes(recipeData);
+      }
     }
-  }, [data]);
+  }, [data, postDetails]);
 
   useEffect(() => {
     async function fetchRecipes() {

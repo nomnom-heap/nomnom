@@ -43,7 +43,7 @@ export default function Page() {
 
   return (
     <>
-      {recipes.length > 0 ? (
+      {data && recipes.length > 0 ? (
         <div className="pt-5 px-2 grid gap-4 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:px-20 md:pt-5">
           {recipes.map((recipe) => (
             <RecipeCard

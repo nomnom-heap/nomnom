@@ -34,7 +34,9 @@ const GET_FAV_RECIPES_QUERY = gql`
 
 export default function useGetFavRecipes() {
   const [getFavRecipes, { data, loading, error }] =
-    useLazyQuery<GetFavRecipesData>(GET_FAV_RECIPES_QUERY);
+    useLazyQuery<GetFavRecipesData>(GET_FAV_RECIPES_QUERY, {
+      fetchPolicy: "cache-and-network",
+    });
 
   return {
     getFavRecipes,

@@ -11,13 +11,14 @@ import {
   Avatar,
 } from "@nextui-org/react";
 import dynamic from "next/dynamic";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { RecipeCard } from "./RecipeCard";
 import useSearchRecipes from "../_hooks/useSearchRecipes";
 import { useAuth } from "../AuthProvider";
 import useFollowUsers from "../_hooks/useFollowUsers";
 import toast from "react-hot-toast";
 import useDeleteRecipe from "../_hooks/useDeleteRecipe";
+import { PostContext, PostDetails, PostContextType } from "../PostProvider";
 
 const Editor = dynamic(() => import("@/app/_components/BlockNoteEditor"), {
   ssr: false,
@@ -41,13 +42,37 @@ export default function RecipeModal({
   onOpenEditRecipeModal,
 }: RecipeModalProps) {
   const { userId } = useAuth();
+  const { postDetails, setPostDetails } = useContext(PostContext);
 
   const { recipes: recRecipes, setSearchTerm: setRecRecipesIngredients } =
     useSearchRecipes(LIMIT);
   const [isOwner, setIsOwner] = useState(false);
-  const [isFollowing, setIsFollowing] = useState<boolean>(
-    recipe.owner.followers.some((follower) => follower.id === userId)
-  ); // TODO: can be optimized to check if user is following the recipe owner instead
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Calculate the new value for `isFollowing`
+    const isFollower = recipe.owner.followers.some(
+      (follower) => follower.id === userId
+    );
+    const isInPostDetails = postDetails.changedFollow.some(
+      (followDetail) => followDetail.id === recipe.owner.id
+    );
+    const isInPostDetailsAndFollowed = postDetails.changedFollow.some(
+      (followDetail) =>
+        followDetail.id === recipe.owner.id && followDetail.follow === true
+    );
+
+    // Update state based on the conditions
+    if (isFollower && !isInPostDetails) {
+      setIsFollowing(true);
+    } else if (!isFollower && isInPostDetailsAndFollowed) {
+      setIsFollowing(true);
+    } else if (isFollower && isInPostDetailsAndFollowed) {
+      setIsFollowing(true);
+    } else {
+      setIsFollowing(false);
+    }
+  }, [postDetails, recipe]); // Dependency arra
 
   const {
     followUser,
@@ -65,12 +90,30 @@ export default function RecipeModal({
   } = useDeleteRecipe();
 
   async function handleFollowUser() {
+    setPostDetails((prevDetails) => ({
+      ...prevDetails,
+      changedFollow: [
+        ...prevDetails.changedFollow.filter(
+          (followDetails) => followDetails.id !== recipe.owner.id
+        ),
+        { id: recipe.owner.id, follow: true },
+      ],
+    }));
     await followUser({
       variables: { userToFollowId: recipe.owner.id, userId: userId },
     });
   }
 
   async function handleUnfollowUser() {
+    setPostDetails((prevDetails) => ({
+      ...prevDetails,
+      changedFollow: [
+        ...prevDetails.changedFollow.filter(
+          (followDetails) => followDetails.id !== recipe.owner.id
+        ),
+        { id: recipe.owner.id, follow: false },
+      ],
+    }));
     await unfollowUser({
       variables: { userToUnfollowId: recipe.owner.id, userId: userId },
     });
