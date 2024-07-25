@@ -115,21 +115,17 @@ export default function Page() {
   ] = useLazyQuery(GET_CHAT_HISTORY_BY_SESSION, {
     fetchPolicy: "network-only",
   });
-  
-    useEffect(() => {
+
+  useEffect(() => {
     const createSession = async () => {
       // const session = await fetchAuthSession();
 
       await createChatSession({});
-
-     
-
-     
     };
 
     createSession();
-  }, []); 
-  
+  }, []);
+
   // @ts-ignore
   async function handleSubmitMessage(chatMessage) {
     // console.log(chatMessage);
@@ -246,8 +242,6 @@ export default function Page() {
         });
     }
   }, [chatHistoryData]);
-  
-
 
   useEffect(() => {
     if (ChatSessionData) {
@@ -261,6 +255,14 @@ export default function Page() {
       setMessageData(getMessagesData.messagesBySession);
     }
   }, [getMessagesData]);
+
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messageData, chatbotResponse]); // Runs when messageData changes
 
   return (
     <div className="overflow-hidden">
@@ -329,6 +331,8 @@ export default function Page() {
         ) : (
           ""
         )}
+
+        <div ref={scrollRef} style={{ height: 0, overflow: "hidden" }} />
       </div>
 
       <div className="inset-x-0 px-2 pt-2 md:px-40 md:pb-16 md:pt-5 md:absolute md:bottom-6 h-20 ">
