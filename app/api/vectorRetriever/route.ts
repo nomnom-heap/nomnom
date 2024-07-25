@@ -4,7 +4,7 @@ import { Neo4jVectorStore } from "@langchain/community/vectorstores/neo4j_vector
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import {
   RunnablePassthrough,
-  RunnableSequence,
+  RunnableSequence,ed
 } from "@langchain/core/runnables";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
@@ -65,7 +65,7 @@ const SYSTEM_TEMPLATE = `
   {context}
   """
 `;
-export const runtime = 'edge';
+export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
