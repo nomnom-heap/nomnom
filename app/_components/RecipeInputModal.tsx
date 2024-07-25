@@ -274,6 +274,36 @@ export default function RecipeInputModal({
     }
   };
 
+  const [modalSize, setModalSize] = useState<"xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "full" | undefined>("2xl"); // default size
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 600) {
+        setModalSize("sm");
+      } else if (window.innerWidth < 768) {
+        setModalSize("md");
+      } else if (window.innerWidth < 1024) {
+        setModalSize("lg");
+      } else if (window.innerWidth < 1280) {
+        setModalSize("xl");
+      } else {
+        setModalSize("2xl");
+      }
+    };
+
+    // Set initial size
+    handleResize();
+
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup event listener on unmount
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+
   useEffect(() => {
     if (createRecipeData) {
       createSuccessToast("Nicely done! Recipe created!");
@@ -304,6 +334,7 @@ export default function RecipeInputModal({
       createErrorToast("Oops! Error deleting recipe.");
     }
   }, [deleteRecipeError]);
+
 
   if (!userId) {
     return (
@@ -341,6 +372,7 @@ export default function RecipeInputModal({
       isOpen={isOpen}
       placement="center"
       onOpenChange={onOpenChange}
+      size={modalSize}
     >
       <ModalContent className="bg-white h-auto overflow-y-auto overflow-x-hidden">
         {(onClose) => (
