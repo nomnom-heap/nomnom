@@ -274,7 +274,7 @@ export default function RecipeInputModal({
     }
   };
 
-  const [modalSize, setModalSize] = useState("2xl"); // default size
+  const [modalSize, setModalSize] = useState<"xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "full" | undefined>("2xl"); // default size
 
   useEffect(() => {
     const handleResize = () => {
