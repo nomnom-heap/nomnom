@@ -65,6 +65,7 @@ const SYSTEM_TEMPLATE = `
   {context}
   """
 `;
+export const runtime = 'edge';
 
 export async function POST(req: NextRequest) {
   try {
