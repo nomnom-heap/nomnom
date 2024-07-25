@@ -15,16 +15,16 @@ export async function POST(req: NextRequest) {
       openAIApiKey: apiKey,
     });
 
-    const client = new Client({
-      apiKey: process.env.LANGSMITH_API_KEY,
-      apiUrl: "https://api.smith.langchain.com",
-    });
-    const tracer = new LangChainTracer({ projectName: "Nombot" });
+    // const client = new Client({
+    //   apiKey: process.env.LANGSMITH_API_KEY,
+    //   apiUrl: "https://api.smith.langchain.com",
+    // });
+    // const tracer = new LangChainTracer({ projectName: "Nombot" });
 
     const rephraseAnswerChain = initRephraseChain(llm);
     const output = await rephraseAnswerChain.invoke(
       { input, history },
-      { callbacks: [tracer], runName: "Rephrase Question Chain" }
+      // { callbacks: [tracer], runName: "Rephrase Question Chain" }
     );
 
     return NextResponse.json({ output });
