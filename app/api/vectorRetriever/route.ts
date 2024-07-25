@@ -46,7 +46,7 @@ const SYSTEM_TEMPLATE = `
     </ul>
 
     </br>
-    <strong> Steps: <strong>
+    <strong> Steps: </strong>
     <ol class="list-decimal">
     <li>In a large bowl, mix together the flour, sugar, baking powder, and salt.</li>
     <li>In another bowl, whisk together the milk, egg, melted butter, and vanilla extract.</li>
@@ -59,8 +59,9 @@ const SYSTEM_TEMPLATE = `
     Repeat the same thing for other recipes.
 
   </ol>
-
-  Pancakes are a great recipe for the family! Let me know if you have other queries!
+  </br>
+  <strong>Comments:</strong>
+  <p> Pancakes are a great recipe for the family! Let me know if you have other queries! </p>
   ###
 
   ONLY use the context below to answer the question.
