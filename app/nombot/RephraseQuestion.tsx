@@ -58,7 +58,7 @@ export default function initRephraseChain(llm: any) {
       --------------
       Question: What makes the sky blue?
       Past history data - nothing found
-      Question: What makes the sky blue?
+      Rephrased Question: What makes the sky blue?
 
       If the chat history contains multiple questions involving conflicting requirements for the recipes, prioritise the newest requirements, which is the requirement closest to the bottom of the information.
       For example:
