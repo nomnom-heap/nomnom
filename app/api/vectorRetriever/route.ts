@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
       model: "gpt-4o",
       temperature: 0,
       openAIApiKey: apiKey,
-      maxTokens: -1
+      maxTokens: -1,
     });
 
     const url = process.env.NEO4J_URI!;
@@ -148,18 +148,17 @@ export async function POST(req: NextRequest) {
       llm,
       new StringOutputParser(),
     ]);
-    // const client = new Client({
-    //   apiKey: process.env.LANGSMITH_API_KEY,
-    //   apiUrl: "https://api.smith.langchain.com",
-    // });
-    // const tracer = new LangChainTracer({ projectName: "Nombot" });
+    const client = new Client({
+      apiKey: process.env.LANGSMITH_API_KEY,
+      apiUrl: "https://api.smith.langchain.com",
+    });
+    const tracer = new LangChainTracer({ projectName: "Nombot" });
     //const result = await chain.stream(query);
     //return NextResponse.json({ result });
-    const data = await chain.stream(query);
-    //   {
-    //   callbacks: [tracer],
-    //   runName: "Vector Retriever Chain",
-    // });
+    const data = await chain.stream(query, {
+      callbacks: [tracer],
+      runName: "Vector Retriever Chain",
+    });
     return new Response(data);
   } catch (error) {
     console.error("Error executing vector retriever:", error);
