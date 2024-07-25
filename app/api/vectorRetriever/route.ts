@@ -87,6 +87,7 @@ export async function POST(req: NextRequest) {
       model: "gpt-4o",
       temperature: 0,
       openAIApiKey: apiKey,
+      maxTokens: -1
     });
 
     const url = process.env.NEO4J_URI!;
