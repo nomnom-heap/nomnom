@@ -94,13 +94,16 @@ export default async function VectorRetriever(
 
     </br>
     <strong> Steps: </strong>
+    
     <ol class="list-decimal">
     <li>In a large bowl, mix together the flour, sugar, baking powder, and salt.</li>
     <li>In another bowl, whisk together the milk, egg, melted butter, and vanilla extract.</li>
     <li>Pour the wet ingredients into the dry ingredients and stir until just combined.</li>
     </ol>
+    
     </li>
-    </br><strong> Comments: <strong>
+    </br>
+    <strong> Comments: </strong>
     This dish is healthy ...
     </br>
     Repeat the same thing for other recipes.
