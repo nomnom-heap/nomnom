@@ -274,7 +274,19 @@ export default function RecipeInputModal({
     }
   };
 
-  const [modalSize, setModalSize] = useState<"xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "full" | undefined>("2xl"); // default size
+  const [modalSize, setModalSize] = useState<
+    | "xs"
+    | "sm"
+    | "md"
+    | "lg"
+    | "xl"
+    | "2xl"
+    | "3xl"
+    | "4xl"
+    | "5xl"
+    | "full"
+    | undefined
+  >("2xl"); // default size
 
   useEffect(() => {
     const handleResize = () => {
@@ -295,14 +307,13 @@ export default function RecipeInputModal({
     handleResize();
 
     // Add event listener
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     // Cleanup event listener on unmount
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
-
 
   useEffect(() => {
     if (createRecipeData) {
@@ -334,7 +345,6 @@ export default function RecipeInputModal({
       createErrorToast("Oops! Error deleting recipe.");
     }
   }, [deleteRecipeError]);
-
 
   if (!userId) {
     return (
@@ -378,7 +388,7 @@ export default function RecipeInputModal({
         {(onClose) => (
           <>
             <ModalBody>
-              <div className="flex-col pt-5 space-y-2">
+              <div className="flex flex-col pt-5 space-y-3 justify-center items-center">
                 {thumbnailUrl ? (
                   <Image
                     className="rounded-xl"
