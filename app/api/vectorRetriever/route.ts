@@ -170,3 +170,5 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export const runtime = "edge";
