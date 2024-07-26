@@ -126,8 +126,8 @@ export function RecipeCard({
   }, [unfavouriteRecipeError]);
 
   useEffect(() => {
-    if (!searchIngredients) {
-      setMissingIngredients([]);
+    if (searchIngredients.length === 0) {
+      setMissingIngredients(["no search input"]);
       return;
     }
 
@@ -147,13 +147,7 @@ export function RecipeCard({
           <CardHeader className="pb-0 pt-3 px-3 m-2 flex-col items-start">
             <div className="flex place-items-center justify-between w-full pr-2 pl-0">
               <div className="flex gap-3 place-items-center">
-                <Avatar
-                  isBordered
-                  radius="full"
-                  size="md"
-                  showFallback
-                  src=""
-                />
+                <Avatar radius="full" size="sm" showFallback src="" />
                 <h4 className="text-sm font-semibold leading-none text-default-600 overflow-ellipsis">
                   {updatedRecipe.owner.display_name}
                 </h4>
