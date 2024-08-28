@@ -21,16 +21,16 @@ Search by ingredients and recipe name
 
 Recommends similar recipes based on the recipe ingredients
 
-<div align="center">
-  <img src="./public/images/recommend%20recipes-2.gif" alt="Recipe Recommendation" width="50%">
+<div align="left">
+  <img src="./public/images/recommend-recipes.gif" alt="Recipe Recommendation" height="600px">
 </div>
 
 ### Nombot
 
 Chat with data from recipes
 
-<div align="center">
-  <img src="./public/images/nombot.gif" alt="Nombot" width="50%">
+<div align="left">
+  <img src="./public/images/nombot.gif" alt="Nombot" height="600px">
 </div>
 
 ### Recipe management
