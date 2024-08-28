@@ -45,6 +45,46 @@ export default function RecipeModal({
 }: RecipeModalProps) {
   const { userId } = useAuth();
   const { postDetails, setPostDetails } = useContext(PostContext);
+  const [modalSize, setModalSize] = useState<
+    | "xs"
+    | "sm"
+    | "md"
+    | "lg"
+    | "xl"
+    | "2xl"
+    | "3xl"
+    | "4xl"
+    | "5xl"
+    | "full"
+    | undefined
+  >("2xl"); // default size
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 600) {
+        setModalSize("sm");
+      } else if (window.innerWidth < 768) {
+        setModalSize("md");
+      } else if (window.innerWidth < 1024) {
+        setModalSize("lg");
+      } else if (window.innerWidth < 1280) {
+        setModalSize("xl");
+      } else {
+        setModalSize("2xl");
+      }
+    };
+
+    // Set initial size
+    handleResize();
+
+    // Add event listener
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup event listener on unmount
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const {
     recipes: recRecipesByIngredients,
@@ -191,7 +231,9 @@ export default function RecipeModal({
   return (
     <Modal
       scrollBehavior="inside"
-      className="h-auto xs:min-w-full sm:min-w-fit"
+      // size="2xl"
+      size={modalSize}
+      className="h-auto"
       isOpen={isOpen}
       placement="center"
       onOpenChange={onOpenChange}
@@ -203,21 +245,26 @@ export default function RecipeModal({
               <p>{recipe.name}</p>
               {!isOwner && (
                 <div className="flex flex-row items-center gap-4 mr-8">
-                  <Avatar size="md" showFallback />
+                  <Avatar size="sm" showFallback />
                   <span className="text-sm font-semibold leading-none whitespace-nowrap overflow-hidden text-ellipsis">
                     {recipe.owner.display_name}
                   </span>
-                  <Button
-                    color="primary"
-                    radius="full"
-                    size="sm"
-                    variant={isFollowing ? "bordered" : "solid"}
-                    onPress={() => {
-                      isFollowing ? handleUnfollowUser() : handleFollowUser();
-                    }}
-                  >
-                    {isFollowing ? "Unfollow" : "Follow"}
-                  </Button>
+
+                  {userId ? (
+                    <Button
+                      color="primary"
+                      radius="full"
+                      size="sm"
+                      variant={isFollowing ? "bordered" : "solid"}
+                      onPress={() => {
+                        isFollowing ? handleUnfollowUser() : handleFollowUser();
+                      }}
+                    >
+                      {isFollowing ? "Unfollow" : "Follow"}
+                    </Button>
+                  ) : (
+                    ""
+                  )}
                 </div>
               )}
             </ModalHeader>
@@ -237,7 +284,10 @@ export default function RecipeModal({
 
               <div className="flex flex-col gap-2 w-auto">
                 <div className="flex flex-col gap-2 items-left">
-                  {missingIngredients.length > 0 ? (
+                  {missingIngredients.length > 0 &&
+                  missingIngredients[0] === "no search input" ? (
+                    ""
+                  ) : missingIngredients.length > 0 ? (
                     <>
                       <p className="text-sm font-bold">Missing Ingredients:</p>
                       <p className="text-sm">{missingIngredients.join(", ")}</p>
