@@ -30,7 +30,7 @@ export default function InputComponent({
         <Spinner size="md" />
       ) : (
         <Button
-          color="secondary"
+          color="primary"
           onPress={() => {
             handleSubmit(chatMessage);
           }}

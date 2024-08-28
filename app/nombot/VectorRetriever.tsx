@@ -163,7 +163,7 @@ export default async function VectorRetriever(
   //   input_documents: relevantDocs,
   // });
   const client = new Client({
-    apiKey: process.env.LANGSMITH_API_KEY,
+    apiKey: process.env.LANGCHAIN_API_KEY,
     apiUrl: "https://api.smith.langchain.com",
   });
   const tracer = new LangChainTracer({ projectName: "Nombot" });

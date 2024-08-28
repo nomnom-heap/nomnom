@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
       new StringOutputParser(),
     ]);
     const client = new Client({
-      apiKey: process.env.LANGSMITH_API_KEY,
+      apiKey: process.env.LANGCHAIN_API_KEY,
       apiUrl: "https://api.smith.langchain.com",
     });
     const tracer = new LangChainTracer({ projectName: "Nombot" });
